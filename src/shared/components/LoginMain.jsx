@@ -1,8 +1,47 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useLogin } from '../../hooks/useAuth';
 
 const LoginMain = () => {
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const loginMutation = useLogin();
+
+  // Email validation
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      return 'Email is required';
+    }
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    return '';
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validate email
+    const error = validateEmail(email);
+    if (error) {
+      setEmailError(error);
+      return;
+    }
+    
+    // Clear error and submit
+    setEmailError('');
+    loginMutation.mutate(email);
+  };
+
+  // Handle email change
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (emailError) {
+      setEmailError('');
+    }
+  };
 
   return (
     <div className="min-vh-100 d-flex align-items-center">
@@ -51,29 +90,43 @@ const LoginMain = () => {
               </div>
               
               {/* Login Form */}
-              <form>
+              <form onSubmit={handleSubmit}>
                 {/* Email Input */}
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label mb-1">Email Address</label>
                   <input
                     type="email"
-                    className="form-control rounded-2 py-2 px-3"
+                    className={`form-control rounded-2 py-2 px-3 ${emailError ? 'is-invalid' : ''}`}
                     id="email"
                     placeholder="Enter your email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
+                    disabled={loginMutation.isPending}
                     required
                   />
+                  {emailError && (
+                    <div className="invalid-feedback d-block">
+                      {emailError}
+                    </div>
+                  )}
                 </div>
                 
                 
                 {/* Login Button */}
-                <Link to='/client/dashboard' 
+                <button 
                   type="submit" 
                   className="sec-btn w-100 rounded-2 py-2 text-center text-decoration-none"
+                  disabled={loginMutation.isPending}
                 >
-                  Log in
-                </Link>
+                  {loginMutation.isPending ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Sending code...
+                    </>
+                  ) : (
+                    'Log in'
+                  )}
+                </button>
               </form>
               
               {/* Sign up link */}

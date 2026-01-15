@@ -1,9 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useActivate, useLogin } from '../../hooks/useAuth';
+import { getUserEmail } from '../../utils/authStorage';
 
 const ActivationCodeMain = () => {
-  const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
+  const [otpValues, setOtpValues] = useState(['', '', '', '']); // Changed to 4 digits
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef([]);
+  
+  const activateMutation = useActivate();
+  const loginMutation = useLogin();
+  const userEmail = getUserEmail();
 
   // Focus the first input when component mounts
   useEffect(() => {
@@ -11,6 +19,18 @@ const ActivationCodeMain = () => {
       inputRefs.current[0].focus();
     }
   }, []);
+
+  // Countdown timer for resend
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
+    }
+  }, [countdown]);
 
   // Handle input change
   const handleChange = (index, e) => {
@@ -25,7 +45,7 @@ const ActivationCodeMain = () => {
     setOtpValues(newOtpValues);
     
     // Move to the next input if a value is entered
-    if (value && index < 5) {
+    if (value && index < 3) { // Changed from 5 to 3
       inputRefs.current[index + 1].focus();
     }
   };
@@ -43,13 +63,13 @@ const ActivationCodeMain = () => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').trim();
     
-    // Check if pasted data is a 6-digit number
-    if (/^\d{6}$/.test(pastedData)) {
+    // Check if pasted data is a 4-digit number
+    if (/^\d{4}$/.test(pastedData)) {
       const newOtpValues = pastedData.split('');
       setOtpValues(newOtpValues);
       
       // Focus the last input
-      inputRefs.current[5].focus();
+      inputRefs.current[3].focus(); // Changed from 5 to 3
     }
   };
 
@@ -59,14 +79,29 @@ const ActivationCodeMain = () => {
     const otp = otpValues.join('');
     
     // Validate that all fields are filled
-    if (otp.length !== 6) {
-      alert('Please enter all 6 digits');
+    if (otp.length !== 4) { // Changed from 6 to 4
       return;
     }
     
-    // Process the OTP
-    console.log('OTP submitted:', otp);
-    // Here you would typically send the OTP to your server for verification
+    // Submit activation code
+    // The mutation will handle validation and only navigate on success
+    activateMutation.mutate(otp);
+  };
+
+  // Handle resend code
+  const handleResend = () => {
+    if (!canResend || !userEmail) return;
+    
+    // Reset countdown and resend flag
+    setCountdown(60);
+    setCanResend(false);
+    
+    // Clear OTP inputs
+    setOtpValues(['', '', '', '']); // Changed to 4 empty strings
+    inputRefs.current[0]?.focus();
+    
+    // Resend code by calling login API again
+    loginMutation.mutate(userEmail);
   };
 
   return (
@@ -91,13 +126,16 @@ const ActivationCodeMain = () => {
                 {/* Title and Description */}
                 <div className="text-center">
                   <h2 className="mb-3 login-title">Enter the activation code</h2>
-                  <p className="login-description">Please enter the 6-character code sent To your email </p>
+                  <p className="login-description">
+                    Please enter the 4-digit code sent to your email
+                    {userEmail && <><br /><strong>{userEmail}</strong></>}
+                  </p>
                 </div>
                 
                 {/* OTP Form */}
                 <form onSubmit={handleSubmit}>
                   {/* OTP Input Fields */}
-                  <div className="d-flex justify-content-between gap-1 gap-md-2 mb-4">
+                  <div className="d-flex justify-content-center gap-2 gap-md-3 mb-4">
                     {otpValues.map((value, index) => (
                       <input
                         key={index}
@@ -109,27 +147,43 @@ const ActivationCodeMain = () => {
                         onPaste={index === 0 ? handlePaste : undefined}
                         ref={(el) => (inputRefs.current[index] = el)}
                         maxLength="1"
+                        disabled={activateMutation.isPending}
                         required
                       />
                     ))}
                   </div>
                   
-                  {/* Login Button */}
-                  <Link to='/login' 
+                  {/* Confirm Button */}
+                  <button 
                     type="submit" 
                     className="sec-btn w-100 rounded-2 py-2 text-center text-decoration-none"
+                    disabled={activateMutation.isPending || otpValues.join('').length !== 4}
                   >
-                    Confirm
-                  </Link>
+                    {activateMutation.isPending ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Verifying...
+                      </>
+                    ) : (
+                      'Confirm'
+                    )}
+                  </button>
                 </form>
                 
-                {/* Sign up link */}
+                {/* Resend code link */}
                 <div className="text-center mt-3">
                   <p className="mb-0 not-have">
-                    Resend the code in{' '}
-                    <Link to="/register" className="text-decoration-none login-create-account">
-                      58s
-                    </Link>
+                    {canResend ? (
+                      <button 
+                        onClick={handleResend}
+                        className="btn btn-link text-decoration-none login-create-account p-0"
+                        disabled={loginMutation.isPending}
+                      >
+                        {loginMutation.isPending ? 'Sending...' : 'Resend the code'}
+                      </button>
+                    ) : (
+                      <>Resend the code in <span className="login-create-account">{countdown}s</span></>
+                    )}
                   </p>
                 </div>
               </div>
