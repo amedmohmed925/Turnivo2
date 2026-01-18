@@ -5,144 +5,167 @@ import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
+import { getNewOrders, getProgressOrders, getCompletedOrders, getCanceledOrders, cancelOrder } from '../../api/cleaningServiceApi';
+import Swal from 'sweetalert2';
 
 const DashboardOrdersMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // API state
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(4); // Fixed total pages like in DashboardPropertyManagementMain
-  const itemsPerPage = 6; // Number of items to show per page
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   
   // Add state to track selected order filter
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('new');
   
-  // Sample data for materials with more dynamic fields
-  const materialsData = [
-    {
-      id: 1,
-      title: "Upholstery and carpet cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 12, 2026",
-      time: "8:00 pm - 10:00 pm",
-      price: "250 SAR",
-      location: "Riyadh, Al Narjis Neighborhood",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "new",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 2,
-      title: "Deep cleaning services",
-            subtitle: "Upholstery and carpet cleaning",
-
-      date: "June 13, 2026",
-      time: "10:00 am - 12:00 pm",
-      price: "180 SAR",
-      location: "Jeddah, Al Balad District",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "in-progress",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 3,
-      title: "Window and glass cleaning",
-            subtitle: "Upholstery and carpet cleaning",
-
-      date: "June 10, 2026",
-      time: "2:00 pm - 4:00 pm",
-      price: "120 SAR",
-      location: "Dammam, Al Corniche",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "finished",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 4,
-      title: "Kitchen and bathroom cleaning",
-            subtitle: "Upholstery and carpet cleaning",
-
-      date: "June 8, 2026",
-      time: "9:00 am - 11:00 am",
-      price: "150 SAR",
-      location: "Khobar, Al Dhabab Street",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "canceled",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 5,
-      title: "Complete house cleaning",
-            subtitle: "Upholstery and carpet cleaning",
-
-      date: "June 14, 2026",
-      time: "1:00 pm - 5:00 pm",
-      price: "300 SAR",
-      location: "Riyadh, Al Muruj District",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "new",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 6,
-      title: "Post-construction cleaning",
-            subtitle: "Upholstery and carpet cleaning",
-
-      date: "June 11, 2026",
-      time: "11:00 am - 3:00 pm",
-      price: "280 SAR",
-      location: "Mecca, Al Aziziyah",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "in-progress",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 7,
-      title: "Office cleaning service",
-            subtitle: "Upholstery and carpet cleaning",
-
-      date: "June 9, 2026",
-      time: "3:00 pm - 6:00 pm",
-      price: "200 SAR",
-      location: "Riyadh, King Abdullah Financial District",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "finished",
-      image: "/assets/problem-img-2.png"
-    }
-  ];
-  
-  // Filter materials based on selected filter
-  const filteredMaterials = materialsData.filter(item => {
-    if (selectedOrderFilter === 'new') return item.status === 'new';
-    if (selectedOrderFilter === 'in-progress') return item.status === 'in-progress';
-    if (selectedOrderFilter === 'finished') return item.status === 'finished';
-    if (selectedOrderFilter === 'canceled') return item.status === 'canceled';
-    return true; // Show all if no filter or unrecognized filter
-  });
-  
-  // Calculate total pages based on filtered data
-  useEffect(() => {
-    const calculatedPages = Math.ceil(filteredMaterials.length / itemsPerPage);
-    setTotalPages(calculatedPages);
+  // Fetch orders from API
+  const fetchOrders = async () => {
+    setLoading(true);
+    setError(null);
     
-    // Reset to first page if current page is beyond the new total pages
-    if (currentPage > calculatedPages && calculatedPages > 0) {
-      setCurrentPage(1);
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        throw new Error('No access token found. Please login again.');
+      }
+      
+      let response;
+      if (selectedOrderFilter === 'new') {
+        response = await getNewOrders(accessToken, currentPage);
+      } else if (selectedOrderFilter === 'in-progress') {
+        response = await getProgressOrders(accessToken, currentPage);
+      } else if (selectedOrderFilter === 'finished') {
+        response = await getCompletedOrders(accessToken, currentPage);
+      } else if (selectedOrderFilter === 'canceled') {
+        response = await getCanceledOrders(accessToken, currentPage);
+      }
+      
+      if (response && response.status === 1 && response.data && response.data[0]) {
+        const { items, _meta } = response.data[0];
+        setOrders(items || []);
+        setTotalPages(_meta?.NumberOfPage || 1);
+        setTotalCount(_meta?.totalCount || 0);
+      } else {
+        setOrders([]);
+        setTotalPages(1);
+      }
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setError(err.message || 'Failed to fetch orders');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message || 'Failed to fetch orders. Please try again.',
+      });
+    } finally {
+      setLoading(false);
     }
-  }, [filteredMaterials.length, currentPage, itemsPerPage]);
+  };
   
-  // Get current items for the current page
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredMaterials.slice(indexOfFirstItem, indexOfLastItem);
+  // Handle cancel order
+  const handleCancelOrder = async (orderId) => {
+    const result = await Swal.fire({
+      title: 'Cancel Order?',
+      text: 'Are you sure you want to cancel this order?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, cancel it!',
+      cancelButtonText: 'No, keep it'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          throw new Error('No access token found. Please login again.');
+        }
+
+        const response = await cancelOrder(orderId, accessToken);
+        
+        if (response && response.status === 1 && response.data?.[0]?.status === 1) {
+          const message = response.data?.[0]?.message || 'Your order has been canceled successfully.';
+          Swal.fire({
+            icon: 'success',
+            title: 'Canceled!',
+            text: message,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          // Refresh the orders list
+          fetchOrders();
+        } else {
+          const errorMessage = response.data?.[0]?.message || 'Failed to cancel order';
+          throw new Error(errorMessage);
+        }
+      } catch (err) {
+        console.error('Error canceling order:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message || 'Failed to cancel order. Please try again.',
+        });
+      }
+    }
+  };
+  
+  // Fetch orders when component mounts or when filter/page changes
+  useEffect(() => {
+    fetchOrders();
+  }, [selectedOrderFilter, currentPage]);
+  
+  // Helper function to map API data to component format
+  const mapOrderToCard = (order) => {
+    // Determine status based on the selected filter (since orders come from filter-specific endpoints)
+    // This ensures the status matches the current view
+    let status = selectedOrderFilter;
+    
+    // Fallback: if for some reason we need to determine from API data
+    if (!selectedOrderFilter) {
+      if (order.status?.id === 1) status = 'in-progress';
+      else if (order.status?.id === 2) status = 'finished';
+      else if (order.status?.name?.toLowerCase() === 'canceled' || order.status?.name?.toLowerCase() === 'cancelled') status = 'canceled';
+      else status = 'new';
+    }
+    
+    // Map platform to icon
+    const platformName = order.property_id?.platform_id?.name?.toLowerCase() || '';
+    let platformIcon = '/assets/booking.svg';
+    if (platformName.includes('airbnb') || platformName.includes('bnb')) {
+      platformIcon = '/assets/bnb.svg';
+    }
+    
+    // Build title from service type and plan
+    let title = order.clean_service_type_id?.name || 'Cleaning Service';
+    if (order.plan_id?.name) {
+      title += ` - ${order.plan_id.name}`;
+    }
+    
+    return {
+      id: order.id,
+      title: title,
+      subtitle: order.property_id?.name || 'Property',
+      date: order.date || 'N/A',
+      time: `${order.time_from || ''} - ${order.time_to || ''}`,
+      price: `${order.total_price || 0} SAR`,
+      location: order.property_id?.address || 'N/A',
+      platform: order.property_id?.platform_id?.name || 'N/A',
+      platformIcon: platformIcon,
+      status: status,
+      image: order.property_id?.image || '/assets/problem-img-2.png'
+    };
+  };
+  
+  // Map orders to display format
+  const currentItems = orders.map(mapOrderToCard);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -168,18 +191,17 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
     // Add your navigation logic here
   };
   
-  // Function to handle page change - same as DashboardPropertyManagementMain
+  // Function to handle page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      // Here you would typically fetch the data for the new page
     }
   };
   
-  // Function to render pagination numbers - simplified to match DashboardPropertyManagementMain
+  // Function to render pagination numbers
   const renderPaginationNumbers = () => {
     const pages = [];
-    // Render pages in descending order as shown in DashboardPropertyManagementMain
+    // Render pages in descending order
     for (let i = totalPages; i >= 1; i--) {
       pages.push(
         <button
@@ -220,9 +242,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
   const renderActionButtons = (status, itemId) => {
     switch(status) {
       case 'new':
-        return null; // No buttons for new orders
+        return <button className="btn btn-outline-danger" onClick={() => handleCancelOrder(itemId)}>Cancel order</button>;
       case 'in-progress':
-        return <button className="btn btn-outline-danger">Cancel order</button>;
+        return <button className="btn btn-outline-danger" onClick={() => handleCancelOrder(itemId)}>Cancel order</button>;
       case 'finished':
         return (
           <div className="d-flex gap-2 align-items-center">
@@ -368,12 +390,21 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
           </div>
         </div>
         
+        {/* Loading state */}
+        {loading && (
+          <div className="text-center mt-4 mb-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        )}
+        
         {/* Show message if no orders match the filter */}
-        {filteredMaterials.length === 0 ? (
+        {!loading && currentItems.length === 0 ? (
           <div className="text-center mt-4 mb-4">
             <p className="text-muted">No orders found for the selected filter.</p>
           </div>
-        ) : (
+        ) : !loading && (
           <>
             {/* Render current page items */}
             {currentItems.map((item) => (
@@ -417,7 +448,7 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
             ))}
             
             {/* Only show pagination if there are items */}
-            {filteredMaterials.length > 0 && (
+            {currentItems.length > 0 && totalPages > 1 && (
               <div className="d-flex justify-content-center mt-2 mb-3">
                 <div className="pagination-container d-flex align-items-center">
                   <button
