@@ -139,3 +139,91 @@ export const getServiceDetails = async (serviceId, accessToken) => {
   return response.data;
 };
 
+/**
+ * ===== MAINTENANCE SERVICE API FUNCTIONS =====
+ */
+
+/**
+ * Get new maintenance orders
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with new maintenance orders
+ */
+export const getNewMaintenanceOrders = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/my-new-maintenance-service?access-token=${accessToken}&page=${page}`
+  );
+  return response.data;
+};
+
+/**
+ * Get progress maintenance orders
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with progress maintenance orders
+ */
+export const getProgressMaintenanceOrders = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/my-progress-maintenance-service?access-token=${accessToken}&page=${page}`
+  );
+  return response.data;
+};
+
+/**
+ * Get completed maintenance orders
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with completed maintenance orders
+ */
+export const getCompletedMaintenanceOrders = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/my-complete-maintenance-service?access-token=${accessToken}&page=${page}`
+  );
+  return response.data;
+};
+
+/**
+ * Get cancelled maintenance orders
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with cancelled maintenance orders
+ */
+export const getCancelledMaintenanceOrders = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/my-cancelled-maintenance-service?access-token=${accessToken}&page=${page}`
+  );
+  return response.data;
+};
+
+/**
+ * Cancel a maintenance order
+ * @param {number} maintenanceServiceId - Maintenance service ID to cancel
+ * @param {string} accessToken - User's access token
+ * @returns {Promise} API response
+ */
+export const cancelMaintenanceOrder = async (maintenanceServiceId, accessToken) => {
+  const response = await axiosInstance.post(
+    `/demo/turnivo/api/web/v1/site/cancel-maintenance-service?access-token=${accessToken}`,
+    { maintenanceservice_id: maintenanceServiceId },
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+  return response.data;
+};
+
+/**
+ * Get maintenance service details by ID
+ * @param {number} serviceId - Service ID to view
+ * @param {string} accessToken - User's access token
+ * @returns {Promise} API response with service details
+ */
+export const getMaintenanceServiceDetails = async (serviceId, accessToken) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/maintenance-service-view?access-token=${accessToken}&id=${serviceId}`
+  );
+  return response.data;
+};
+

@@ -5,7 +5,7 @@ import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link, useNavigate } from 'react-router-dom';
-import { getNewOrders, getProgressOrders, getCompletedOrders, getCanceledOrders, cancelOrder } from '../../api/cleaningServiceApi';
+import { getNewMaintenanceOrders, getProgressMaintenanceOrders, getCompletedMaintenanceOrders, getCancelledMaintenanceOrders, cancelMaintenanceOrder } from '../../api/cleaningServiceApi';
 import Swal from 'sweetalert2';
 
 const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
@@ -28,7 +28,7 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
   
   // Handle card click to navigate to service details
   const handleCardClick = (orderId) => {
-    navigate(`/client/service-details?id=${orderId}`);
+    navigate(`/client/service-details?id=${orderId}&type=maintenance`);
   };
   
   // Fetch orders from API
@@ -44,13 +44,13 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
       
       let response;
       if (selectedOrderFilter === 'new') {
-        response = await getNewOrders(accessToken, currentPage);
+        response = await getNewMaintenanceOrders(accessToken, currentPage);
       } else if (selectedOrderFilter === 'in-progress') {
-        response = await getProgressOrders(accessToken, currentPage);
+        response = await getProgressMaintenanceOrders(accessToken, currentPage);
       } else if (selectedOrderFilter === 'finished') {
-        response = await getCompletedOrders(accessToken, currentPage);
+        response = await getCompletedMaintenanceOrders(accessToken, currentPage);
       } else if (selectedOrderFilter === 'canceled') {
-        response = await getCanceledOrders(accessToken, currentPage);
+        response = await getCancelledMaintenanceOrders(accessToken, currentPage);
       }
       
       if (response && response.status === 1 && response.data && response.data[0]) {
@@ -97,7 +97,7 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
           throw new Error('No access token found. Please login again.');
         }
 
-        const response = await cancelOrder(orderId, accessToken);
+        const response = await cancelMaintenanceOrder(orderId, accessToken);
         
         if (response && response.status === 1 && response.data?.[0]?.status === 1) {
           const message = response.data?.[0]?.message || 'Your order has been canceled successfully.';
@@ -140,7 +140,7 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
     if (!selectedOrderFilter) {
       if (order.status?.id === 1) status = 'in-progress';
       else if (order.status?.id === 2) status = 'finished';
-      else if (order.status?.name?.toLowerCase() === 'canceled' || order.status?.name?.toLowerCase() === 'cancelled') status = 'canceled';
+      else if (order.status?.id === 3) status = 'canceled';
       else status = 'new';
     }
     
@@ -151,10 +151,10 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
       platformIcon = '/assets/bnb.svg';
     }
     
-    // Build title from service type and plan
-    let title = order.clean_service_type_id?.name || 'Cleaning Service';
-    if (order.plan_id?.name) {
-      title += ` - ${order.plan_id.name}`;
+    // Build title from service type and importance level
+    let title = order.maintenance_service_type_id?.name || 'Maintenance Service';
+    if (order.maintenance_importance_type_id?.name) {
+      title += ` - ${order.maintenance_importance_type_id.name}`;
     }
     
     return {
@@ -163,7 +163,7 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
       subtitle: order.property_id?.name || 'Property',
       date: order.date || 'N/A',
       time: `${order.time_from || ''} - ${order.time_to || ''}`,
-      price: `${order.total_price || 0} SAR`,
+      price: `${order.login_code || 'N/A'}`,
       location: order.property_id?.address || 'N/A',
       platform: order.property_id?.platform_id?.name || 'N/A',
       platformIcon: platformIcon,
@@ -287,7 +287,7 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
             >
               <FontAwesomeIcon icon={faBars} />
             </button>
-            <h2 className="mb-0 dashboard-title">Cleaning request</h2>
+            <h2 className="mb-0 dashboard-title">Maintenance request</h2>
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
@@ -356,11 +356,11 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
               placeholder="Find a request..."
             />
           </div>
-          <Link to='/client/cleaning-request' 
+          <Link to='/client/maintenance' 
             type="submit" 
             className="sec-btn rounded-2 py-2 px-3 d-flex align-items-center gap-1 text-decoration-none"
           >
-            <span>Cleaning request</span>
+            <span>Maintenance request</span>
           </Link>
         </div>
         <div className="row package-filter align-items-center py-2 px-0 m-0 mb-3">
