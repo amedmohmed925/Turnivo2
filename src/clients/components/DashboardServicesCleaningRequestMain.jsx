@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getProperties } from '../../api/propertyApi';
 import { getListsData, getUserCalendar, createCleaningService, getPlans } from '../../api/cleaningServiceApi';
@@ -10,7 +10,9 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const propertyCardsRef = useRef({});
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   // Step management
   const [currentStep, setCurrentStep] = useState(1);
@@ -112,13 +114,36 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
           }
 
           console.log('All Properties:', allProperties);
-          setProperties(allProperties);
+          
+          // Reorder properties so selected property comes first
+          let orderedProperties = allProperties;
+          const propertyIdParam = searchParams.get('propertyId');
+          if (propertyIdParam) {
+            const selectedProp = allProperties.find(p => p.id.toString() === propertyIdParam);
+            if (selectedProp) {
+              orderedProperties = [
+                selectedProp,
+                ...allProperties.filter(p => p.id.toString() !== propertyIdParam)
+              ];
+            }
+          }
+          
+          setProperties(orderedProperties);
 
-          // Auto-select first property
-          if (allProperties.length > 0) {
-            const firstProperty = allProperties[0];
-            setSelectedProperty(firstProperty);
-            setFormData(prev => ({ ...prev, property_id: firstProperty.id }));
+          // Auto-select property from URL parameter or first property
+          if (orderedProperties.length > 0) {
+            const propertyToSelect = propertyIdParam 
+              ? orderedProperties.find(p => p.id.toString() === propertyIdParam)
+              : orderedProperties[0];
+            
+            if (propertyToSelect) {
+              setSelectedProperty(propertyToSelect);
+              setFormData(prev => ({ ...prev, property_id: propertyToSelect.id }));
+            } else {
+              // Fallback to first property if specified property not found
+              setSelectedProperty(orderedProperties[0]);
+              setFormData(prev => ({ ...prev, property_id: orderedProperties[0].id }));
+            }
           }
         } catch (propErr) {
           console.error('Error fetching properties:', propErr);
@@ -609,6 +634,9 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                     <div 
                       key={prop.id} 
                       className="property-card-wrapper"
+                      ref={(el) => {
+                        if (el) propertyCardsRef.current[prop.id] = el;
+                      }}
                     >
                       <div 
                         className={`calendar-card w-100 h-100 ${selectedProperty?.id === prop.id ? 'active' : ''}`} 

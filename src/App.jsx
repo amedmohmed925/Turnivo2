@@ -64,6 +64,7 @@ import CleanerTrainingDetails from './cleaner/pages/CleanerTrainingDetails'
 import CleanerReportProblem from './cleaner/pages/CleanerReportProblem'
 import CleanerShoppingCart from './cleaner/pages/CleanerShoppingCart'
 import Home from './shared/pages/Home'
+import DashboardMaintenanceOrders from './clients/pages/DashboardMaintenanceOrders'
 
 function App() {
   return (
@@ -94,6 +95,7 @@ function App() {
       <Route path="client/calendar" element={<DashboardCalendar />} />
       <Route path="client/calendar/:id" element={<DashboardCalendar />} />
       <Route path="client/notifications" element={<ClientNotifications />} />
+      <Route path="client/maintenance-orders" element={<DashboardMaintenanceOrders />} />
 
       {/* provider */}
       <Route path="provider/training" element={<DashboardTraining />} />

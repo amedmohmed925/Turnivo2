@@ -477,11 +477,11 @@ const DashboardPropertyDetailsMain = ({ onMobileMenuClick }) => {
                 <h6 className="dashboard-routes-sub m-0">{property.name}</h6>
             </div>
             <div className="d-flex gap-2 align-items-center flex-wrap">
-              <Link to={`/client/calendar/${property.id}`} className="third-btn d-flex align-items-center justify-content-center gap-1 w-50-100 text-decoration-none">
+              <Link to={`/client/calendar?propertyId=${property.id}`} className="third-btn d-flex align-items-center justify-content-center gap-1 w-50-100 text-decoration-none">
                 <img src="/assets/calendar-icon-2.svg" alt="calendar" />
                 <span className="mb-0">Calendar</span>
               </Link>
-              <Link to='/client/cleaning-request' className="sec-btn rounded-2 px-4 py-2 w-50-100 text-decoration-none">
+              <Link to={`/client/cleaning-request?propertyId=${property.id}`} className="sec-btn rounded-2 px-4 py-2 w-50-100 text-decoration-none">
                 Request cleaning service
               </Link>
               <Link to='/client/maintenance' className="main-btn rounded-2 px-3 py-2 w-50-100 text-decoration-none">

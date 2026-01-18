@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getPropertyById, getPropertyCalendar, getProperties } from '../../api/propertyApi';
 
@@ -9,8 +9,10 @@ const DashboardCalendarMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const propertyCardsRef = useRef({});
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
 
   // Property and calendar state
   const [property, setProperty] = useState(null);
@@ -88,21 +90,41 @@ const DashboardCalendarMain = ({ onMobileMenuClick }) => {
 
           setProperties(allProperties);
           
-          // Auto-select the first property if available
-          if (allProperties.length > 0) {
-            const firstProperty = allProperties[0];
-            setProperty(firstProperty);
-            setSelectedPropertyId(firstProperty.id);
+          // Reorder properties so selected property comes first
+          let orderedProperties = allProperties;
+          const propertyIdParam = searchParams.get('propertyId');
+          if (propertyIdParam) {
+            const selectedProp = allProperties.find(p => p.id.toString() === propertyIdParam);
+            if (selectedProp) {
+              orderedProperties = [
+                selectedProp,
+                ...allProperties.filter(p => p.id.toString() !== propertyIdParam)
+              ];
+            }
+          }
+          
+          setProperties(orderedProperties);
+          
+          // Auto-select property from URL parameter or first property if available
+          if (orderedProperties.length > 0) {
+            const propertyToSelect = propertyIdParam 
+              ? orderedProperties.find(p => p.id.toString() === propertyIdParam)
+              : orderedProperties[0];
             
-            // Fetch calendar events for the first property
-            try {
-              const calendarResponse = await getPropertyCalendar(accessToken, firstProperty.id);
-              if (calendarResponse.status === 1 && calendarResponse.data) {
-                const events = calendarResponse.data.flat();
-                setCalendarEvents(events);
+            if (propertyToSelect) {
+              setProperty(propertyToSelect);
+              setSelectedPropertyId(propertyToSelect.id);
+              
+              // Fetch calendar events for selected property
+              try {
+                const calendarResponse = await getPropertyCalendar(accessToken, propertyToSelect.id);
+                if (calendarResponse.status === 1 && calendarResponse.data) {
+                  const events = calendarResponse.data.flat();
+                  setCalendarEvents(events);
+                }
+              } catch (err) {
+                console.error('Error fetching calendar for selected property:', err);
               }
-            } catch (err) {
-              console.error('Error fetching calendar for first property:', err);
             }
           }
           
@@ -418,6 +440,9 @@ const DashboardCalendarMain = ({ onMobileMenuClick }) => {
                   <div 
                     key={prop.id} 
                     className={`property-card-wrapper ${selectedPropertyId === prop.id ? 'selected' : ''}`}
+                    ref={(el) => {
+                      if (el) propertyCardsRef.current[prop.id] = el;
+                    }}
                   >
                     <div 
                       className={`calendar-card w-100 h-100 ${selectedPropertyId === prop.id ? 'active' : ''}`} 
