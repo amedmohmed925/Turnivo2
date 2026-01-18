@@ -4,13 +4,14 @@ import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortaweso
 import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getNewOrders, getProgressOrders, getCompletedOrders, getCanceledOrders, cancelOrder } from '../../api/cleaningServiceApi';
 import Swal from 'sweetalert2';
 
 const DashboardOrdersMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   // API state
   const [orders, setOrders] = useState([]);
@@ -24,6 +25,11 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
   
   // Add state to track selected order filter
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('new');
+  
+  // Handle card click to navigate to service details
+  const handleCardClick = (orderId) => {
+    navigate(`/client/service-details?id=${orderId}`);
+  };
   
   // Fetch orders from API
   const fetchOrders = async () => {
@@ -70,7 +76,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
   };
   
   // Handle cancel order
-  const handleCancelOrder = async (orderId) => {
+  const handleCancelOrder = async (e, orderId) => {
+    e.stopPropagation(); // Prevent card click navigation
+    
     const result = await Swal.fire({
       title: 'Cancel Order?',
       text: 'Are you sure you want to cancel this order?',
@@ -242,23 +250,23 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
   const renderActionButtons = (status, itemId) => {
     switch(status) {
       case 'new':
-        return <button className="btn btn-outline-danger" onClick={() => handleCancelOrder(itemId)}>Cancel order</button>;
+        return <button className="btn btn-outline-danger" onClick={(e) => handleCancelOrder(e, itemId)}>Cancel order</button>;
       case 'in-progress':
-        return <button className="btn btn-outline-danger" onClick={() => handleCancelOrder(itemId)}>Cancel order</button>;
+        return <button className="btn btn-outline-danger" onClick={(e) => handleCancelOrder(e, itemId)}>Cancel order</button>;
       case 'finished':
         return (
           <div className="d-flex gap-2 align-items-center">
             <button className="sec-btn rounded-2 px-4 py-2 w-50-100">
               Re-order
             </button>
-            <Link to='/client/my-ratings' className="edit-btn d-flex align-items-center justify-content-center gap-1 text-decoration-none"> 
+            <Link to='/client/my-ratings' className="edit-btn d-flex align-items-center justify-content-center gap-1 text-decoration-none" onClick={(e) => e.stopPropagation()}> 
               <span className='fw-normal'>Rating</span>
             </Link>
           </div>
         );
       case 'canceled':
         return (
-          <Link to='/client/my-ratings' className="edit-btn d-flex align-items-center justify-content-center gap-1 text-decoration-none"> 
+          <Link to='/client/my-ratings' className="edit-btn d-flex align-items-center justify-content-center gap-1 text-decoration-none" onClick={(e) => e.stopPropagation()}> 
             <span className='fw-normal'>Rating</span>
           </Link>
         );
@@ -408,7 +416,12 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
           <>
             {/* Render current page items */}
             {currentItems.map((item) => (
-              <div key={item.id} className="d-flex align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3">
+              <div 
+                key={item.id} 
+                className="d-flex align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3"
+                onClick={() => handleCardClick(item.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="d-flex w-100 align-items-start flex-column flex-md-row gap-2">
                   <img src={item.image} className='img-fluid materials-img' alt="location" />   
                   <div className='d-flex flex-column gap-2 align-items-start w-100'>

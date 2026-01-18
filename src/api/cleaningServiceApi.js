@@ -126,3 +126,16 @@ export const cancelOrder = async (orderId, accessToken) => {
   return response.data;
 };
 
+/**
+ * Get service details by ID
+ * @param {number} serviceId - Service ID to view
+ * @param {string} accessToken - User's access token
+ * @returns {Promise} API response with service details
+ */
+export const getServiceDetails = async (serviceId, accessToken) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/clean-service-view?access-token=${accessToken}&id=${serviceId}`
+  );
+  return response.data;
+};
+

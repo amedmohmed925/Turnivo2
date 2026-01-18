@@ -4,12 +4,63 @@ import { faChevronDown, faBars } from '@fortawesome/free-solid-svg-icons';
 import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { getServiceDetails } from '../../api/cleaningServiceApi';
+import Swal from 'sweetalert2';
 
 const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [searchParams] = useSearchParams();
   
+  // API state
+  const [serviceData, setServiceData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Get service ID from URL
+  const serviceId = searchParams.get('id');
+  
+  // Fetch service details
+  useEffect(() => {
+    const fetchServiceDetails = async () => {
+      if (!serviceId) {
+        setError('No service ID provided');
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          throw new Error('No access token found. Please login again.');
+        }
+        
+        const response = await getServiceDetails(serviceId, accessToken);
+        
+        if (response && response.status === 1 && response.data && response.data[0]) {
+          setServiceData(response.data[0]);
+        } else {
+          throw new Error('Failed to fetch service details');
+        }
+      } catch (err) {
+        console.error('Error fetching service details:', err);
+        setError(err.message || 'Failed to fetch service details');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message || 'Failed to fetch service details. Please try again.',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchServiceDetails();
+  }, [serviceId]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -35,7 +86,12 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
     // Add your navigation logic here
   };
 
-
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
 
   return (
     <section>
@@ -114,97 +170,139 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
                 Edit
             </button>
         </div>
-        <div className="row">
-          <div className="col-12">
-            <div className="property-management-card mt-3 w-100">
-              <div className="d-flex align-items-start flex-column flex-md-row gap-3 w-100">
-                <div className="d-flex flex-column align-items-start gap-2 w-100">
-                  <div className="d-flex justify-content-between w-100 align-items-center">
-                    <h6 className="property-management-card-title m-0">Upholstery and carpet cleaning</h6>
-                    <div className='villa-badge py-1 px-3 rounded-pill'>Cleaning</div>
-                  </div>
-                <img src="/assets/property-management-card-img.png" className='property-management-card-img' alt="Property" />
-                  <div className="d-flex gap-4 align-items-center flex-wrap bg-white w-100 py-1 px-2 rounded-1">
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="/assets/calendar-3.svg" alt="calendar" />
-                      <p className="dashboard-home-card-2-desc-3 m-0">June 12, 2026</p>
+        
+        {/* Loading state */}
+        {loading && (
+          <div className="text-center mt-4 mb-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Error state */}
+        {error && !loading && (
+          <div className="text-center mt-4 mb-4">
+            <p className="text-danger">{error}</p>
+            <Link to="/client/cleaning-request" className="btn btn-primary">
+              Back to Orders
+            </Link>
+          </div>
+        )}
+        
+        {/* Service details */}
+        {!loading && !error && serviceData && (
+          <div className="row">
+            <div className="col-12">
+              <div className="property-management-card mt-3 w-100">
+                <div className="d-flex align-items-start flex-column flex-md-row gap-3 w-100">
+                  <div className="d-flex flex-column align-items-start gap-2 w-100">
+                    <div className="d-flex justify-content-between w-100 align-items-center">
+                      <h6 className="property-management-card-title m-0">
+                        {serviceData.clean_service_type_id?.name || 'Cleaning Service'}
+                        {serviceData.plan_id?.name && ` - ${serviceData.plan_id.name}`}
+                      </h6>
+                      <div className='villa-badge py-1 px-3 rounded-pill'>Cleaning</div>
                     </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="/assets/clock.svg" alt="clock" />
-                      <p className="dashboard-home-card-2-desc-3 mb-0">8:00 pm - 10:00 pm</p>
+                    <img 
+                      src={serviceData.property_id?.image || '/assets/property-management-card-img.png'} 
+                      className='property-management-card-img' 
+                      alt="Property" 
+                    />
+                    <div className="d-flex gap-4 align-items-center flex-wrap bg-white w-100 py-1 px-2 rounded-1">
+                      <div className="d-flex align-items-center gap-1">
+                        <img src="/assets/calendar-3.svg" alt="calendar" />
+                        <p className="dashboard-home-card-2-desc-3 m-0">{formatDate(serviceData.date)}</p>
+                      </div>
+                      <div className="d-flex align-items-center gap-1">
+                        <img src="/assets/clock.svg" alt="clock" />
+                        <p className="dashboard-home-card-2-desc-3 mb-0">
+                          {serviceData.time_from || ''} - {serviceData.time_to || ''}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                    <h2 className="mb-0 dashboard-title">Nakheel Neighborhood Hotel</h2>
+                    <h2 className="mb-0 dashboard-title">{serviceData.property_id?.name || 'Property'}</h2>
                     <div className="d-flex align-items-center">
                         <img src="/assets/location.svg" className='img-fluid' alt="location" />
-                        <p className="property-management-card-address m-0">Riyadh, Saudi Arabia, Al Nakheel Street</p>
+                        <p className="property-management-card-address m-0">
+                          {serviceData.property_id?.address || 'N/A'}
+                        </p>
                     </div>
                     <div className="d-flex align-items-center gap-2 px-1">
-                        <img src="/assets/dollar-2.svg" className='img-fluid' alt="location" />
+                        <img src="/assets/dollar-2.svg" className='img-fluid' alt="price" />
                         <p className="property-management-card-address fw-bold m-0">Price</p>
-                        <p className="currency m-0">250 SAR</p>
+                        <p className="currency m-0">{serviceData.total_price || 0} SAR</p>
                     </div>
-                    <h6 className="property-management-card-title mb-1 mt-2">Additional Services</h6>
-                    <div className="row w-100 g-0 g-lg-2">
-                                      <div className="col-md-2 col-12 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-                                      <div className="col-md-2 col-12 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-                                      <div className="col-md-2 col-12 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-                    </div>
+                    
+                    {/* Additional Services */}
+                    {serviceData.addition_service && serviceData.addition_service.length > 0 && (
+                      <>
+                        <h6 className="property-management-card-title mb-1 mt-2">Additional Services</h6>
+                        <div className="row w-100 g-0 g-lg-2">
+                          {serviceData.addition_service.map((service) => (
+                            <div key={service.id} className="col-md-2 col-12 mb-3 col-20-per">
+                              <div className="bg-light-gray p-3 rounded-3 h-100 active">
+                                <img 
+                                  src={service.addition_service?.image || '/assets/service-img.png'} 
+                                  className='img-fluid w-100' 
+                                  alt="service" 
+                                />
+                                <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
+                                  <h3 className='dashboard-routes-sub m-0'>
+                                    {service.addition_service?.name || 'Service'}
+                                  </h3>
+                                  <div className='third-btn-sm p-1 rounded-2'>
+                                    ${service.addition_service?.price || 0}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    
+                    {/* Price Breakdown */}
                     <div className="row w-100 g-0">
                         <div className="col-md-6">
-                                            <div className='total-payments p-3 rounded-3'>
-                  <div className='d-flex justify-content-between gap-4 align-items-center mb-2'>
-                    <h3 className='service-desc m-0'>Deep cleaning</h3>
-                    <h4 className='service-price m-0'>200 $</h4>
-                  </div>
-                  <div className='d-flex justify-content-between gap-4 align-items-center mb-2'>
-                    <h3 className='service-desc m-0'>Add-on services</h3>
-                    <h4 className='service-price m-0'>100 $</h4>
-                  </div>
-                  <div className='d-flex justify-content-between gap-4 align-items-center mb-2 px-1 px-md-2'>
-                    <h3 className='property-management-card-address m-0'>Cleaning the garden</h3>
-                    <h4 className='sub-service-price m-0'>50 $</h4>
-                  </div>
-                  <div className='d-flex justify-content-between gap-4 align-items-center mb-2 px-1 px-md-2'>
-                    <h3 className='property-management-card-address m-0'>Cleaning the garage</h3>
-                    <h4 className='sub-service-price m-0'>50 $</h4>
-                  </div>
-                  <div className='d-flex justify-content-between gap-4 align-items-center'>
-                    <h3 className='service-desc m-0'>Total</h3>
-                    <h4 className='service-total-price m-0'>300 $</h4>
-                  </div>
-                </div>
+                          <div className='total-payments p-3 rounded-3'>
+                            <div className='d-flex justify-content-between gap-4 align-items-center mb-2'>
+                              <h3 className='service-desc m-0'>
+                                {serviceData.clean_service_type_id?.name || 'Service'}
+                              </h3>
+                              <h4 className='service-price m-0'>{serviceData.price || 0} SAR</h4>
+                            </div>
+                            
+                            {serviceData.addition_service && serviceData.addition_service.length > 0 && (
+                              <>
+                                <div className='d-flex justify-content-between gap-4 align-items-center mb-2'>
+                                  <h3 className='service-desc m-0'>Add-on services</h3>
+                                  <h4 className='service-price m-0'>{serviceData.addition_service_price || 0} SAR</h4>
+                                </div>
+                                {serviceData.addition_service.map((service) => (
+                                  <div key={service.id} className='d-flex justify-content-between gap-4 align-items-center mb-2 px-1 px-md-2'>
+                                    <h3 className='property-management-card-address m-0'>
+                                      {service.addition_service?.name || 'Service'}
+                                    </h3>
+                                    <h4 className='sub-service-price m-0'>{service.addition_service?.price || 0} SAR</h4>
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                            
+                            <div className='d-flex justify-content-between gap-4 align-items-center'>
+                              <h3 className='service-desc m-0'>Total</h3>
+                              <h4 className='service-total-price m-0'>{serviceData.total_price || 0} SAR</h4>
+                            </div>
+                          </div>
                         </div>
                     </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
         
       </div>
     </section>
