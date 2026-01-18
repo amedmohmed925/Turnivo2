@@ -31,7 +31,7 @@ const Footer = () => {
           <div className="col-lg-4 col-md-6 mb-4">
             <div className="mb-4">
               <img 
-                src="../assets/logo.png" 
+                src="/assets/logo.png" 
                 alt="ONS Logo" 
                 height="70" 
                 className="mb-3"
@@ -40,9 +40,9 @@ const Footer = () => {
                 Reliable home services with high quality! Contact us anytime. 📞 ✨
               </p>
               <div className="d-flex gap-2 flex-wrap mt-3">
-                <img src="../assets/pay-1.png" alt="PayPal" height="50" />
-                <img src="../assets/pay-2.png" alt="Mastercard" height="50" />
-                <img src="../assets/pay-3.png" alt="VISA" height="50" />
+                <img src="/assets/pay-1.png" alt="PayPal" height="50" />
+                <img src="/assets/pay-2.png" alt="Mastercard" height="50" />
+                <img src="/assets/pay-3.png" alt="VISA" height="50" />
               </div>
             </div>
           </div>

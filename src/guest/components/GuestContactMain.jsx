@@ -16,7 +16,7 @@ const GuestContactMain = () => {
                 <h6 className="dashboard-routes-sub m-0">Contact us</h6>
                     <div className="d-flex align-items-center gap-2 my-3">
                         <div className="service-desc mb-2 mt-2">Welcome to Customer Service</div>
-                        <img src="../assets/user.png" className='provider-rate' alt="user" />
+                        <img src="/assets/user.png" className='provider-rate' alt="user" />
                         <div>
                             <h6 className='popup-title m-0'>Omar Alrajihi</h6>
                             <h6 className="dashboard-routes-sub m-0 mt-1">2024/09/28</h6>

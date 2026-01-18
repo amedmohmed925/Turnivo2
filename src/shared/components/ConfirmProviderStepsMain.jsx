@@ -111,7 +111,7 @@ const handleNextStep = (e) => {
                     style={{ cursor: 'pointer' }}
                     >
                     <div className="step-circle">
-                        <img src="../assets/provider-step-icon-1.svg" alt="info" />
+                        <img src="/assets/provider-step-icon-1.svg" alt="info" />
                     </div>
                     <span className="step-label">Contact Information</span>
                     </div>
@@ -122,7 +122,7 @@ const handleNextStep = (e) => {
                     style={{ cursor: 'pointer' }}
                     >
                     <div className="step-circle">
-                        <img src="../assets/provider-step-icon-2.svg" alt="location" />
+                        <img src="/assets/provider-step-icon-2.svg" alt="location" />
                     </div>
                     <span className="step-label">Address</span>
                     </div>
@@ -133,7 +133,7 @@ const handleNextStep = (e) => {
                     style={{ cursor: 'pointer' }}
                     >
                     <div className="step-circle">
-                        <img src="../assets/provider-step-icon-3.svg" alt="photos" />
+                        <img src="/assets/provider-step-icon-3.svg" alt="photos" />
                     </div>
                     <span className="step-label">Ervaring</span>
                     </div>
@@ -144,7 +144,7 @@ const handleNextStep = (e) => {
                     style={{ cursor: 'pointer' }}
                     >
                     <div className="step-circle">
-                        <img src="../assets/provider-step-icon-4.svg" alt="contact" />
+                        <img src="/assets/provider-step-icon-4.svg" alt="contact" />
                     </div>
                     <span className="step-label">Possibility to start</span>
                     </div>
@@ -157,7 +157,7 @@ const handleNextStep = (e) => {
             <div 
               className="h-100 d-flex align-items-center justify-content-center rounded-3"
               style={{
-                backgroundImage: `url('../assets/login-2.png')`,
+                backgroundImage: `url('/assets/login-2.png')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundColor: '#f8f9fa'
@@ -165,7 +165,7 @@ const handleNextStep = (e) => {
             >
               <div className="text-center d-flex justify-content-center align-items-center p-4 w-100 h-100" style={{ backgroundColor: '#FFFFFF33', borderRadius: '10px' }}>
                 <img 
-                  src="../assets/logo.png" 
+                  src="/assets/logo.png" 
                   alt="Logo"  
                   className="mb-3 confirm-logo"
                 />
@@ -405,7 +405,7 @@ const handleNextStep = (e) => {
             <div 
               className="h-100 d-flex align-items-center justify-content-center rounded-3"
               style={{
-                backgroundImage: `url('../assets/login-3.png')`,
+                backgroundImage: `url('/assets/login-3.png')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundColor: '#f8f9fa'
@@ -465,7 +465,7 @@ const handleNextStep = (e) => {
             <div 
               className="h-100 d-flex align-items-center justify-content-center rounded-3"
               style={{
-                backgroundImage: `url('../assets/login-4.png')`,
+                backgroundImage: `url('/assets/login-4.png')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundColor: '#f8f9fa'

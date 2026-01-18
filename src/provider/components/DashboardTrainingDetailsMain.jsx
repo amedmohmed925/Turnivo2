@@ -55,11 +55,11 @@ const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/provider/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -74,7 +74,7 @@ const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -86,21 +86,21 @@ const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
           <div className="col-12 mb-2">
   <div className="">
     <img
-      src="../assets/training-card-img.png"
+      src="/assets/training-card-img.png"
       className="training-details-card-img img-fluid w-100 rounded-2"
       alt="card-img"
     />

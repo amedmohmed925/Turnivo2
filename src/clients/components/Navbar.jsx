@@ -34,7 +34,7 @@ const Navbar = () => {
           {/* Logo and Brand */}
           <Link className="navbar-brand d-flex align-items-center" to="/">
             <img 
-              src="../assets/logo.png" 
+              src="/assets/logo.png" 
               alt="Logo" 
               height="40" 
               className="me-2"

@@ -52,7 +52,7 @@ const LoginMain = () => {
             <div 
               className="h-100 d-flex align-items-center justify-content-center rounded-3"
               style={{
-                backgroundImage: `url('../assets/login.jpg')`,
+                backgroundImage: `url('/assets/login.jpg')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundColor: '#f8f9fa'
@@ -60,7 +60,7 @@ const LoginMain = () => {
             >
               <div className="text-center d-flex justify-content-center align-items-center p-4 w-100 h-100" style={{ backgroundColor: '#FFFFFF33', borderRadius: '10px' }}>
                 <img 
-                  src="../assets/logo.png" 
+                  src="/assets/logo.png" 
                   alt="Logo" 
                   height="180" 
                   className="mb-3"
@@ -76,7 +76,7 @@ const LoginMain = () => {
               {/* Logo */}
               <div className="text-center">
                 <img 
-                  src="../assets/logo.png" 
+                  src="/assets/logo.png" 
                   alt="Logo" 
                   height="70" 
                   className="mb-3"

@@ -78,7 +78,7 @@ function App() {
       {/* client */}
       <Route path="client/dashboard" element={<DashboardHome />} />
       <Route path="client/property-management" element={<DashboardPropertyManagement />} />
-      <Route path="client/property-details" element={<DashboardPropertyDetails />} />
+      <Route path="client/property-details/:id" element={<DashboardPropertyDetails />} />
       <Route path="client/create-property" element={<DashboardCreateProperty />} />
       <Route path="client/property-problem" element={<DashboardProperyProblem />} />
       <Route path="client/cleaning-request" element={<DashboardServicesCleaningRequest />} />
@@ -92,6 +92,7 @@ function App() {
       <Route path="client/guest-ratings" element={<DashboarGuestRatings />} />
       <Route path="client/contact-us" element={<DashboardContact />} />
       <Route path="client/calendar" element={<DashboardCalendar />} />
+      <Route path="client/calendar/:id" element={<DashboardCalendar />} />
       <Route path="client/notifications" element={<ClientNotifications />} />
 
       {/* provider */}

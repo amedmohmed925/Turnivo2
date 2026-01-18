@@ -53,11 +53,11 @@ const DashboardAvailabilityMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/provider/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -72,7 +72,7 @@ const DashboardAvailabilityMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -84,21 +84,21 @@ const DashboardAvailabilityMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -108,7 +108,7 @@ const DashboardAvailabilityMain = ({ onMobileMenuClick }) => {
         </div>
       </div>
       <div className="dashboard-home-content px-3 mt-2">
-        <img src="../assets/user.png" className='profile-img' alt="user" />
+        <img src="/assets/user.png" className='profile-img' alt="user" />
         <h2 className="mb-0 property-problem-title">Omar Alrajihi</h2>
         <div className="d-flex justify-content-between align-items-end gap-3 flex-wrap">
           <div>
@@ -122,7 +122,7 @@ const DashboardAvailabilityMain = ({ onMobileMenuClick }) => {
             </div>
           </div>
             <button className="main-btn rounded-2 px-3 py-2 w-50-100 d-flex gap-2 align-items-center">
-                <img src="../assets/edit-2.svg" alt="edit" />
+                <img src="/assets/edit-2.svg" alt="edit" />
                 Edit
             </button>
         </div>

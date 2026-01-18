@@ -1,27 +1,411 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faBars } from '@fortawesome/free-solid-svg-icons';
-import { Person, Settings, Logout } from '@mui/icons-material';
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { getProperties } from '../../api/propertyApi';
+import { getListsData, getUserCalendar, createCleaningService, getPlans } from '../../api/cleaningServiceApi';
 
 const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const navigate = useNavigate();
   
-  // Add state to track current step
+  // Step management
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   
-  // Add state to track selected payment method
+  // Data states
+  const [properties, setProperties] = useState([]);
+  const [listsData, setListsData] = useState(null);
+  const [plans, setPlans] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Selection states
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [selectedServiceType, setSelectedServiceType] = useState(null);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [selectedAddons, setSelectedAddons] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   
-  // Add state to track selected package filter
-  const [selectedPackageFilter, setSelectedPackageFilter] = useState('package');
+  // Calendar states
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [weekDates, setWeekDates] = useState([]);
+  
+  // Form data
+  const [formData, setFormData] = useState({
+    property_id: null,
+    clean_service_type_id: null,
+    plan_id: null,
+    clean_service_addition_service_id: [],
+    date: '',
+    time_from: '',
+    time_to: '',
+    price: 0,
+    addition_service_price: 0,
+    total_price: 0
+  });
 
-  // Close dropdown when clicking outside
+  // Generate week dates
+  useEffect(() => {
+    const dates = [];
+    const startOfWeek = new Date(currentDate);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day;
+    startOfWeek.setDate(diff);
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      dates.push(date);
+    }
+    setWeekDates(dates);
+  }, [currentDate]);
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setIsLoading(true);
+        const accessToken = localStorage.getItem('access_token');
+        
+        if (!accessToken) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Authentication Required',
+            text: 'Please log in to continue.',
+          });
+          navigate('/client/login');
+          return;
+        }
+
+        // Fetch properties with pagination (with error handling)
+        try {
+          console.log('Access Token:', accessToken);
+          let allProperties = [];
+          let currentPage = 1;
+          let hasMorePages = true;
+
+          while (hasMorePages) {
+            console.log('Fetching properties page:', currentPage);
+            const propertiesResponse = await getProperties(accessToken, currentPage);
+            console.log('Properties Response:', propertiesResponse);
+            if (propertiesResponse.status === 1 && propertiesResponse.data) {
+              const pageData = propertiesResponse.data[0];
+              const items = pageData?.items || [];
+              console.log('Properties items:', items);
+              allProperties = [...allProperties, ...items];
+
+              const meta = pageData?._meta;
+              if (meta && currentPage < meta.NumberOfPage) {
+                currentPage++;
+              } else {
+                hasMorePages = false;
+              }
+            } else {
+              hasMorePages = false;
+            }
+          }
+
+          console.log('All Properties:', allProperties);
+          setProperties(allProperties);
+
+          // Auto-select first property
+          if (allProperties.length > 0) {
+            const firstProperty = allProperties[0];
+            setSelectedProperty(firstProperty);
+            setFormData(prev => ({ ...prev, property_id: firstProperty.id }));
+          }
+        } catch (propErr) {
+          console.error('Error fetching properties:', propErr);
+          console.error('Error details:', propErr.response || propErr.message);
+          // Continue loading other data even if properties fail
+        }
+
+        // Fetch lists data
+        try {
+          const listsResponse = await getListsData(accessToken);
+          console.log('Lists Response:', listsResponse);
+          if (listsResponse.status === 1 && listsResponse.data) {
+            console.log('Lists Data:', listsResponse.data[0]);
+            setListsData(listsResponse.data[0]);
+            
+            // Auto-select first service type (Package)
+            const cleanServiceTypes = listsResponse.data[0]?.CleanServiceType || [];
+            console.log('Clean Service Types:', cleanServiceTypes);
+            const packageType = cleanServiceTypes.find(type => type.name.toLowerCase() === 'package');
+            if (packageType) {
+              setSelectedServiceType(packageType);
+              setFormData(prev => ({ ...prev, clean_service_type_id: packageType.id }));
+            }
+          }
+        } catch (listsErr) {
+          console.error('Error fetching lists:', listsErr);
+        }
+
+        // Fetch user calendar
+        try {
+          const calendarResponse = await getUserCalendar(accessToken);
+          if (calendarResponse.status === 1 && calendarResponse.data) {
+            const events = calendarResponse.data.flat();
+            setCalendarEvents(events);
+          }
+        } catch (calErr) {
+          console.error('Error fetching calendar:', calErr);
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setIsLoading(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load data. Please try again.',
+        });
+      }
+    };
+
+    fetchInitialData();
+  }, [navigate]);
+
+  // Fetch plans when "Package" service type is selected
+  useEffect(() => {
+    const fetchPlans = async () => {
+      if (selectedServiceType?.name.toLowerCase() === 'package') {
+        try {
+          const accessToken = localStorage.getItem('access_token');
+          const plansResponse = await getPlans(accessToken);
+          console.log('Plans Response:', plansResponse);
+          if (plansResponse.status === 1 && plansResponse.data) {
+            const plansData = plansResponse.data[0]?.items || [];
+            console.log('Plans Data:', plansData);
+            setPlans(plansData);
+          }
+        } catch (err) {
+          console.error('Error fetching plans:', err);
+        }
+      } else {
+        setPlans([]);
+      }
+    };
+
+    fetchPlans();
+  }, [selectedServiceType]);
+
+
+  // Handlers
+  const handlePropertySelect = (property) => {
+    setSelectedProperty(property);
+    setFormData(prev => ({ ...prev, property_id: property.id }));
+  };
+
+  const handleServiceTypeSelect = (serviceType) => {
+    setSelectedServiceType(serviceType);
+    setSelectedPlan(null);
+    setFormData(prev => ({
+      ...prev,
+      clean_service_type_id: serviceType.id,
+      plan_id: null,
+      price: 0
+    }));
+  };
+
+  const handlePlanSelect = (plan) => {
+    setSelectedPlan(plan);
+    setFormData(prev => ({
+      ...prev,
+      plan_id: plan.id,
+      price: plan.price || 0,
+      total_price: (plan.price || 0) + prev.addition_service_price
+    }));
+  };
+
+  const handleAddonToggle = (addon) => {
+    const isSelected = selectedAddons.find(a => a.id === addon.id);
+    let newAddons;
+    
+    if (isSelected) {
+      newAddons = selectedAddons.filter(a => a.id !== addon.id);
+    } else {
+      newAddons = [...selectedAddons, addon];
+    }
+    
+    setSelectedAddons(newAddons);
+    
+    const addonIds = newAddons.map(a => a.id);
+    const addonPrice = newAddons.reduce((sum, a) => sum + (a.price || 0), 0);
+    
+    setFormData(prev => ({
+      ...prev,
+      clean_service_addition_service_id: addonIds,
+      addition_service_price: addonPrice,
+      total_price: prev.price + addonPrice
+    }));
+  };
+
+  const handleAppointmentSelect = (event) => {
+    setSelectedAppointment(event);
+    setFormData(prev => ({
+      ...prev,
+      date: event.date,
+      time_from: event.time_from,
+      time_to: event.time_to
+    }));
+  };
+
+  const handlePaymentMethodClick = (method) => {
+    setSelectedPaymentMethod(method);
+  };
+
+  // Calendar helpers
+  const getEventForSlot = (date, timeSlot) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const dateKey = `${year}-${month}-${day}`;
+
+    return calendarEvents.filter(event => event.date === dateKey);
+  };
+
+  const handleNextWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + 7);
+    setCurrentDate(newDate);
+  };
+
+  const handlePrevWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() - 7);
+    setCurrentDate(newDate);
+  };
+
+  const handleToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const formatDateHeader = (date) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = days[date.getDay()];
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return { dayName, dateStr: `${month}/${day}` };
+  };
+
+  const formatDateRange = () => {
+    if (weekDates.length === 0) return '';
+    const start = weekDates[0];
+    const end = weekDates[6];
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    return `${start.toLocaleDateString('en-GB', options)} - ${end.toLocaleDateString('en-GB', options)}`;
+  };
+
+  // Scroll functions
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -350, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+    }
+  };
+
+  // Step navigation
+  const handleNextStep = () => {
+    // Validation
+    if (currentStep === 1) {
+      if (!selectedProperty) {
+        Swal.fire({ icon: 'warning', title: 'Please select a property' });
+        return;
+      }
+      if (!selectedServiceType) {
+        Swal.fire({ icon: 'warning', title: 'Please select a service type' });
+        return;
+      }
+      if (selectedServiceType.name.toLowerCase() === 'package' && !selectedPlan) {
+        Swal.fire({ icon: 'warning', title: 'Please select a package' });
+        return;
+      }
+    }
+    
+    if (currentStep === 2) {
+      if (!selectedAppointment) {
+        Swal.fire({ icon: 'warning', title: 'Please select an appointment' });
+        return;
+      }
+    }
+    
+    if (currentStep === 4) {
+      handleSubmit();
+      return;
+    }
+    
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleStepClick = (stepNumber) => {
+    setCurrentStep(stepNumber);
+  };
+
+  // Form submission
+  const handleSubmit = async () => {
+    try {
+      if (!selectedPaymentMethod) {
+        Swal.fire({ icon: 'warning', title: 'Please select a payment method' });
+        return;
+      }
+
+      setIsSubmitting(true);
+      const accessToken = localStorage.getItem('access_token');
+
+      // Prepare data for submission
+      const submissionData = { ...formData };
+      
+      // Convert array of IDs to comma-separated string
+      if (Array.isArray(submissionData.clean_service_addition_service_id)) {
+        submissionData.clean_service_addition_service_id = submissionData.clean_service_addition_service_id.join(',');
+      }
+
+      const response = await createCleaningService(submissionData, accessToken);
+
+      if (response.status === 1) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Cleaning service request submitted successfully.',
+        });
+        navigate('/client/orders');
+      } else {
+        throw new Error(response.message || 'Failed to submit request');
+      }
+    } catch (err) {
+      console.error('Error submitting request:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message || 'Failed to submit request. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Dropdown handlers
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -39,40 +423,44 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const handleDropdownItemClick = (item) => {
-    console.log(`Clicked on ${item}`);
+  const handleDropdownItemClick = (action) => {
     setIsDropdownOpen(false);
-    // Add your navigation logic here
-  };
-
-  // Function to handle next step
-  const handleNextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
+    if (action === 'profile') {
+      navigate('/client/profile');
+    } else if (action === 'settings') {
+      navigate('/client/settings');
+    } else if (action === 'logout') {
+      localStorage.removeItem('access_token');
+      navigate('/client/login');
     }
   };
 
-  // Function to handle previous step
-  const handlePrevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const timeSlots = [
+    { label: '8:00 AM', value: '08' },
+    { label: '10:00 AM', value: '10' },
+    { label: '12:00 PM', value: '12' },
+    { label: '2:00 PM', value: '14' },
+    { label: '4:00 PM', value: '16' },
+    { label: '6:00 PM', value: '18' },
+    { label: '8:00 PM', value: '20' },
+  ];
 
-  // Function to handle step click from the step indicator
-  const handleStepClick = (stepNumber) => {
-    setCurrentStep(stepNumber);
-  };
-  
-  // Function to handle payment method selection
-  const handlePaymentMethodClick = (method) => {
-    setSelectedPaymentMethod(method);
-  };
-  
-  // Function to handle package filter selection
-  const handlePackageFilterClick = (filter) => {
-    setSelectedPackageFilter(filter);
-  };
+  if (isLoading) {
+    return (
+      <section>
+        <div className="dashboard-main-nav px-md-3 px-1 py-1">
+          <div className="d-flex justify-content-between align-items-center">
+            <h2 className="mb-0 dashboard-title">Cleaning request</h2>
+          </div>
+        </div>
+        <div className="dashboard-home-content px-3 mt-2">
+          <div className="text-center mt-4 mb-4">
+            <p className="text-muted">Loading...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section>
@@ -90,14 +478,13 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/client/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
-            {/* User Profile Dropdown */}
             <div className="user-dropdown-container d-none d-md-block" ref={dropdownRef}>
               <div 
                 className="user-profile-trigger d-flex gap-2 align-items-center"
@@ -109,7 +496,7 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -121,21 +508,21 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -144,8 +531,10 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
           </div>
         </div>
       </div>
+      
       <div className="dashboard-home-content px-3 mt-2">
         <h6 className="dashboard-routes-sub m-0">Cleaning request</h6>
+        
         {/* Steps */}
         <div className="create-property-steps mt-4">
           <div className="steps-wrapper">
@@ -155,9 +544,9 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
               style={{ cursor: 'pointer' }}
             >
               <div className="step-circle">
-                <img src="../assets/cleaning-step-1.svg" alt="info" />
+                <img src="/assets/cleaning-step-1.svg" alt="info" />
               </div>
-              <span className="step-label">Property and Pakage</span>
+              <span className="step-label">Property and Package</span>
             </div>
 
             <div 
@@ -166,7 +555,7 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
               style={{ cursor: 'pointer' }}
             >
               <div className="step-circle">
-                <img src="../assets/cleaning-step-2.svg" alt="location" />
+                <img src="/assets/cleaning-step-2.svg" alt="location" />
               </div>
               <span className="step-label">Service date</span>
             </div>
@@ -177,7 +566,7 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
               style={{ cursor: 'pointer' }}
             >
               <div className="step-circle">
-                <img src="../assets/cleaning-step-3.svg" alt="photos" />
+                <img src="/assets/cleaning-step-3.svg" alt="photos" />
               </div>
               <span className="step-label">Add-on Services</span>
             </div>
@@ -188,546 +577,296 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
               style={{ cursor: 'pointer' }}
             >
               <div className="step-circle">
-                <img src="../assets/cleaning-step-4.svg" alt="contact" />
+                <img src="/assets/cleaning-step-4.svg" alt="contact" />
               </div>
               <span className="step-label">Payment</span>
             </div>
           </div>
 
+          {/* STEP 1: Property and Package Selection */}
           <div className={`step-1-container ${currentStep === 1 ? '' : 'd-none'}`}>
             <div className="login-title mb-1 mt-2">Service request for property</div>
             <div className="service-desc mb-3 mt-2">Determine the property</div>
-            <div className="row">
-              <div className="col-md-4 mb-3">
-                <div className="sec-border w-100">
-                  <div className="d-flex w-100 align-items-center gap-2">
-                    <img src="../assets/property-management-card-img.png" className='property-management-card-img-2' alt="Property" />
-                    <div className='d-flex flex-column gap-2 align-items-start'>
-                      <div className='villa-badge py-1 px-3 rounded-pill'>Villa</div>
-                      <div className="d-flex align-items-center">
-                        <img src="../assets/location.svg" className='img-fluid' alt="location" />
-                        <p className="property-management-card-address m-0">Riyadh, Saudi Arabia</p>
+            
+            {/* Property selection with horizontal scroll */}
+            <div className="position-relative mb-4">
+              {properties.length > 3 && (
+                <button 
+                  className="property-scroll-btn property-scroll-left"
+                  onClick={scrollLeft}
+                  aria-label="Scroll left"
+                >
+                  <FontAwesomeIcon icon={faChevronLeft} />
+                </button>
+              )}
+              
+              <div 
+                className="property-scroll-container d-flex gap-3 pb-2"
+                ref={scrollContainerRef}
+              >
+                {properties.length > 0 ? (
+                  properties.map((prop) => (
+                    <div 
+                      key={prop.id} 
+                      className="property-card-wrapper"
+                    >
+                      <div 
+                        className={`calendar-card w-100 h-100 ${selectedProperty?.id === prop.id ? 'active' : ''}`} 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handlePropertySelect(prop)}
+                      >
+                        <div className="d-flex w-100 align-items-center gap-2">
+                          <img 
+                            src={prop.image} 
+                            className='property-management-card-img-2' 
+                            alt={prop.name}
+                            onError={(e) => {
+                              e.target.src = '/assets/property-management-card-img.png';
+                            }}
+                          />
+                          <div className='d-flex flex-column gap-2 align-items-start'>
+                            <div className='villa-badge py-1 px-3 rounded-pill'>
+                              {prop.property_type_id?.name || 'Property'}
+                            </div>
+                            <div className="d-flex align-items-center">
+                              <img src="/assets/location.svg" className='img-fluid' alt="location" />
+                              <p className="property-management-card-address m-0">{prop.address || 'N/A'}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="d-flex gap-1 align-items-center flex-wrap w-100 py-1 rounded-1 mt-2">
+                          <div className="d-flex align-items-center gap-1">
+                            <img src="/assets/property-card-icon-1.svg" className='img-fluid' alt="floors" />
+                            <h6 className="property-management-card-icon-label m-0">{prop.floor || 0} floors</h6>
+                          </div>
+                          <div className='card-border-right'>|</div>
+                          <div className="d-flex align-items-center gap-1">
+                            <img src="/assets/property-card-icon-2.svg" className='img-fluid' alt="rooms" />
+                            <h6 className="property-management-card-icon-label m-0">{prop.number_room || 0} rooms</h6>
+                          </div>
+                          <div className='card-border-right'>|</div>
+                          <div className="d-flex align-items-center gap-1">
+                            <img src="/assets/property-card-icon-3.svg" className='img-fluid' alt="area" />
+                            <h6 className="property-management-card-icon-label m-0">{prop.area || 0} m</h6>
+                          </div>
+                          <div className='card-border-right'>|</div>
+                          <div className="d-flex align-items-center gap-1">
+                            <img src="/assets/property-card-icon-4.svg" className='img-fluid' alt="bathrooms" />
+                            <h6 className="property-management-card-icon-label m-0">{prop.number_bathroom || 0} bathrooms</h6>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="col-12 text-center py-4">
+                    <p className="text-muted">No properties available. Please add a property first or check your connection.</p>
                   </div>
-                  <div className="d-flex gap-1 align-items-center flex-wrap w-100 py-1 rounded-1 mt-2">
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-1.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">3 floors</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-2.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">7 rooms</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-3.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">300 m</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-4.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">4 bathrooms</h6>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-              <div className="col-md-4 mb-3">
-                <div className="sec-border w-100">
-                  <div className="d-flex w-100 align-items-center gap-2">
-                    <img src="../assets/property-management-card-img.png" className='property-management-card-img-2' alt="Property" />
-                    <div className='d-flex flex-column gap-2 align-items-start'>
-                      <div className='villa-badge py-1 px-3 rounded-pill'>Villa</div>
-                      <div className="d-flex align-items-center">
-                        <img src="../assets/location.svg" className='img-fluid' alt="location" />
-                        <p className="property-management-card-address m-0">Riyadh, Saudi Arabia</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="d-flex gap-1 align-items-center flex-wrap w-100 py-1 rounded-1 mt-2">
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-1.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">3 floors</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-2.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">7 rooms</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-3.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">300 m</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-4.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">4 bathrooms</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4 mb-3">
-                <div className="sec-border w-100">
-                  <div className="d-flex w-100 align-items-center gap-2">
-                    <img src="../assets/property-management-card-img.png" className='property-management-card-img-2' alt="Property" />
-                    <div className='d-flex flex-column gap-2 align-items-start'>
-                      <div className='villa-badge py-1 px-3 rounded-pill'>Villa</div>
-                      <div className="d-flex align-items-center">
-                        <img src="../assets/location.svg" className='img-fluid' alt="location" />
-                        <p className="property-management-card-address m-0">Riyadh, Saudi Arabia</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="d-flex gap-1 align-items-center flex-wrap w-100 py-1 rounded-1 mt-2">
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-1.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">3 floors</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-2.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">7 rooms</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-3.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">300 m</h6>
-                    </div>
-                    <div className='card-border-right'>|</div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/property-card-icon-4.svg" className='img-fluid' alt="location" />
-                      <h6 className="property-management-card-icon-label m-0">4 bathrooms</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              
+              {properties.length > 3 && (
+                <button 
+                  className="property-scroll-btn property-scroll-right"
+                  onClick={scrollRight}
+                  aria-label="Scroll right"
+                >
+                  <FontAwesomeIcon icon={faChevronRight} />
+                </button>
+              )}
             </div>
+
             <div className="service-desc mb-2 mt-2">Package</div>
             <div className="row package-filter align-items-center py-2 px-0 m-0">
-              <div className="col-md-4">
-                <button 
-                  className={`rounded-2 px-4 py-2 border-0 w-100 ${selectedPackageFilter === 'package' ? 'sec-btn' : 'package-filter-item'}`}
-                  onClick={() => handlePackageFilterClick('package')}
-                >
-                  Package
-                </button>
-              </div>
-              <div className="col-md-4">
-                <p 
-                  className={`text-center rounded-2 py-2 m-0 ${selectedPackageFilter === 'one-time' ? 'sec-btn' : 'package-filter-item'}`}
-                  onClick={() => handlePackageFilterClick('one-time')}
-                >
-                  one time
-                </p>
-              </div>
-              <div className="col-md-4">
-                <p 
-                  className={`text-center rounded-2 py-2 m-0 ${selectedPackageFilter === 'additional' ? 'sec-btn' : 'package-filter-item'}`}
-                  onClick={() => handlePackageFilterClick('additional')}
-                >
-                  Additional Services
-                </p>
-              </div>
+              {listsData?.CleanServiceType && listsData.CleanServiceType.length > 0 ? (
+                listsData.CleanServiceType.map((serviceType) => (
+                  <div key={serviceType.id} className="col-md-4">
+                    <button 
+                      className={`rounded-2 px-4 py-2 border-0 w-100 ${selectedServiceType?.id === serviceType.id ? 'sec-btn' : 'package-filter-item'}`}
+                      onClick={() => handleServiceTypeSelect(serviceType)}
+                    >
+                      {serviceType.name}
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="col-12">
+                  <p className="text-muted text-center">Loading service types...</p>
+                </div>
+              )}
             </div>
-            <div className="row mt-3">
-              <div className="col-md-4 mb-3">
-                <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-2 align-tems-start justify-content-between">
-                  <div className='d-flex flex-column gap-2'>
-                    <h3 className='dashboard-home-card-2-title-2 m-0'>Next guest ready</h3>
-                    <div className="d-flex gap-2 align-items-center flex-wrap">
-                      <h4 className='dashboard-home-card-2-label-1-sec m-0'>25$</h4>
-                      <h4 className='dashboard-home-card-2-label-2 m-0'>/monthly</h4>
+
+            {/* Show packages if "Package" service type is selected */}
+            {selectedServiceType?.name.toLowerCase() === 'package' && (
+              <div className="row mt-3">
+                {plans && plans.length > 0 ? (
+                  plans.map((plan) => (
+                    <div key={plan.id} className="col-md-4 mb-3">
+                      <div 
+                        className={`shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-2 align-items-start justify-content-between ${selectedPlan?.id === plan.id ? 'border border-primary' : ''}`}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handlePlanSelect(plan)}
+                      >
+                        <div className='d-flex flex-column gap-2'>
+                          <h3 className='dashboard-home-card-2-title-2 m-0'>{plan.name}</h3>
+                          <div className="d-flex gap-2 align-items-center flex-wrap">
+                            <h4 className='dashboard-home-card-2-label-1-sec m-0'>${plan.price || 0}</h4>
+                            <h4 className='dashboard-home-card-2-label-2 m-0'>/{plan.month_duration} month</h4>
+                          </div>
+                          {plan.description && (
+                            <p className='package-desc m-0'>{plan.description}</p>
+                          )}
+                          <p className='package-desc m-0'>{plan.number_service} services included</p>
+                        </div>
+                        <div className="pt-3 mt-3 w-100 d-flex justify-content-center package-button-container">
+                          <button 
+                            className={`package-btn rounded-pill px-4 w-50-100 ${selectedPlan?.id === plan.id ? 'active' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePlanSelect(plan);
+                            }}
+                          >
+                            {selectedPlan?.id === plan.id ? 'Selected' : 'Choose Package'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <h4 className='dashboard-home-card-2-label-3 m-0'>Get 7 free days</h4>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Quick cleaning of rooms and common areas</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Change sheets and towels</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'> 50 Rearrange furniture as needed</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Checking the basics from home</p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="col-12">
+                    <p className="text-muted text-center">Loading packages...</p>
                   </div>
-                  <div className="pt-3 mt-3 w-100 d-flex justify-content-center package-button-container">
-                    <button className="package-btn rounded-pill px-4 w-50-100">
-                      Choose Package
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
-              <div className="col-md-4 mb-3">
-                <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-2 align-tems-start justify-content-between">
-                  <div className='d-flex flex-column gap-2'>
-                    <h3 className='dashboard-home-card-2-title-2 m-0'>Deep cleaning</h3>
-                    <div className="d-flex gap-2 align-items-center flex-wrap">
-                      <h4 className='dashboard-home-card-2-label-1 m-0'>50$</h4>
-                      <h4 className='dashboard-home-card-2-label-2 m-0'>/monthly</h4>
-                    </div>
-                    <h4 className='dashboard-home-card-2-label-3 m-0'>Get 7 free days</h4>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Complete cleaning of floors, walls and surfaces</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Deep clean your appliances and kitchen</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Sanitize bathrooms and remove accumulated dirt</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Comprehensive rearrangement and resetting of furniture as needed</p>
-                    </div>
-                  </div>
-                  <div className="pt-3 mt-3 w-100 d-flex justify-content-center package-button-container">
-                    <button className="package-btn rounded-pill px-4 w-50-100">
-                      Choose Package
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4 mb-3">
-                <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-2 align-tems-start justify-content-between">
-                  <div className='d-flex flex-column gap-2'>
-                    <h3 className='dashboard-home-card-2-title-2 m-0'>Always Ready</h3>
-                    <div className="d-flex gap-2 align-items-center flex-wrap">
-                      <h4 className='dashboard-home-card-2-label-1-blue m-0'>100$</h4>
-                      <h4 className='dashboard-home-card-2-label-2 m-0'>/monthly</h4>
-                    </div>
-                    <h4 className='dashboard-home-card-2-label-3 m-0'>Get 7 free days</h4>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Automatically schedule cleaning without the need for guest intervention</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Deduct the visit from the package balance</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>Send the logo to a host with a confirmation of the number of visits received from the package</p>
-                    </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/check.svg" alt="check" />
-                      <p className='package-desc m-0'>30 free orders</p>
-                    </div>
-                  </div>
-                  <div className="pt-3 mt-3 w-100 d-flex justify-content-center package-button-container">
-                    <button className="package-btn rounded-pill px-4 w-50-100">
-                      Choose Package
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="d-flex justify-content-end align-items-center mb-3 gap-2">
-                <button className="sec-btn rounded-2 px-5 py-2" onClick={handleNextStep}>
-                  Next
-                </button>
-              </div>
+            )}
+
+            <div className="d-flex justify-content-end align-items-center mb-3 gap-2 mt-3">
+              <button className="sec-btn rounded-2 px-5 py-2" onClick={handleNextStep}>
+                Next
+              </button>
             </div>
           </div>
 
+          {/* STEP 2: Service Date (Calendar) */}
           <div className={`step-2-container ${currentStep === 2 ? '' : 'd-none'}`}>
-            {/* Top Controls */}
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 mt-4">
               <div className="d-flex gap-2 p-2 rounded-2 days-filter">
-                <button className="main-btn rounded-2 px-3 py-1">Today</button>
-                <div className="days-filter-item px-3 py-1">Back</div>
-                <div className="days-filter-item px-3 py-1">Next</div>
+                <button className="main-btn rounded-2 px-3 py-1" onClick={handleToday}>Today</button>
+                <div className="days-filter-item px-3 py-1" onClick={handlePrevWeek} style={{cursor: 'pointer'}}>Back</div>
+                <div className="days-filter-item px-3 py-1" onClick={handleNextWeek} style={{cursor: 'pointer'}}>Next</div>
               </div>
 
-              <h6 className="m-0 date-label">10 Mar 2025 - 16 Apr 2025</h6>
+              <h6 className="m-0 date-label">{formatDateRange()}</h6>
 
               <div className="d-flex gap-2 p-2 rounded-2 times-filter">
-                <button className="main-btn rounded-2 px-3 py-1">Month</button>
-                <div className="times-filter-item px-3 py-1">Week</div>
+                <button className="main-btn rounded-2 px-3 py-1">Week</button>
+                <div className="times-filter-item px-3 py-1">Month</div>
                 <div className="times-filter-item px-3 py-1">Day</div>
-              </div>
-
-              <div className="d-flex justify-content-end align-items-center gap-2">
-                <button className="prev-btn rounded-2 px-4 py-2" onClick={handlePrevStep}>
-                  Previous
-                </button>
-                <button className="sec-btn rounded-2 px-5 py-2" onClick={handleNextStep}>
-                  Next
-                </button>
               </div>
             </div>
 
-            {/* Calendar Table */}
             <div className="calendar-wrapper">
               <table className="table calendar-table text-center">
                 <thead>
                   <tr>
                     <th>Time</th>
-                    <th>Sunday 07/10<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Monday 07/11<br /><small className='fw-bold'>03 Reservation</small></th>
-                    <th>Tuesday 07/12<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Wednesday 07/13<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Thursday 07/14<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Friday 07/15<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Saturday 07/16<br /><small className='fw-bold'>0 Reservation</small></th>
+                    {weekDates.map((date, index) => {
+                      const { dayName, dateStr } = formatDateHeader(date);
+                      const year = date.getFullYear();
+                      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                      const day = date.getDate().toString().padStart(2, '0');
+                      const dateKey = `${year}-${month}-${day}`;
+                      const count = calendarEvents.filter(e => e.date === dateKey).length;
+                      
+                      return (
+                        <th key={index}>
+                          {dayName} {dateStr}<br />
+                          <small className='fw-bold'>{count.toString().padStart(2, '0')} Available</small>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
 
                 <tbody>
-                  <tr>
-                    <td className='table-time'>8:00 AM</td>
-                    <td></td>
-                    <td>
-                      <div className="slot available">
-                        <strong>Available</strong><br />
-                        <small>10:00 • 13:00 • 20:00</small><br />
-                        <small>10:00 • 13:00 • 20:00</small><br />
-                      </div>
-                    </td>
-                    <td></td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">Check Out<br />Guest</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-
-                  <tr>
-                    <td className='table-time'>10:00 AM</td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">Check Out<br />Guest</div>
-                    </td>
-                    <td>
-                      <div className="sec-btn-sm h-100">Service Selected</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-                    <td>
-                      <div className="slot available">
-                        <strong>Available</strong><br />
-                        <small>10:00 • 13:00 • 20:00</small><br />
-                        <small>10:00 • 13:00 • 20:00</small><br />
-                      </div>
-                    </td>
-                    <td>
-                      <div className="sec-btn-sm h-100">Service Selected</div>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td className='table-time'>12:00 PM</td>
-                    <td>
-                      <div className="sec-btn-sm h-100">Service Selected</div>
-                    </td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">Check Out<br />Guest</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                  </tr>
+                  {timeSlots.map((slot, index) => (
+                    <tr key={index}>
+                      <td className='table-time'>{slot.label}</td>
+                      {weekDates.map((date, dateIndex) => {
+                        const events = getEventForSlot(date, slot.value);
+                        const year = date.getFullYear();
+                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                        const day = date.getDate().toString().padStart(2, '0');
+                        const dateKey = `${year}-${month}-${day}`;
+                        
+                        return (
+                          <td key={dateIndex}>
+                            {events.length > 0 ? (
+                              <div 
+                                className={`slot available ${selectedAppointment?.id === events[0].id ? 'selected' : ''}`}
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleAppointmentSelect(events[0])}
+                              >
+                                {selectedAppointment?.id === events[0].id ? (
+                                  <div className="sec-btn-sm h-100">Service Selected</div>
+                                ) : (
+                                  <>
+                                    <strong>Available</strong><br />
+                                    {events.map((evt, i) => (
+                                      <small key={i}>{evt.time_from} - {evt.time_to}<br /></small>
+                                    ))}
+                                  </>
+                                )}
+                              </div>
+                            ) : null}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
+
+            <div className="d-flex justify-content-end align-items-center gap-2 mt-3">
+              <button className="prev-btn rounded-2 px-4 py-2" onClick={handlePrevStep}>
+                Previous
+              </button>
+              <button className="sec-btn rounded-2 px-5 py-2" onClick={handleNextStep}>
+                Next
+              </button>
+            </div>
           </div>
 
+          {/* STEP 3: Add-on Services */}
           <div className={`step-3-container ${currentStep === 3 ? '' : 'd-none'}`}>
             <div className="row mt-3 w-100 g-0">
               <div className="login-title mb-2 mt-2">Service request for property</div>
               <label htmlFor="notes" className="form-label mb-1">Add-on Services</label>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the garage</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
+              
+              {listsData?.AdditionService?.map((addon) => (
+                <div key={addon.id} className="col-md-2 mb-3 col-20-per">
+                  <div 
+                    className={`bg-light-gray p-3 rounded-3 h-100 ${selectedAddons.find(a => a.id === addon.id) ? 'active' : ''}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleAddonToggle(addon)}
+                  >
+                    <img 
+                      src={addon.image} 
+                      className='img-fluid w-100' 
+                      alt={addon.name}
+                      onError={(e) => {
+                        e.target.src = '/assets/service-img.png';
+                      }}
+                    />
+                    <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
+                      <h3 className='dashboard-routes-sub m-0'>{addon.name}</h3>
+                      <div className='third-btn-sm p-1 rounded-2'>${addon.price}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the garage</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the garage</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the garage</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-2 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
+              ))}
+
               <div className="d-flex justify-content-end align-items-center mb-3 gap-2">
                 <button className="prev-btn rounded-2 px-4 py-2" onClick={handlePrevStep}>
                   Previous
@@ -739,38 +878,40 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
             </div>
           </div>
 
+          {/* STEP 4: Payment */}
           <div className={`step-4-container ${currentStep === 4 ? '' : 'd-none'}`}>
             <div className="row mt-3 w-100 g-0">
               <div className="login-title mb-2 mt-2">Service request for property</div>
               <div className="col-md-6 mb-3">
                 <label htmlFor="notes" className="form-label mb-1">Total cost</label>
-                <div className="hours-badge p-2 rounded-2 d-flex justify-content-between gap-4 align-items-center mb-2">
-                  <h2 className='m-0'> 4 hours</h2>
-                  <div className='third-btn-sm p-1 rounded-2'>$50 / hour</div>
-                </div>
                 <div className='total-payments p-3 rounded-3'>
                   <div className='d-flex justify-content-between gap-4 align-items-center mb-2'>
-                    <h3 className='service-desc m-0'>Deep cleaning</h3>
-                    <h4 className='service-price m-0'>200 $</h4>
+                    <h3 className='service-desc m-0'>{selectedPlan?.title || selectedServiceType?.name || 'Service'}</h3>
+                    <h4 className='service-price m-0'>${formData.price} </h4>
                   </div>
-                  <div className='d-flex justify-content-between gap-4 align-items-center mb-2'>
-                    <h3 className='service-desc m-0'>Add-on services</h3>
-                    <h4 className='service-price m-0'>100 $</h4>
-                  </div>
-                  <div className='d-flex justify-content-between gap-4 align-items-center mb-2 px-2'>
-                    <h3 className='property-management-card-address m-0'>Cleaning the garden</h3>
-                    <h4 className='sub-service-price m-0'>50 $</h4>
-                  </div>
-                  <div className='d-flex justify-content-between gap-4 align-items-center mb-2 px-2'>
-                    <h3 className='property-management-card-address m-0'>Cleaning the garage</h3>
-                    <h4 className='sub-service-price m-0'>50 $</h4>
-                  </div>
+                  
+                  {selectedAddons.length > 0 && (
+                    <>
+                      <div className='d-flex justify-content-between gap-4 align-items-center mb-2'>
+                        <h3 className='service-desc m-0'>Add-on services</h3>
+                        <h4 className='service-price m-0'>${formData.addition_service_price} </h4>
+                      </div>
+                      {selectedAddons.map((addon) => (
+                        <div key={addon.id} className='d-flex justify-content-between gap-4 align-items-center mb-2 px-2'>
+                          <h3 className='property-management-card-address m-0'>{addon.name}</h3>
+                          <h4 className='sub-service-price m-0'>${addon.price} </h4>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  
                   <div className='d-flex justify-content-between gap-4 align-items-center'>
                     <h3 className='service-desc m-0'>Total</h3>
-                    <h4 className='service-total-price m-0'>300 $</h4>
+                    <h4 className='service-total-price m-0'>${formData.total_price} </h4>
                   </div>
                 </div>
               </div>
+              
               <div className="col-md-6 mb-3">
                 <label htmlFor="notes" className="form-label mb-1">Payment method </label>
                 <div className="payment-methods d-flex gap-2 align-items-center">
@@ -778,34 +919,35 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                     className={`payment-method-card p-2 rounded-2 ${selectedPaymentMethod === 'card1' ? 'active' : ''}`}
                     onClick={() => handlePaymentMethodClick('card1')}
                   >
-                    <img src="../assets/payment-card-img-1.png" className='img-fluid w-100' alt="payment" />
+                    <img src="/assets/payment-card-img-1.png" className='img-fluid w-100' alt="payment" />
                   </div>
                   <div 
                     className={`payment-method-card p-2 rounded-2 ${selectedPaymentMethod === 'card2' ? 'active' : ''}`}
                     onClick={() => handlePaymentMethodClick('card2')}
                   >
-                    <img src="../assets/payment-card-img-2.png" className='img-fluid w-100' alt="payment" />
+                    <img src="/assets/payment-card-img-2.png" className='img-fluid w-100' alt="payment" />
                   </div>
                   <div 
                     className={`payment-method-card p-2 rounded-2 ${selectedPaymentMethod === 'card3' ? 'active' : ''}`}
                     onClick={() => handlePaymentMethodClick('card3')}
                   >
-                    <img src="../assets/payment-card-img-3.svg" className='img-fluid w-100' alt="payment" />
+                    <img src="/assets/payment-card-img-3.svg" className='img-fluid w-100' alt="payment" />
                   </div>
                   <div 
                     className={`payment-method-card p-2 rounded-2 ${selectedPaymentMethod === 'card4' ? 'active' : ''}`}
                     onClick={() => handlePaymentMethodClick('card4')}
                   >
-                    <img src="../assets/payment-card-img-4.svg" className='img-fluid w-100' alt="payment" />
+                    <img src="/assets/payment-card-img-4.svg" className='img-fluid w-100' alt="payment" />
                   </div>
                 </div>
+                
                 <div className="payment-inputs-container p-3 rounded-3 mt-2">
                   <div className="row">
                     <div className="col-12">
                       <div className="mb-3 w-100 position-relative">
                         <label htmlFor="cardNumber" className="form-label mb-1">Card number</label>
                         <div className="input-with-icon">
-                          <img src="../assets/pay-card-icon-1.svg" className="input-icon" alt="" />
+                          <img src="/assets/pay-card-icon-1.svg" className="input-icon" alt="" />
                           <input
                             type="text"
                             className="form-control rounded-2 py-2 px-3 ps-5 w-100"
@@ -821,7 +963,7 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                       <div className="mb-2 w-100 position-relative">
                         <label htmlFor="expiryDate" className="form-label mb-1">Completion date</label>
                         <div className="input-with-icon">
-                          <img src="../assets/pay-card-icon-2.svg" className="input-icon" alt="" />
+                          <img src="/assets/pay-card-icon-2.svg" className="input-icon" alt="" />
                           <input
                             type="text"
                             className="form-control rounded-2 py-2 px-3 ps-5 w-100"
@@ -832,11 +974,12 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                         </div>
                       </div>
                     </div>
+                    
                     <div className="col-md-6">
                       <div className="mb-2 w-100 position-relative">
                         <label htmlFor="cvv" className="form-label mb-1">Code</label>
                         <div className="input-with-icon">
-                          <img src="../assets/pay-card-icon-3.svg" className="input-icon" alt="" />
+                          <img src="/assets/pay-card-icon-3.svg" className="input-icon" alt="" />
                           <input
                             type="text"
                             className="form-control rounded-2 py-2 px-3 ps-5 w-100"
@@ -850,18 +993,122 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                   </div>
                 </div>
               </div>
+              
               <div className="d-flex justify-content-end align-items-center mb-3 gap-2">
                 <button className="prev-btn rounded-2 px-4 py-2" onClick={handlePrevStep}>
                   Previous
                 </button>
-                <button className="sec-btn rounded-2 px-5 py-2" onClick={handleNextStep}>
-                  Submit
+                <button 
+                  className="sec-btn rounded-2 px-5 py-2" 
+                  onClick={handleNextStep}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+      
+      <style>{`
+        .property-scroll-container {
+          overflow-x: auto;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+          scrollbar-color: #ccc #f1f1f1;
+        }
+        
+        .property-scroll-container::-webkit-scrollbar {
+          height: 8px;
+        }
+        
+        .property-scroll-container::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        
+        .property-scroll-container::-webkit-scrollbar-thumb {
+          background: #ccc;
+          border-radius: 10px;
+        }
+        
+        .property-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: #999;
+        }
+        
+        .property-card-wrapper {
+          min-width: 350px;
+          max-width: 350px;
+          margin: 10px 0;
+          flex-shrink: 0;
+        }
+        
+        .property-scroll-btn {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        
+        .property-scroll-btn:hover {
+          background: #f8f9fa;
+        }
+        
+        .property-scroll-left {
+          left: 0px;
+        }
+        
+        .property-scroll-right {
+          right: 0px;
+        }
+        
+        .slot.available {
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        
+        .slot.available:hover {
+          background-color: #f0f0f0;
+        }
+        
+        .slot.available.selected {
+          background-color: #d4edda;
+          border: 2px solid #28a745;
+        }
+
+        @media (max-width: 768px) {
+          .property-card-wrapper {
+            min-width: 280px;
+            max-width: 280px;
+          }
+          
+          .property-scroll-btn {
+            width: 35px;
+            height: 35px;
+          }
+          
+          .property-scroll-left {
+            left: -10px;
+          }
+          
+          .property-scroll-right {
+            right: -10px;
+          }
+        }
+      `}</style>
     </section>
   );
 };

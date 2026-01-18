@@ -116,7 +116,7 @@ const ActivationCodeMain = () => {
                 {/* Logo */}
                 <div className="text-center">
                   <img 
-                    src="../assets/logo.png" 
+                    src="/assets/logo.png" 
                     alt="Logo" 
                     height="70" 
                     className="mb-3 img-fluid"

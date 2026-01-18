@@ -54,11 +54,11 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/client/notifications' className="notification-icon-container sec-btn">
-              <img src="../assets/notification-2.svg" alt="notification" />
+              <img src="/assets/notification-2.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -73,7 +73,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -85,21 +85,21 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -129,7 +129,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center gap-3">
                 <div className="d-flex align-items-center gap-2">
                     <div className="unread-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -137,7 +137,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="read-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -145,7 +145,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="unread-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -153,7 +153,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="read-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -161,7 +161,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="unread-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -169,7 +169,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="read-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -177,7 +177,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="unread-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -185,7 +185,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="read-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -193,7 +193,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="unread-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>
@@ -201,7 +201,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
             <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <div className="read-dot"></div>
-                    <img src="../assets/user.png" alt="user" className="notification-user-img" />
+                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
                     <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
                 </div>
                     <p className='notification-time text-nowrap m-0'>1 hour ago</p>

@@ -34,7 +34,7 @@ const BenefitsSection = () => {
             <div className="checkin-interface">
               <div className="guest-profile">
                 <div className="guest-avatar">
-                  <img src="../assets/user.png" alt="Guest" />
+                  <img src="/assets/user.png" alt="Guest" />
                 </div>
                 <div className="vip-badge">VIP</div>
               </div>

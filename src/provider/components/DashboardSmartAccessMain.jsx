@@ -58,11 +58,11 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/provider/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -77,7 +77,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -89,21 +89,21 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -127,7 +127,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
             type="submit" 
             className="sec-btn rounded-2 py-2 px-3 d-flex align-items-center justify-content-center gap-2 w-50-100"
           >
-            <img src="../assets/key.svg" alt="key" />
+            <img src="/assets/key.svg" alt="key" />
             <span>Reqest a smart lock</span>
                         </button>
           </div>
@@ -181,7 +181,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
   data-bs-toggle="modal"
   data-bs-target="#propertyQrModal"
 >
-  <img src="../assets/scan-barcode.svg" alt="barcode" />
+  <img src="/assets/scan-barcode.svg" alt="barcode" />
   <span>Property QR code</span>
 </button>
 
@@ -196,7 +196,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
                                 <h6 className="dashboard-home-card-2-desc-1 mb-1">smart lock code : 22333 at 12:00</h6>
                                 <div className="d-flex align-items-center gap-1">
                                     <div className="d-flex align-items-center gap-1">
-                                        <img src="../assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
+                                        <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
                                         <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
                                     </div>
                                 </div>
@@ -211,7 +211,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
                                 <h6 className="dashboard-home-card-2-desc-1 mb-1">smart lock code : 22333 at 12:00</h6>
                                 <div className="d-flex align-items-center gap-1">
                                     <div className="d-flex align-items-center gap-1">
-                                        <img src="../assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
+                                        <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
                                         <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
                                     </div>
                                 </div>
@@ -226,7 +226,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
                                 <h6 className="dashboard-home-card-2-desc-1 mb-1">smart lock code : 22333 at 12:00</h6>
                                 <div className="d-flex align-items-center gap-1">
                                     <div className="d-flex align-items-center gap-1">
-                                        <img src="../assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
+                                        <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
                                         <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
                                     </div>
                                 </div>
@@ -241,7 +241,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
                                 <h6 className="dashboard-home-card-2-desc-1 mb-1">smart lock code : 22333 at 12:00</h6>
                                 <div className="d-flex align-items-center gap-1">
                                     <div className="d-flex align-items-center gap-1">
-                                        <img src="../assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
+                                        <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
                                         <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
                                     </div>
                                 </div>
@@ -256,7 +256,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
                                 <h6 className="dashboard-home-card-2-desc-1 mb-1">smart lock code : 22333 at 12:00</h6>
                                 <div className="d-flex align-items-center gap-1">
                                     <div className="d-flex align-items-center gap-1">
-                                        <img src="../assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
+                                        <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
                                         <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
                                     </div>
                                 </div>
@@ -336,12 +336,12 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
         <div className="d-flex justify-content-center">
           <div className="modal-badge d-flex gap-2 align-items-center justify-content-center p-2 rounded-2">
             <span>AOSDI12LSD</span>
-              <img src="../assets/scan-barcode-2.svg" alt="" />
+              <img src="/assets/scan-barcode-2.svg" alt="" />
           </div>
 
         </div>
         <img
-          src="../assets/qr-code-2.png"
+          src="/assets/qr-code-2.png"
           alt="QR Code"
           className="img-fluid"
           style={{ width: '250px' }}

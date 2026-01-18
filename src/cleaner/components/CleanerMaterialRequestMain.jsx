@@ -23,7 +23,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
       date: "June 12, 2026",
       time: "8:00 pm - 10:00 pm",
       price: "$50",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 2,
@@ -31,7 +31,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
       date: "June 12, 2026",
       time: "8:00 pm - 10:00 pm",
       price: "$50",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 3,
@@ -39,7 +39,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
       date: "June 12, 2026",
       time: "8:00 pm - 10:00 pm",
       price: "$50",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 4,
@@ -47,7 +47,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
       date: "June 12, 2026",
       time: "8:00 pm - 10:00 pm",
       price: "$50",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 5,
@@ -55,7 +55,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
       date: "June 12, 2026",
       time: "8:00 pm - 10:00 pm",
       price: "$50",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 6,
@@ -63,7 +63,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
       date: "June 12, 2026",
       time: "8:00 pm - 10:00 pm",
       price: "$50",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 7,
@@ -71,7 +71,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
       date: "June 12, 2026",
       time: "8:00 pm - 10:00 pm",
       price: "$50",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     }
   ];
   
@@ -152,14 +152,14 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
                         <Link to='/cleaner/shopping-cart' className="notification-icon-container">
-                          <img src="../assets/shopping-cart.svg" alt="notification" />
+                          <img src="/assets/shopping-cart.svg" alt="notification" />
                         </Link>
             <Link to='/cleaner/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -174,7 +174,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -186,21 +186,21 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -226,7 +226,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
         <h6 className="property-management-card-title mb-1">materials </h6>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the garage</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -235,7 +235,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -244,7 +244,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -253,7 +253,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -262,7 +262,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -271,7 +271,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the garage</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -280,7 +280,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -289,7 +289,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -298,7 +298,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -307,7 +307,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -316,7 +316,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the garage</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -325,7 +325,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -334,7 +334,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -343,7 +343,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -352,7 +352,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -361,7 +361,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the garage</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -370,7 +370,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -379,7 +379,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -388,7 +388,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -397,7 +397,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="col-md-2 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>

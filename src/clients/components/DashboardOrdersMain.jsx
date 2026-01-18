@@ -29,9 +29,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
       price: "250 SAR",
       location: "Riyadh, Al Narjis Neighborhood",
       platform: "airbnb",
-      platformIcon: "../assets/bnb.svg",
+      platformIcon: "/assets/bnb.svg",
       status: "new",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 2,
@@ -43,9 +43,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
       price: "180 SAR",
       location: "Jeddah, Al Balad District",
       platform: "booking",
-      platformIcon: "../assets/booking.svg",
+      platformIcon: "/assets/booking.svg",
       status: "in-progress",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 3,
@@ -57,9 +57,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
       price: "120 SAR",
       location: "Dammam, Al Corniche",
       platform: "airbnb",
-      platformIcon: "../assets/bnb.svg",
+      platformIcon: "/assets/bnb.svg",
       status: "finished",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 4,
@@ -71,9 +71,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
       price: "150 SAR",
       location: "Khobar, Al Dhabab Street",
       platform: "booking",
-      platformIcon: "../assets/booking.svg",
+      platformIcon: "/assets/booking.svg",
       status: "canceled",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 5,
@@ -85,9 +85,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
       price: "300 SAR",
       location: "Riyadh, Al Muruj District",
       platform: "airbnb",
-      platformIcon: "../assets/bnb.svg",
+      platformIcon: "/assets/bnb.svg",
       status: "new",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 6,
@@ -99,9 +99,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
       price: "280 SAR",
       location: "Mecca, Al Aziziyah",
       platform: "booking",
-      platformIcon: "../assets/booking.svg",
+      platformIcon: "/assets/booking.svg",
       status: "in-progress",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     },
     {
       id: 7,
@@ -113,9 +113,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
       price: "200 SAR",
       location: "Riyadh, King Abdullah Financial District",
       platform: "airbnb",
-      platformIcon: "../assets/bnb.svg",
+      platformIcon: "/assets/bnb.svg",
       status: "finished",
-      image: "../assets/problem-img-2.png"
+      image: "/assets/problem-img-2.png"
     }
   ];
   
@@ -261,11 +261,11 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/client/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -280,7 +280,7 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -292,21 +292,21 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -386,20 +386,20 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
                       {renderStatusBadge(item.status)}
                     </div>
                     <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/calendar-3.svg" alt="calendar" />
+                      <img src="/assets/calendar-3.svg" alt="calendar" />
                       <p className="dashboard-home-card-2-desc-3 m-0">{item.date}</p>
                     </div>
                     <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/clock.svg" alt="clock" />
+                      <img src="/assets/clock.svg" alt="clock" />
                       <p className="dashboard-home-card-2-desc-3 mb-0">{item.time}</p>
                     </div>
                     <h6 className="property-problem-title mb-0">{item.subtitle}</h6>
                     <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/location-2.svg" alt="location" />
+                      <img src="/assets/location-2.svg" alt="location" />
                       <p className="dashboard-home-card-2-desc-3 m-0">{item.location}</p>
                     </div>
                     <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/dollar.svg" alt="price" />
+                      <img src="/assets/dollar.svg" alt="price" />
                       <p className="dashboard-home-card-2-desc-3 m-0">{item.price}</p>
                     </div>
                     <div className="d-flex justify-content-between align-items-center flex-wrap w-100">

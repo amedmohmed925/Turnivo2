@@ -82,14 +82,14 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
                         <Link to='/cleaner/shopping-cart' className="notification-icon-container">
-                          <img src="../assets/shopping-cart.svg" alt="notification" />
+                          <img src="/assets/shopping-cart.svg" alt="notification" />
                         </Link>
             <Link to='/cleaner/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -104,7 +104,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -116,21 +116,21 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -145,27 +145,27 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
                             <h6 className="property-problem-title mb-2 mt-2">Maintenance details</h6>
                 <div className="d-flex align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3">
       <div className="d-flex w-100 align-items-start flex-column flex-md-row gap-2">
-        <img src="../assets/problem-img-2.png" className='img-fluid materials-img' alt="location" />   
+        <img src="/assets/problem-img-2.png" className='img-fluid materials-img' alt="location" />   
         <div className='d-flex flex-column gap-2 align-items-start w-100'>
                                 <div className="d-flex justify-content-between align-items-center w-100">
            <h6 className="property-problem-title mb-0 mt-2">Upholstery and carpet cleaning</h6>
             <div className='new-badge px-2 p-1 rounded-2'>New</div>
           </div>
           <div className="d-flex align-items-center gap-1">
-            <img src="../assets/calendar-3.svg" alt="calendar" />
+            <img src="/assets/calendar-3.svg" alt="calendar" />
             <p className="dashboard-home-card-2-desc-3 m-0">June 12, 2026</p>
           </div>
           <div className="d-flex align-items-center gap-1">
-            <img src="../assets/clock.svg" alt="clock" />
+            <img src="/assets/clock.svg" alt="clock" />
             <p className="dashboard-home-card-2-desc-3 mb-0">8:00 pm - 10:00 pm</p>
           </div>
             <h6 className="property-problem-title mb-0">Nakheel Neighborhood Hotel</h6>
             <div className="d-flex align-items-center gap-1">
-            <img src="../assets/location-2.svg" alt="location" />
+            <img src="/assets/location-2.svg" alt="location" />
             <p className="dashboard-home-card-2-desc-3 m-0">Riyadh, Al Narjis Neighborhood</p>
           </div>
             <div className="bnb-badge d-flex align-items-center gap-2 p-2 rounded-2">
-              <img src="../assets/bnb.svg" alt="airbnb" />
+              <img src="/assets/bnb.svg" alt="airbnb" />
               <span>airbnb</span>
             </div>
         </div>
@@ -178,7 +178,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
                     <h3 className='form-label mb-2'>Before cleaning</h3>
                     <div className="d-flex gap-2 align-items-center flex-wrap">
                         <div className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" onClick={() => beforeInputRef.current.click()}>
-                            <img src="../assets/gallery-add.svg" alt="gallery" />
+                            <img src="/assets/gallery-add.svg" alt="gallery" />
                             <h6 className='table-time m-0'>Add room photos</h6>
                         </div>
                         {beforeImages.map((img, idx) => <img key={idx} src={URL.createObjectURL(img)} className='added-img' alt="uploaded" />)}
@@ -189,7 +189,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
                     <h3 className='form-label mb-2'>After cleaning</h3>
                     <div className="d-flex gap-2 align-items-center flex-wrap">
                         <div className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" onClick={() => afterInputRef.current.click()}>
-                            <img src="../assets/gallery-add.svg" alt="gallery" />
+                            <img src="/assets/gallery-add.svg" alt="gallery" />
                             <h6 className='table-time m-0'>Add room photos</h6>
                         </div>
                         {afterImages.map((img, idx) => <img key={idx} src={URL.createObjectURL(img)} className='added-img' alt="uploaded" />)}
@@ -201,7 +201,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
             </div>
             <h6 className="property-problem-title my-2">employee</h6>
                                 <div className="d-flex align-items-center gap-2 w-100">
-                      <img src='../assets/user.png' className='provider-rate' alt="user" />
+                      <img src='/assets/user.png' className='provider-rate' alt="user" />
                       <div>
                         <h6 className='login-title m-0'>Leslie Alexander</h6>
                         <h6 className="training-details-card-desc m-0 mt-1">Operations Manager</h6>
@@ -211,7 +211,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
                     <div className="row w-100 g-2">
                                       <div className="col-md-2 col-12 mb-3 col-20-per px-2">
                 <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -220,7 +220,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
               </div>
                                       <div className="col-md-2 col-12 mb-3 col-20-per px-2">
                 <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -229,7 +229,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
               </div>
                                       <div className="col-md-2 col-12 mb-3 col-20-per px-2">
                 <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -271,7 +271,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
             <div className="col-md-5 mb-3 px-2">
                 <div className="tasks-card h-100">
                     <div className="d-flex gap-2 align-items-center mb-3">
-                        <img src="../assets/Ellipse.svg" alt="Ellipse" />
+                        <img src="/assets/Ellipse.svg" alt="Ellipse" />
                         <h6 className='dashboard-card-link m-0'>Executing the task</h6>
                     </div>
                     <div className="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap justify-content-center">

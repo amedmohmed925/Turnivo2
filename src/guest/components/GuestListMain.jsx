@@ -21,7 +21,7 @@ const GuestListMain = () => {
           <div className="col-lg-3 col-md-6 mb-3">
             <Link to='/guest/my-ratings' className="text-decoration-none shadow guest-list-card bg-white d-flex flex-column align-items-start justify-content-center gap-3 h-100">
                 <div className="guest-list-bg d-flex align-items-center justify-content-center">
-                    <img src="../assets/medal-star.svg" alt="Ratings" />
+                    <img src="/assets/medal-star.svg" alt="Ratings" />
                 </div>
                     <div className="d-flex justify-content-between align-items-center w-100">
                         <h2 className="mb-0 dashboard-title">Ratings services</h2>
@@ -32,7 +32,7 @@ const GuestListMain = () => {
           <div className="col-lg-3 col-md-6 mb-3">
             <Link to='/guest/report-problem' className="text-decoration-none shadow guest-list-card bg-white d-flex flex-column align-items-start justify-content-center gap-3 h-100">
                 <div className="guest-list-bg d-flex align-items-center justify-content-center">
-                    <img src="../assets/broom.svg" alt="Report" />
+                    <img src="/assets/broom.svg" alt="Report" />
                 </div>
                     <div className="d-flex justify-content-between align-items-center w-100">
                         <h2 className="mb-0 dashboard-title">Report a problem</h2>
@@ -54,7 +54,7 @@ const GuestListMain = () => {
           <div className="col-lg-3 col-md-6 mb-3">
             <Link to='/guest/login' className="text-decoration-none shadow guest-list-card bg-white d-flex flex-column align-items-start justify-content-center gap-3 h-100">
                 <div className="guest-list-bg d-flex align-items-center justify-content-center">
-                    <img src="../assets/logout.svg" alt="logout" />
+                    <img src="/assets/logout.svg" alt="logout" />
                 </div>
                     <div className="d-flex justify-content-between align-items-center w-100">
                         <h2 className="mb-0 dashboard-title">check out</h2>

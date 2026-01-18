@@ -53,11 +53,11 @@ const DashboardProperyProblemMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/client/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -72,7 +72,7 @@ const DashboardProperyProblemMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -84,21 +84,21 @@ const DashboardProperyProblemMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -116,39 +116,39 @@ const DashboardProperyProblemMain = ({ onMobileMenuClick }) => {
                 <div className="d-flex flex-column align-items-start gap-2 w-100">
                     <div className="sec-border w-100">
                         <div className="d-flex w-100 align-items-center gap-2">
-                            <img src="../assets/property-management-card-img.png" className='property-management-card-img-2' alt="Property" />
+                            <img src="/assets/property-management-card-img.png" className='property-management-card-img-2' alt="Property" />
                             <div className='d-flex flex-column gap-2 align-items-start'>
                                 <div className='villa-badge py-1 px-3 rounded-pill'>Villa</div>
                                 <div className="d-flex align-items-center">
-                                    <img src="../assets/location.svg" className='img-fluid' alt="location" />
+                                    <img src="/assets/location.svg" className='img-fluid' alt="location" />
                                     <p className="property-management-card-address m-0">Riyadh, Saudi Arabia</p>
                                 </div>
                             </div>
                         </div>
                         <div className="d-flex gap-3 align-items-center justify-content-between flex-wrap w-100 py-1 px-2 rounded-1 mt-2">
                             <div className="d-flex align-items-center gap-1">
-                            <img src="../assets/property-card-icon-1.svg" className='img-fluid' alt="location" />
+                            <img src="/assets/property-card-icon-1.svg" className='img-fluid' alt="location" />
                             <h6 className="property-management-card-icon-label m-0">3 floors</h6>
                             </div>
                             <div className='card-border-right'>|</div>
                             <div className="d-flex align-items-center gap-1">
-                            <img src="../assets/property-card-icon-2.svg" className='img-fluid' alt="location" />
+                            <img src="/assets/property-card-icon-2.svg" className='img-fluid' alt="location" />
                             <h6 className="property-management-card-icon-label m-0">7 rooms</h6>
                             </div>
                             <div className='card-border-right'>|</div>
                             <div className="d-flex align-items-center gap-1">
-                            <img src="../assets/property-card-icon-3.svg" className='img-fluid' alt="location" />
+                            <img src="/assets/property-card-icon-3.svg" className='img-fluid' alt="location" />
                             <h6 className="property-management-card-icon-label m-0">300 m</h6>
                             </div>
                             <div className='card-border-right'>|</div>
                             <div className="d-flex align-items-center gap-1">
-                            <img src="../assets/property-card-icon-4.svg" className='img-fluid' alt="location" />
+                            <img src="/assets/property-card-icon-4.svg" className='img-fluid' alt="location" />
                             <h6 className="property-management-card-icon-label m-0">4 bathrooms</h6>
                             </div>
                         </div>
                     </div>
                     <div className="d-flex w-100 align-items-md-center flex-column flex-md-row gap-2 w-100">
-                        <img src="../assets/problem-img-1.png" className='img-fluid problem-img' alt="location" />   
+                        <img src="/assets/problem-img-1.png" className='img-fluid problem-img' alt="location" />   
                         <div className='d-flex flex-column gap-2 align-items-start'>
                             <h6 className="property-problem-title mb-0">Air conditioning repair</h6>
                             <div className="d-flex align-items-center gap-1">
@@ -156,11 +156,11 @@ const DashboardProperyProblemMain = ({ onMobileMenuClick }) => {
                                 <p className="dashboard-card-link m-0">38274921</p>
                             </div>
                             <div className="d-flex align-items-center gap-1">
-                                <img src="../assets/calendar-3.svg" alt="calendar" />
+                                <img src="/assets/calendar-3.svg" alt="calendar" />
                                 <p className="dashboard-home-card-2-desc-3 m-0">June 12, 2026</p>
                             </div>
                             <div className="d-flex align-items-center gap-1">
-                                <img src="../assets/clock.svg" alt="clock" />
+                                <img src="/assets/clock.svg" alt="clock" />
                                 <p className="dashboard-home-card-2-desc-3 m-0">8:00 pm - 10:00 pm</p>
                             </div>
                         </div>
@@ -186,39 +186,39 @@ const DashboardProperyProblemMain = ({ onMobileMenuClick }) => {
                 <div className="d-flex flex-column align-items-start gap-2 w-100">
                     <div className="sec-border w-100">
                         <div className="d-flex w-100 align-items-center gap-2">
-                            <img src="../assets/property-management-card-img.png" className='property-management-card-img-2' alt="Property" />
+                            <img src="/assets/property-management-card-img.png" className='property-management-card-img-2' alt="Property" />
                             <div className='d-flex flex-column gap-2 align-items-start'>
                                 <div className='villa-badge py-1 px-3 rounded-pill'>Villa</div>
                                 <div className="d-flex align-items-center">
-                                    <img src="../assets/location.svg" className='img-fluid' alt="location" />
+                                    <img src="/assets/location.svg" className='img-fluid' alt="location" />
                                     <p className="property-management-card-address m-0">Riyadh, Saudi Arabia</p>
                                 </div>
                             </div>
                         </div>
                         <div className="d-flex gap-3 align-items-center justify-content-between flex-wrap w-100 py-1 px-2 rounded-1 mt-2">
                             <div className="d-flex align-items-center gap-1">
-                            <img src="../assets/property-card-icon-1.svg" className='img-fluid' alt="location" />
+                            <img src="/assets/property-card-icon-1.svg" className='img-fluid' alt="location" />
                             <h6 className="property-management-card-icon-label m-0">3 floors</h6>
                             </div>
                             <div className='card-border-right'>|</div>
                             <div className="d-flex align-items-center gap-1">
-                            <img src="../assets/property-card-icon-2.svg" className='img-fluid' alt="location" />
+                            <img src="/assets/property-card-icon-2.svg" className='img-fluid' alt="location" />
                             <h6 className="property-management-card-icon-label m-0">7 rooms</h6>
                             </div>
                             <div className='card-border-right'>|</div>
                             <div className="d-flex align-items-center gap-1">
-                            <img src="../assets/property-card-icon-3.svg" className='img-fluid' alt="location" />
+                            <img src="/assets/property-card-icon-3.svg" className='img-fluid' alt="location" />
                             <h6 className="property-management-card-icon-label m-0">300 m</h6>
                             </div>
                             <div className='card-border-right'>|</div>
                             <div className="d-flex align-items-center gap-1">
-                            <img src="../assets/property-card-icon-4.svg" className='img-fluid' alt="location" />
+                            <img src="/assets/property-card-icon-4.svg" className='img-fluid' alt="location" />
                             <h6 className="property-management-card-icon-label m-0">4 bathrooms</h6>
                             </div>
                         </div>
                     </div>
                     <div className="d-flex w-100 align-items-md-center flex-column flex-md-row gap-2 w-100">
-                        <img src="../assets/problem-img-1.png" className='img-fluid problem-img' alt="location" />   
+                        <img src="/assets/problem-img-1.png" className='img-fluid problem-img' alt="location" />   
                         <div className='d-flex flex-column gap-2 align-items-start'>
                             <h6 className="property-problem-title mb-0">Air conditioning repair</h6>
                             <div className="d-flex align-items-center gap-1">
@@ -226,11 +226,11 @@ const DashboardProperyProblemMain = ({ onMobileMenuClick }) => {
                                 <p className="dashboard-card-link m-0">38274921</p>
                             </div>
                             <div className="d-flex align-items-center gap-1">
-                                <img src="../assets/calendar-3.svg" alt="calendar" />
+                                <img src="/assets/calendar-3.svg" alt="calendar" />
                                 <p className="dashboard-home-card-2-desc-3 m-0">June 12, 2026</p>
                             </div>
                             <div className="d-flex align-items-center gap-1">
-                                <img src="../assets/clock.svg" alt="clock" />
+                                <img src="/assets/clock.svg" alt="clock" />
                                 <p className="dashboard-home-card-2-desc-3 m-0">8:00 pm - 10:00 pm</p>
                             </div>
                         </div>

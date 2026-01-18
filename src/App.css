@@ -1671,8 +1671,12 @@ font-weight: 400;
   width: 20% !important;
   min-width: 20% !important;
 }
-.bg-light-gray{
+.bg-light-gray, .calendar-card{
   background-color: var(--bg-light-gray);
+}
+ .calendar-card{
+    padding: 12px;
+  border-radius: 12px;
 }
 .bg-light-gray.smart-gray{
   width: 110px;
@@ -1688,7 +1692,7 @@ font-weight: 400;
   font-size: 14px;
   font-weight: 600;
 }
-.bg-light-gray.active{
+.bg-light-gray.active, .calendar-card.active{
   background-color: #FFF4E8;
   border: 1px solid #F59331;
 }

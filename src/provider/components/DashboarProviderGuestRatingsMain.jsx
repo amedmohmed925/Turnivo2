@@ -20,82 +20,82 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
     {
       id: 1,
       userName: "Omar Alrajihi",
-      userImage: "../assets/user.png",
+      userImage: "/assets/user.png",
       date: "2024/09/28",
       rating: 5.0,
       service: "Deep cleaning",
       comment: "Great and fast service! Booking was easy and the team is very professional. I will definitely order the service again!",
-      qouteImage: "../assets/qoute.png"
+      qouteImage: "/assets/qoute.png"
     },
     {
       id: 2,
       userName: "Sarah Johnson",
-      userImage: "../assets/user.png",
+      userImage: "/assets/user.png",
       date: "2024/09/27",
       rating: 4.5,
       service: "Window cleaning",
       comment: "The team did an excellent job with my windows. They were very thorough and professional.",
-      qouteImage: "../assets/qoute.png"
+      qouteImage: "/assets/qoute.png"
     },
     {
       id: 3,
       userName: "Ahmed Hassan",
-      userImage: "../assets/user.png",
+      userImage: "/assets/user.png",
       date: "2024/09/26",
       rating: 4.0,
       service: "Kitchen cleaning",
       comment: "Very satisfied with the service. The kitchen looks brand new now!",
-      qouteImage: "../assets/qoute.png"
+      qouteImage: "/assets/qoute.png"
     },
     {
       id: 4,
       userName: "Fatima Al-Mansour",
-      userImage: "../assets/user.png",
+      userImage: "/assets/user.png",
       date: "2024/09/25",
       rating: 5.0,
       service: "Complete house cleaning",
       comment: "Outstanding service! The team was professional and the house is sparkling clean.",
-      qouteImage: "../assets/qoute.png"
+      qouteImage: "/assets/qoute.png"
     },
     {
       id: 5,
       userName: "Mohammed Al-Fahad",
-      userImage: "../assets/user.png",
+      userImage: "/assets/user.png",
       date: "2024/09/24",
       rating: 3.5,
       service: "Carpet cleaning",
       comment: "Good service overall, but they were a bit late. The carpet looks great though.",
-      qouteImage: "../assets/qoute.png"
+      qouteImage: "/assets/qoute.png"
     },
     {
       id: 6,
       userName: "Layla Al-Rashid",
-      userImage: "../assets/user.png",
+      userImage: "/assets/user.png",
       date: "2024/09/23",
       rating: 4.5,
       service: "Bathroom cleaning",
       comment: "Excellent attention to detail. The bathroom looks better than ever!",
-      qouteImage: "../assets/qoute.png"
+      qouteImage: "/assets/qoute.png"
     },
     {
       id: 7,
       userName: "Khalid Al-Saud",
-      userImage: "../assets/user.png",
+      userImage: "/assets/user.png",
       date: "2024/09/22",
       rating: 5.0,
       service: "Deep cleaning",
       comment: "I'm very impressed with the quality of service. Highly recommended!",
-      qouteImage: "../assets/qoute.png"
+      qouteImage: "/assets/qoute.png"
     },
     {
       id: 8,
       userName: "Nora Al-Harbi",
-      userImage: "../assets/user.png",
+      userImage: "/assets/user.png",
       date: "2024/09/21",
       rating: 4.0,
       service: "Garden cleaning",
       comment: "The team did a fantastic job with my garden. It looks beautiful now!",
-      qouteImage: "../assets/qoute.png"
+      qouteImage: "/assets/qoute.png"
     }
   ];
   
@@ -197,11 +197,11 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/provider/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -216,7 +216,7 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -228,21 +228,21 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -254,7 +254,7 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
       <div className="dashboard-home-content px-3 mt-2">
           <div className="d-flex gap-2 align-items-center">
               <div className="rating-stars-bg p-3 rounded-3 d-flex gap-2 align-items-center mb-3">
-            <img src="../assets/problem-img-2.png"  className='review-img' alt="review-img" />
+            <img src="/assets/problem-img-2.png"  className='review-img' alt="review-img" />
             <div>
               <p className='general-assess m-0'>General assessment</p>
             <div className="d-flex align-items-center gap-2">

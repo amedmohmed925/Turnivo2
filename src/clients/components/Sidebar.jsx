@@ -89,19 +89,19 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     {
       id: 'home',
       label: 'Home',
-      iconPath: "../assets/home-icon.svg",
+      iconPath: "/assets/home-icon.svg",
       route: '/client/dashboard'
     },
     {
       id: 'property',
       label: 'Property management',
-      iconPath: "../assets/property-icon.svg",
+      iconPath: "/assets/property-icon.svg",
       route: '/client/property-management'
     },
     {
       id: 'service',
       label: 'Service Management',
-      iconPath: "../assets/service-icon.svg",
+      iconPath: "/assets/service-icon.svg",
       hasDropdown: true,
       dropdownOpen: serviceDropdownOpen,
       onToggle: toggleServiceDropdown,
@@ -115,19 +115,19 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     {
       id: 'checkin',
       label: 'Smart checkin/checkout',
-      iconPath: "../assets/key-icon.svg",
+      iconPath: "/assets/key-icon.svg",
       route: '/client/smart-checkin-checkout'
     },
     {
       id: 'calendar',
       label: 'Calendar',
-      iconPath: "../assets/calendar-icon.svg",
+      iconPath: "/assets/calendar-icon.svg",
       route: '/client/calendar'
     },
     {
       id: 'ratings',
       label: 'Ratings & Feedback',
-      iconPath: "../assets/medal-icon.svg",
+      iconPath: "/assets/medal-icon.svg",
       hasDropdown: true,
       dropdownOpen: ratingDropdownOpen,
       onToggle: toggleRatingDropdown,
@@ -140,13 +140,13 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     {
       id: 'payment',
       label: 'Payment and smart wallet',
-      iconPath: "../assets/wallet-icon.svg",
+      iconPath: "/assets/wallet-icon.svg",
       route: '/client/dashboard'
     },
     {
       id: 'contact',
       label: 'Contact us',
-      iconPath: "../assets/message-icon.svg",
+      iconPath: "/assets/message-icon.svg",
       route: '/client/contact-us'
     }
   ];
@@ -155,26 +155,26 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     {
       id: 'user-profile',
       label: 'Omar Alrajhi',
-      iconPath: "../assets/user.png",
+      iconPath: "/assets/user.png",
       isUserProfile: true,
       route: '/client/profile'
     },
     {
       id: 'settings',
       label: 'Settings',
-      iconPath: "../assets/setting-icon.svg",
+      iconPath: "/assets/setting-icon.svg",
       route: '/client/dashboard'
     },
     {
       id: 'logout',
       label: 'Logout',
-      iconPath: "../assets/logout-icon.svg",
+      iconPath: "/assets/logout-icon.svg",
       route: '/login'
     },
     {
       id: 'back',
       label: 'Back to main',
-      iconPath: "../assets/undo-icon.svg",
+      iconPath: "/assets/undo-icon.svg",
       route: '/'
     }
   ];
@@ -288,7 +288,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
           </button>
           <div className="logo-container">
             <img 
-              src="../assets/logo.png" 
+              src="/assets/logo.png" 
               alt="Logo" 
               height="40" 
             />

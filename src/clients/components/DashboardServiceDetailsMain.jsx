@@ -53,11 +53,11 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="../assets/global.svg" alt="notification" />
+              <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
             <Link to='/client/notifications' className="notification-icon-container">
-              <img src="../assets/notification.svg" alt="notification" />
+              <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -72,7 +72,7 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
                 />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                  src="../assets/user.png" 
+                  src="/assets/user.png" 
                   alt="User Profile" 
                   className="user-avatar-small"
                 />
@@ -84,21 +84,21 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                   >
-                    <img src="../assets/user-square.svg" alt="settings" />
+                    <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                   >
-                    <img src="../assets/setting-icon.svg" alt="settings" />
+                    <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                   </div>
                   <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                   >
-                    <img src="../assets/logout-icon.svg" alt="settings" />
+                    <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                   </div>
                 </div>
@@ -123,24 +123,24 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
                     <h6 className="property-management-card-title m-0">Upholstery and carpet cleaning</h6>
                     <div className='villa-badge py-1 px-3 rounded-pill'>Cleaning</div>
                   </div>
-                <img src="../assets/property-management-card-img.png" className='property-management-card-img' alt="Property" />
+                <img src="/assets/property-management-card-img.png" className='property-management-card-img' alt="Property" />
                   <div className="d-flex gap-4 align-items-center flex-wrap bg-white w-100 py-1 px-2 rounded-1">
                     <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/calendar-3.svg" alt="calendar" />
+                      <img src="/assets/calendar-3.svg" alt="calendar" />
                       <p className="dashboard-home-card-2-desc-3 m-0">June 12, 2026</p>
                     </div>
                     <div className="d-flex align-items-center gap-1">
-                      <img src="../assets/clock.svg" alt="clock" />
+                      <img src="/assets/clock.svg" alt="clock" />
                       <p className="dashboard-home-card-2-desc-3 mb-0">8:00 pm - 10:00 pm</p>
                     </div>
                   </div>
                     <h2 className="mb-0 dashboard-title">Nakheel Neighborhood Hotel</h2>
                     <div className="d-flex align-items-center">
-                        <img src="../assets/location.svg" className='img-fluid' alt="location" />
+                        <img src="/assets/location.svg" className='img-fluid' alt="location" />
                         <p className="property-management-card-address m-0">Riyadh, Saudi Arabia, Al Nakheel Street</p>
                     </div>
                     <div className="d-flex align-items-center gap-2 px-1">
-                        <img src="../assets/dollar-2.svg" className='img-fluid' alt="location" />
+                        <img src="/assets/dollar-2.svg" className='img-fluid' alt="location" />
                         <p className="property-management-card-address fw-bold m-0">Price</p>
                         <p className="currency m-0">250 SAR</p>
                     </div>
@@ -148,7 +148,7 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
                     <div className="row w-100 g-0 g-lg-2">
                                       <div className="col-md-2 col-12 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -157,7 +157,7 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
               </div>
                                       <div className="col-md-2 col-12 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>
@@ -166,7 +166,7 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
               </div>
                                       <div className="col-md-2 col-12 mb-3 col-20-per">
                 <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="../assets/service-img.png" className='img-fluid w-100' alt="service" />
+                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
                     <div className='third-btn-sm p-1 rounded-2'>$50</div>

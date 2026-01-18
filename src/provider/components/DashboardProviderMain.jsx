@@ -49,11 +49,11 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
             </div>
             <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-                <img src="../assets/global.svg" alt="notification" />
+                <img src="/assets/global.svg" alt="notification" />
                 <span>English</span>
             </div>
             <Link to='/provider/notifications' className="notification-icon-container">
-                <img src="../assets/notification.svg" alt="notification" />
+                <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
             {/* User Profile Dropdown */}
@@ -68,7 +68,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                     />
                 <span className="user-name">Omar Alrajhi</span>
                 <img 
-                    src="../assets/user.png" 
+                    src="/assets/user.png" 
                     alt="User Profile" 
                     className="user-avatar-small"
                 />
@@ -80,21 +80,21 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('profile')}
                     >
-                        <img src="../assets/user-square.svg" alt="settings" />
+                        <img src="/assets/user-square.svg" alt="settings" />
                     <span>Profile</span>
                     </div>
                     <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('settings')}
                     >
-                        <img src="../assets/setting-icon.svg" alt="settings" />
+                        <img src="/assets/setting-icon.svg" alt="settings" />
                     <span>Settings</span>
                     </div>
                     <div 
                     className="dropdown-item d-flex gap-2 align-items-center"
                     onClick={() => handleDropdownItemClick('logout')}
                     >
-                        <img src="../assets/logout-icon.svg" alt="settings" />
+                        <img src="/assets/logout-icon.svg" alt="settings" />
                     <span>Logout</span>
                     </div>
                 </div>
@@ -111,7 +111,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-3 align-tems-start sec-border-1">
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="dashboard-home-card-title dashboard-home-card-title-1 mb-0">Active Booking</h5>
-                            <img src="../assets/dashboard-card-icon-1.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-1.svg" alt="icon" />
                         </div>
                         <h5 className='dashboard-home-card-number dashboard-home-card-number-1 mb-0'>08</h5>
                         <h5 className='dashboard-home-card-desc dashboard-home-card-desc-1 mb-0'>+ 2 from yesterday</h5>
@@ -121,7 +121,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-3 align-tems-start sec-border-2">
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="dashboard-home-card-title dashboard-home-card-title-2 mb-0">Pending Check-ins</h5>
-                            <img src="../assets/dashboard-card-icon-2.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-2.svg" alt="icon" />
                         </div>
                         <h5 className='dashboard-home-card-number dashboard-home-card-number-2 mb-0'>03</h5>
                         <h5 className='dashboard-home-card-desc dashboard-home-card-desc-2 mb-0'>Next 24 h</h5>
@@ -131,7 +131,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-3 align-tems-start sec-border-3">
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="dashboard-home-card-title dashboard-home-card-title-3 mb-0">Open Tasks</h5>
-                            <img src="../assets/dashboard-card-icon-3.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-3.svg" alt="icon" />
                         </div>
                         <h5 className='dashboard-home-card-number dashboard-home-card-number-3 mb-0'>07</h5>
                         <h5 className='dashboard-home-card-desc dashboard-home-card-desc-3 mb-0'>Requires attention</h5>
@@ -141,7 +141,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-3 align-tems-start sec-border-4">
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="dashboard-home-card-title dashboard-home-card-title-4 mb-0">System Alerts</h5>
-                            <img src="../assets/dashboard-card-icon-4.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-4.svg" alt="icon" />
                         </div>
                         <h5 className='dashboard-home-card-number dashboard-home-card-number-4 mb-0'>01</h5>
                         <h5 className='dashboard-home-card-desc dashboard-home-card-desc-4 mb-0'>Critical issue</h5>
@@ -152,7 +152,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                 <div className="col-md-4 mt-3">
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-3 align-tems-start">
                         <div className="d-flex gap-1 align-items-center">
-                            <img src="../assets/dashboard-card-icon-5.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-5.svg" alt="icon" />
                             <h5 className="dashboard-home-card-2-title mb-0">Check in / Check out</h5>
                         </div>
                         <div className="d-flex justify-content-between gap-2 align-items-start flex-wrap">
@@ -161,7 +161,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                                 <div className="d-flex align-items-center gap-1">
                                     <h6 className="dashboard-home-card-2-desc-2 m-0">Checked-in : Today, 02:30 PM</h6>
                                     <div className="d-flex align-items-center gap-1">
-                                        <img src="../assets/dashboard-card-icon-8.svg" alt="icon" />
+                                        <img src="/assets/dashboard-card-icon-8.svg" alt="icon" />
                                         <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
                                     </div>
                                 </div>
@@ -174,7 +174,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                                 <div className="d-flex align-items-center gap-1">
                                     <h6 className="dashboard-home-card-2-desc-2 m-0">Checked-in : Today, 02:30 PM</h6>
                                     <div className="d-flex align-items-center gap-1">
-                                        <img src="../assets/dashboard-card-icon-8.svg" alt="icon" />
+                                        <img src="/assets/dashboard-card-icon-8.svg" alt="icon" />
                                         <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
                                     </div>
                                 </div>
@@ -187,7 +187,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                                 <div className="d-flex align-items-center gap-1">
                                     <h6 className="dashboard-home-card-2-desc-2 m-0">Checked-in : Today, 02:30 PM</h6>
                                     <div className="d-flex align-items-center gap-1">
-                                        <img src="../assets/dashboard-card-icon-8.svg" alt="icon" />
+                                        <img src="/assets/dashboard-card-icon-8.svg" alt="icon" />
                                         <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
                                     </div>
                                 </div>
@@ -199,7 +199,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                 <div className="col-md-4 mt-3">
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-3 align-tems-start">
                         <div className="d-flex gap-1 align-items-center">
-                            <img src="../assets/dashboard-card-icon-6.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-6.svg" alt="icon" />
                             <h5 className="dashboard-home-card-2-title mb-0">Smart Locks Overview</h5>
                         </div>
                         <div className="d-flex justify-content-between gap-2 align-items-center flex-wrap">
@@ -222,7 +222,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                 <div className="col-md-4 mt-3">
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-2 align-tems-start">
                         <div className="d-flex gap-1 align-items-center">
-                            <img src="../assets/dashboard-card-icon-7.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-7.svg" alt="icon" />
                             <h5 className="dashboard-home-card-2-title mb-0">Packages Overview</h5>
                         </div>
                         <h3 className='dashboard-home-card-2-title-2 m-0'>Deep cleaning</h3>
@@ -241,13 +241,13 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                 <div className="col-md-6 mt-3">
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-3 align-tems-start">
                         <div className="d-flex gap-1 align-items-center">
-                            <img src="../assets/dashboard-card-icon-9.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-9.svg" alt="icon" />
                             <h5 className="dashboard-home-card-2-title mb-0">Task Management</h5>
                         </div>
                         <div className="d-flex justify-content-between gap-2 align-items-start flex-wrap">
 
                             <div className='d-flex align-items-center gap-2'>
-                                <img src="../assets/dashboard-card-icon-10.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-10.svg" alt="icon" />
                                 <div>
                                 <h6 className="dashboard-home-card-2-desc-1 mb-1">Clean Property Alpha (Sky higt Apartments)</h6>
                                     <h6 className="dashboard-home-card-3-desc-1 mb-1">High Priority - Status : in progress</h6>
@@ -256,13 +256,13 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                             </div>
                             <div className="dashboard-card-btn-2 d-flex gap-1">
                                 <span>Edit</span>
-                                <img src="../assets/dashboard-card-icon-13.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-13.svg" alt="icon" />
                             </div>
                         </div>
                         <div className="d-flex justify-content-between gap-2 align-items-start flex-wrap">
 
                             <div className='d-flex align-items-center gap-2'>
-                                <img src="../assets/dashboard-card-icon-11.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-11.svg" alt="icon" />
                                 <div>
                                 <h6 className="dashboard-home-card-2-desc-1 mb-1">Fix Leaky Faucet (Ocean View Villa)</h6>
                                     <h6 className="dashboard-home-card-3-desc-1 mb-1">Medium Priority - Status :  Pending</h6>
@@ -271,13 +271,13 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                             </div>
                             <div className="dashboard-card-btn-2 d-flex gap-1">
                                 <span>Edit</span>
-                                <img src="../assets/dashboard-card-icon-13.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-13.svg" alt="icon" />
                             </div>
                         </div>
                         <div className="d-flex justify-content-between gap-2 align-items-start flex-wrap">
 
                             <div className='d-flex align-items-center gap-2'>
-                                <img src="../assets/dashboard-card-icon-12.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-12.svg" alt="icon" />
                                 <div>
                                 <h6 className="dashboard-home-card-2-desc-1 mb-1">Gust welcome Prep (Downtown Studio )</h6>
                                     <h6 className="dashboard-home-card-3-desc-1 mb-1">High Priority - Status : in Todo</h6>
@@ -286,7 +286,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                             </div>
                             <div className="dashboard-card-btn-2 d-flex gap-1">
                                 <span>Edit</span>
-                                <img src="../assets/dashboard-card-icon-13.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-13.svg" alt="icon" />
                             </div>
                         </div>
                         <div className="sec-btn rounded-3 py-2 text-center">View All tasks</div>
@@ -295,13 +295,13 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                 <div className="col-md-6 mt-3">
                     <div className="shadow p-3 rounded-4 bg-white h-100 d-flex flex-column gap-4 align-tems-start">
                         <div className="d-flex gap-1 align-items-center">
-                            <img src="../assets/dashboard-card-icon-14.svg" alt="icon" />
+                            <img src="/assets/dashboard-card-icon-14.svg" alt="icon" />
                             <h5 className="dashboard-home-card-2-title mb-0">Recent Activity</h5>
                         </div>
                         <div className="d-flex justify-content-between gap-2 align-items-start flex-wrap">
 
                             <div className='d-flex align-items-center gap-2'>
-                                <img src="../assets/dashboard-card-icon-15.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-15.svg" alt="icon" />
                                 <div>
                                     <div className="d-flex align-items-center gap-1">
                                         <h6 className="dashboard-home-card-2-desc-1 mb-1">Guest Alice Checked-in at </h6>
@@ -315,7 +315,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                         <div className="d-flex justify-content-between gap-2 align-items-start flex-wrap">
 
                             <div className='d-flex align-items-center gap-2'>
-                                <img src="../assets/dashboard-card-icon-16.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-16.svg" alt="icon" />
                                 <div>
                                     <div className="d-flex align-items-center gap-1">
                                         <h6 className="dashboard-home-card-2-desc-1 mb-1">Cleaner Bob Completed cleaning at </h6>
@@ -329,7 +329,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                         <div className="d-flex justify-content-between gap-2 align-items-start flex-wrap">
 
                             <div className='d-flex align-items-center gap-2'>
-                                <img src="../assets/dashboard-card-icon-17.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-17.svg" alt="icon" />
                                 <div>
                                     <div className="d-flex align-items-center gap-1">
                                         <h6 className="dashboard-home-card-2-desc-1 mb-1">Maintenance C . Fixed tap at </h6>
@@ -343,7 +343,7 @@ const DashboardProviderMain = ({ onMobileMenuClick }) => {
                         <div className="d-flex justify-content-between gap-2 align-items-start flex-wrap">
 
                             <div className='d-flex align-items-center gap-2'>
-                                <img src="../assets/dashboard-card-icon-18.svg" alt="icon" />
+                                <img src="/assets/dashboard-card-icon-18.svg" alt="icon" />
                                 <div>
                                     <div className="d-flex align-items-center gap-1">
                                         <h6 className="dashboard-home-card-2-desc-1 mb-1">Guest DavidChecked-out at </h6>

@@ -19,7 +19,7 @@ const ProviderThanksMain = () => {
             <div className="d-flex flex-column align-items-center gap-3 p-md-5 p-4">
                 <div className="text-center">
                   <img 
-                    src="../assets/logo.png" 
+                    src="/assets/logo.png" 
                     alt="Logo" 
                     className="img-fluid confirm-logo"
                   />
