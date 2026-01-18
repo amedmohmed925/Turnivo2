@@ -244,31 +244,17 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
                         </p>
                     </div>
 
-                    {/* Description - For Maintenance */}
-                    {serviceType === 'maintenance' && serviceData.description && (
-                      <>
-                        <h6 className="property-management-card-title mb-1 mt-2">Description</h6>
-                        <p className="property-management-card-address">{serviceData.description}</p>
-                      </>
-                    )}
-
-                    {/* Provider Information - For Maintenance */}
-                    {serviceType === 'maintenance' && serviceData.provider && serviceData.provider.id && (
-                      <>
-                        <h6 className="property-management-card-title mb-1 mt-2">Service Provider</h6>
-                        <div className="d-flex align-items-center gap-2">
-                          <img 
-                            src={serviceData.provider.avatar || '/assets/user.png'} 
-                            alt={serviceData.provider.name}
-                            style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                          <div>
-                            <p className="property-management-card-address m-0">{serviceData.provider.name || 'N/A'}</p>
-                            <p className="property-management-card-address m-0">Rating: {serviceData.provider.rate || 0} ⭐</p>
-                          </div>
-                        </div>
-                      </>
-                    )}
+                    {/* Price Section - For Both Cleaning and Maintenance */}
+                    <div className="d-flex align-items-center gap-2 px-1">
+                        <img src="/assets/dollar-2.svg" className='img-fluid' alt="price" />
+                        <p className="property-management-card-address fw-bold m-0">Price</p>
+                        <p className="currency m-0">
+                          {serviceType === 'maintenance' 
+                            ? (serviceData.property_id?.price || 0) 
+                            : (serviceData.total_price || 0)
+                          } SAR
+                        </p>
+                    </div>
 
                     {/* Status History - For Maintenance */}
                     {serviceType === 'maintenance' && serviceData.status_history && serviceData.status_history.length > 0 && (
@@ -351,13 +337,6 @@ const DashboardServiceDetailsMain = ({ onMobileMenuClick }) => {
                     {/* Cleaning Specific Content */}
                     {serviceType === 'cleaning' && (
                       <>
-                        <div className="d-flex align-items-center gap-2 px-1">
-                            <img src="/assets/dollar-2.svg" className='img-fluid' alt="price" />
-                            <p className="property-management-card-address fw-bold m-0">Price</p>
-                            <p className="currency m-0">{serviceData.total_price || 0} SAR</p>
-                        </div>
-                        
-                        {/* Additional Services */}
                         {serviceData.addition_service && serviceData.addition_service.length > 0 && (
                           <>
                             <h6 className="property-management-card-title mb-1 mt-2">Additional Services</h6>

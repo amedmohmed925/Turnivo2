@@ -163,7 +163,7 @@ const DashboardMaintenanceOrdersMain = ({ onMobileMenuClick }) => {
       subtitle: order.property_id?.name || 'Property',
       date: order.date || 'N/A',
       time: `${order.time_from || ''} - ${order.time_to || ''}`,
-      price: `${order.login_code || 'N/A'}`,
+      price: `${order.property_id?.price || 0} SAR`,
       location: order.property_id?.address || 'N/A',
       platform: order.property_id?.platform_id?.name || 'N/A',
       platformIcon: platformIcon,
