@@ -5,18 +5,26 @@ import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
+import { getGuestRatings } from '../../api/guestRatingApi';
+import Swal from 'sweetalert2';
 
 const DashboarGuestRatingsMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   
+  // API state
+  const [ratingsData, setRatingsData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 4; // Number of items to show per page
+  const [totalCount, setTotalCount] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // Sample data for ratings
-  const ratingsData = [
+  // Sample data for ratings (removed - will use API data)
+  const sampleRatingsData = [
     {
       id: 1,
       userName: "Omar Alrajihi",
@@ -99,21 +107,56 @@ const DashboarGuestRatingsMain = ({ onMobileMenuClick }) => {
     }
   ];
   
-  // Calculate total pages based on data
+  // Fetch ratings from API
   useEffect(() => {
-    const calculatedPages = Math.ceil(ratingsData.length / itemsPerPage);
-    setTotalPages(calculatedPages);
-    
-    // Reset to first page if current page is beyond the new total pages
-    if (currentPage > calculatedPages && calculatedPages > 0) {
-      setCurrentPage(1);
-    }
-  }, [ratingsData.length, currentPage, itemsPerPage]);
+    fetchGuestRatings();
+  }, [currentPage]);
   
-  // Get current items for the current page
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = ratingsData.slice(indexOfFirstItem, indexOfLastItem);
+  const fetchGuestRatings = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const accessToken = localStorage.getItem('access_token') || 'q3mdPlSMfSBKo4QrUSXEezb3WU59BLcS';
+      const response = await getGuestRatings(accessToken, currentPage);
+      
+      if (response.status === 1 && response.data && response.data.length > 0) {
+        const apiData = response.data[0];
+        
+        // Map API data to component format
+        const mappedData = apiData.items.map(item => ({
+          id: item.id,
+          userName: item.user.name,
+          userImage: item.user.avatar || '/assets/user.png',
+          date: item.created_at.split(' ')[0], // Extract date part
+          rating: item.rate,
+          service: item.service_id.property,
+          comment: item.comment || 'No comment provided',
+          qouteImage: '/assets/qoute.png'
+        }));
+        
+        setRatingsData(mappedData);
+        setTotalCount(apiData._meta.totalCount);
+        setTotalPages(apiData._meta.NumberOfPage);
+        setItemsPerPage(apiData._meta.perPage);
+      } else {
+        setRatingsData([]);
+      }
+    } catch (err) {
+      console.error('Error fetching guest ratings:', err);
+      setError('Failed to load ratings');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to load guest ratings. Please try again.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Use ratingsData directly (API already handles pagination)
+  const currentItems = ratingsData;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -254,8 +297,31 @@ const DashboarGuestRatingsMain = ({ onMobileMenuClick }) => {
       <div className="dashboard-home-content px-3 mt-2">
         <h6 className="dashboard-routes-sub m-0">Rating of gests</h6>
         
+        {/* Loading state */}
+        {loading && (
+          <div className="text-center mt-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Error state */}
+        {error && !loading && (
+          <div className="alert alert-danger mt-3" role="alert">
+            {error}
+          </div>
+        )}
+        
+        {/* Empty state */}
+        {!loading && !error && currentItems.length === 0 && (
+          <div className="text-center mt-4">
+            <p className="text-muted">No ratings found</p>
+          </div>
+        )}
+        
         {/* Render current page items */}
-        {currentItems.map((item) => (
+        {!loading && currentItems.map((item) => (
           <div className="col-12 mt-3" key={item.id}>
             <div className="card p-2">
               <div className="d-flex justify-content-between align-items-start">

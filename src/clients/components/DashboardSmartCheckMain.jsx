@@ -4,6 +4,7 @@ import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortaweso
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getPropertyById, getPropertyCalendar, getProperties, createSmartLockRequest, getContactInfo } from '../../api/propertyApi';
+import { getSmartLockHistoryCheckin, getSmartLockHistoryCheckout } from '../../api/smartLockApi';
 
 const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -24,6 +25,11 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
   
   // State for rise_price from contact info
   const [risePrice, setRisePrice] = useState(0);
+  
+  // State for smart lock history
+  const [historyTab, setHistoryTab] = useState('checkin'); // 'checkin' or 'checkout'
+  const [historyData, setHistoryData] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   
   // State for smart lock request
   const [lockRequestData, setLockRequestData] = useState({
@@ -151,6 +157,56 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
   const handlePropertySelect = (property) => {
     setSelectedProperty(property);
     setLockRequestData(prev => ({ ...prev, property_id: property.id }));
+  };
+
+  // Fetch smart lock history
+  const fetchSmartLockHistory = async () => {
+    if (!selectedProperty) {
+      setHistoryData([]);
+      setHistoryLoading(false);
+      return;
+    }
+
+    try {
+      setHistoryLoading(true);
+      const accessToken = localStorage.getItem('access_token');
+      
+      if (!accessToken) {
+        setHistoryLoading(false);
+        return;
+      }
+
+      let response;
+      if (historyTab === 'checkin') {
+        response = await getSmartLockHistoryCheckin(accessToken, selectedProperty.id);
+      } else if (historyTab === 'checkout') {
+        response = await getSmartLockHistoryCheckout(accessToken, selectedProperty.id);
+      }
+      
+      if (response && response.status === 1 && response.data && response.data[0]) {
+        const items = response.data[0]?.items || [];
+        setHistoryData(items);
+      } else {
+        setHistoryData([]);
+      }
+    } catch (err) {
+      console.error('Error fetching smart lock history:', err);
+      setHistoryData([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // Fetch history when selected property or tab changes
+  useEffect(() => {
+    if (selectedProperty) {
+      fetchSmartLockHistory();
+    }
+  }, [selectedProperty, historyTab]);
+
+  // Handle history tab change
+  const handleHistoryTabChange = (tab) => {
+    setHistoryTab(tab);
   };
 
   // Handle payment method selection
@@ -489,14 +545,17 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
           <div className="row package-filter align-items-center py-2 px-0 m-0 w-100">
             <div className="col-md-2 col-20-per">
               <button 
-                className="rounded-2 border-0 px-2 py-2 w-100 sec-btn"
+                className={`rounded-2 border-0 px-2 py-2 w-100 ${historyTab === 'checkin' ? 'sec-btn' : 'package-filter-item'}`}
+                onClick={() => handleHistoryTabChange('checkin')}
               >
                 Checkin history
               </button>
             </div>
             <div className="col-md-2 col-20-per">
               <p 
-                className="text-center rounded-2 py-2 m-0 package-filter-item"
+                className={`text-center rounded-2 py-2 m-0 ${historyTab === 'checkout' ? 'sec-btn' : 'package-filter-item'}`}
+                onClick={() => handleHistoryTabChange('checkout')}
+                style={{ cursor: 'pointer' }}
               >
                 checkout history
               </p>
@@ -532,68 +591,40 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
             <span>Property QR code</span>
           </button>
         </div>
-        <div className="card p-2 rounded-4">
-          <div className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-center gap-4 flex-wrap'>
-            <div className="d-flex align-items-center gap-2 m-0">
-              <img src="/assets/dashboard-card-icon-15.svg" className='img-fluid smart-icon' alt="icon" />
-              <h6 className='smart-title m-0'>Temp code 2</h6>
-            </div>
-            <div>
-              <h6 className="dashboard-home-card-2-desc-1">Checkin with access code 22333 at 12:00</h6>
-              <div className="d-flex align-items-center gap-1">
-                <div className="d-flex align-items-center gap-1">
-                  <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
-                  <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
-                </div>
-              </div>
+        
+        {historyLoading ? (
+          <div className="text-center mt-4 mb-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
             </div>
           </div>
-          <div className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-center gap-4 flex-wrap'>
-            <div className="d-flex align-items-center gap-2 m-0">
-              <img src="/assets/dashboard-card-icon-15.svg" className='img-fluid smart-icon' alt="icon" />
-              <h6 className='smart-title m-0'>Temp code 2</h6>
-            </div>
-            <div>
-              <h6 className="dashboard-home-card-2-desc-1">Checkin with access code 22333 at 12:00</h6>
-              <div className="d-flex align-items-center gap-1">
-                <div className="d-flex align-items-center gap-1">
-                  <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
-                  <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
+        ) : historyData.length === 0 ? (
+          <div className="text-center mt-4 mb-4">
+            <p className="text-muted">No {historyTab} history found for this property.</p>
+          </div>
+        ) : (
+          <div className="card p-2 rounded-4">
+            {historyData.map((item) => (
+              <div key={item.id} className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-center gap-4 flex-wrap'>
+                <div className="d-flex align-items-center gap-2 m-0">
+                  <img src="/assets/dashboard-card-icon-15.svg" className='img-fluid smart-icon' alt="icon" />
+                  <h6 className='smart-title m-0'>Code {item.code}</h6>
+                </div>
+                <div>
+                  <h6 className="dashboard-home-card-2-desc-1">
+                    {historyTab === 'checkin' ? 'Checkin' : 'Checkout'} with access code {item.code}
+                  </h6>
+                  <div className="d-flex align-items-center gap-1">
+                    <div className="d-flex align-items-center gap-1">
+                      <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
+                      <p className="dashboard-home-card-2-desc-3 m-0">{item.created_at}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-          <div className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-center gap-4 flex-wrap'>
-            <div className="d-flex align-items-center gap-2 m-0">
-              <img src="/assets/dashboard-card-icon-15.svg" className='img-fluid smart-icon' alt="icon" />
-              <h6 className='smart-title m-0'>Temp code 2</h6>
-            </div>
-            <div>
-              <h6 className="dashboard-home-card-2-desc-1">Checkin with access code 22333 at 12:00</h6>
-              <div className="d-flex align-items-center gap-1">
-                <div className="d-flex align-items-center gap-1">
-                  <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
-                  <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-center gap-4 flex-wrap'>
-            <div className="d-flex align-items-center gap-2 m-0">
-              <img src="/assets/dashboard-card-icon-15.svg" className='img-fluid smart-icon' alt="icon" />
-              <h6 className='smart-title m-0'>Temp code 2</h6>
-            </div>
-            <div>
-              <h6 className="dashboard-home-card-2-desc-1">Checkin with access code 22333 at 12:00</h6>
-              <div className="d-flex align-items-center gap-1">
-                <div className="d-flex align-items-center gap-1">
-                  <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
-                  <p className="dashboard-home-card-2-desc-3 m-0">05 / 03 / 2025</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Temp Access Modal */}

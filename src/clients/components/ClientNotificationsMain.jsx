@@ -7,9 +7,95 @@ import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
 import ThumbUpOffAltOutlinedIcon from '@mui/icons-material/ThumbUpOffAltOutlined';
 import ThumbDownOffAltOutlinedIcon from '@mui/icons-material/ThumbDownOffAltOutlined';
+import { getNotifications, getNotificationBadge } from '../../api/notificationApi';
+import Swal from 'sweetalert2';
+
 const ClientNotificationsMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  
+  // API state
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [badgeCount, setBadgeCount] = useState(0);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        throw new Error('No access token found. Please login again.');
+      }
+      
+      const response = await getNotifications(accessToken, currentPage);
+      
+      if (response && response.status === 1 && response.data && response.data[0]) {
+        const { items, _meta } = response.data[0];
+        setNotifications(items || []);
+        setTotalPages(_meta?.NumberOfPage || 1);
+        setTotalCount(_meta?.totalCount || 0);
+      } else {
+        setNotifications([]);
+        setTotalPages(1);
+      }
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      setError(err.message || 'Failed to fetch notifications');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message || 'Failed to fetch notifications. Please try again.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch notification badge
+  const fetchNotificationBadge = async () => {
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        return;
+      }
+      
+      const response = await getNotificationBadge(accessToken);
+      
+      if (response && response.status === 1) {
+        setBadgeCount(parseInt(response.data) || 0);
+      }
+    } catch (err) {
+      console.error('Error fetching notification badge:', err);
+    }
+  };
+
+  // Fetch notifications and badge on mount
+  useEffect(() => {
+    fetchNotifications();
+    fetchNotificationBadge();
+  }, [currentPage]);
+
+  // Helper function to calculate time ago
+  const getTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    return dateString;
+  };
   
 
   // Close dropdown when clicking outside
@@ -57,8 +143,14 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
               <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
-            <Link to='/client/notifications' className="notification-icon-container sec-btn">
+            <Link to='/client/notifications' className="notification-icon-container sec-btn position-relative">
               <img src="/assets/notification-2.svg" alt="notification" />
+              {badgeCount > 0 && (
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {badgeCount}
+                  <span className="visually-hidden">unread notifications</span>
+                </span>
+              )}
             </Link>
             
             {/* User Profile Dropdown */}
@@ -110,7 +202,7 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
       </div>
       <div className="dashboard-home-content px-3 mt-2">
         <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-            <div className='dashboard-title m-0'> Notifications (121)</div>
+            <div className='dashboard-title m-0'> Notifications ({totalCount})</div>
                              <div className="position-relative">
                     <select
                       id="propertyType"
@@ -125,88 +217,49 @@ const ClientNotificationsMain = ({ onMobileMenuClick }) => {
                     <i className="bi bi-chevron-down select-bs-icon"></i>
                   </div>
         </div>
-        <div className="notifications-container row g-0 g-lg-2 mt-2">
-            <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center gap-3">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="unread-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
+        
+        {/* Loading state */}
+        {loading && (
+          <div className="text-center mt-4 mb-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
             </div>
-            <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="read-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
+          </div>
+        )}
+        
+        {/* Notifications list */}
+        {!loading && (
+          <div className="notifications-container row g-0 g-lg-2 mt-2">
+            {notifications.length === 0 ? (
+              <div className="text-center mt-4 mb-4">
+                <p className="text-muted">No notifications found.</p>
+              </div>
+            ) : (
+              notifications.map((notification) => (
+                <div 
+                  key={notification.id} 
+                  className={`col-12 mt-2 notification-item ${notification.status === 0 ? 'unread-bg' : ''} d-flex justify-content-between align-items-center gap-3`}
+                >
+                  <div className="d-flex align-items-center gap-2">
+                    <div className={notification.status === 0 ? 'unread-dot' : 'read-dot'}></div>
+                    <img 
+                      src={notification.msgFrom?.avatar || '/assets/user.png'} 
+                      alt="user" 
+                      className="notification-user-img" 
+                      onError={(e) => {
+                        e.target.src = '/assets/user.png';
+                      }}
+                    />
+                    <p className='notification-desc m-0'>
+                      <span className='fw-bold'>{notification.msgFrom?.name || 'User'}</span> {notification.msg}
+                    </p>
+                  </div>
+                  <p className='notification-time text-nowrap m-0'>{getTimeAgo(notification.created_at)}</p>
                 </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-            <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="unread-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-            <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="read-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-            <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="unread-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-            <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="read-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-            <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="unread-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-            <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="read-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-            <div className="col-12 mt-2 notification-item unread-bg d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="unread-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-            <div className="col-12 mt-2 notification-item d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center gap-2">
-                    <div className="read-dot"></div>
-                    <img src="/assets/user.png" alt="user" className="notification-user-img" />
-                    <p className='notification-desc m-0'><span className='fw-bold'>Omar Alrajihi</span> Send you a cleaning service request</p>
-                </div>
-                    <p className='notification-time text-nowrap m-0'>1 hour ago</p>
-            </div>
-        </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

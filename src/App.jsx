@@ -18,6 +18,7 @@ import DashboardMyRatings from './clients/pages/DashboardMyRatings'
 import DashboarGuestRatings from './clients/pages/DashboarGuestRatings'
 import DashboardContact from './clients/pages/DashboardContact'
 import DashboardCalendar from './clients/pages/DashboardCalendar'
+import MySmartLockRequest from './clients/pages/MySmartLockRequest'
 import DashboardTraining from './provider/pages/DashboardTraining'
 import DashboardTrainingDetails from './provider/pages/DashboardTrainingDetails'
 import DashboardSmartAccess from './provider/pages/DashboardSmartAccess'
@@ -92,6 +93,7 @@ function App() {
       <Route path="client/service-details" element={<DashboardServiceDetails />} />
       <Route path="client/profile" element={<DashboardClientProfile />} />
       <Route path="client/smart-checkin-checkout" element={<DashboardSmartCheck />} />
+      <Route path="client/my-smart-lock-request" element={<MySmartLockRequest />} />
       <Route path="client/my-ratings" element={<DashboardMyRatings />} />
       <Route path="client/guest-ratings" element={<DashboarGuestRatings />} />
       <Route path="client/contact-us" element={<DashboardContact />} />

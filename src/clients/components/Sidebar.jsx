@@ -11,6 +11,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   const [activeItem, setActiveItem] = useState('home');
   const [ratingDropdownOpen, setRatingDropdownOpen] = useState(false);
   const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
+  const [checkinDropdownOpen, setCheckinDropdownOpen] = useState(false);
   
   // Navigation hooks
   const navigate = useNavigate();
@@ -23,7 +24,8 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       case '/client/property-management':
       case '/client/property-details':
       case '/client/create-property': return 'property';
-      case '/client/smart-checkin-checkout': return 'checkin';
+      case '/client/smart-checkin-checkout':
+      case '/client/my-smart-lock-request': return 'checkin';
       case '/client/calendar': return 'calendar';
       case '/client/contact-us': return 'contact';
       case '/client/profile': return 'user-profile';
@@ -44,10 +46,12 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     setActiveItem(active);
 
     // Open dropdown if navigating to a subitem page
-    const subItemPaths = ['/client/cleaning-request', '/client/maintenance', '/client/additional-services', '/client/guest-ratings', '/client/my-ratings'];
+    const subItemPaths = ['/client/cleaning-request', '/client/maintenance', '/client/additional-services', '/client/guest-ratings', '/client/my-ratings', '/client/my-smart-lock-request'];
     if (subItemPaths.includes(location.pathname)) {
       if (location.pathname.includes('guest') || location.pathname.includes('my-ratings')) {
         setRatingDropdownOpen(true);
+      } else if (location.pathname.includes('my-smart-lock-request')) {
+        setCheckinDropdownOpen(true);
       } else {
         setServiceDropdownOpen(true);
       }
@@ -59,6 +63,10 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     // Close rating dropdown if it's open
     if (ratingDropdownOpen) {
       setRatingDropdownOpen(false);
+    }
+    // Close checkin dropdown if it's open
+    if (checkinDropdownOpen) {
+      setCheckinDropdownOpen(false);
     }
     setServiceDropdownOpen(!serviceDropdownOpen);
     // Always make it active when toggling
@@ -75,12 +83,34 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (serviceDropdownOpen) {
       setServiceDropdownOpen(false);
     }
+    // Close checkin dropdown if it's open
+    if (checkinDropdownOpen) {
+      setCheckinDropdownOpen(false);
+    }
     setRatingDropdownOpen(!ratingDropdownOpen);
     // Always make it active when toggling
     if (!ratingDropdownOpen) {
       setActiveItem('ratings');
       // Navigate to the ratings main page when opening the dropdown
       navigate('/client/my-ratings');
+    }
+  };
+  
+  const toggleCheckinDropdown = () => {
+    // Close rating dropdown if it's open
+    if (ratingDropdownOpen) {
+      setRatingDropdownOpen(false);
+    }
+    // Close service dropdown if it's open
+    if (serviceDropdownOpen) {
+      setServiceDropdownOpen(false);
+    }
+    setCheckinDropdownOpen(!checkinDropdownOpen);
+    // Always make it active when toggling
+    if (!checkinDropdownOpen) {
+      setActiveItem('checkin');
+      // Navigate to the checkin main page when opening the dropdown
+      navigate('/client/smart-checkin-checkout');
     }
   };
   
@@ -116,7 +146,13 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       id: 'checkin',
       label: 'Smart checkin/checkout',
       iconPath: "/assets/key-icon.svg",
-      route: '/client/smart-checkin-checkout'
+      hasDropdown: true,
+      dropdownOpen: checkinDropdownOpen,
+      onToggle: toggleCheckinDropdown,
+      route: '/client/smart-checkin-checkout',
+      subItems: [
+        { id: 'my-smart-lock-request', label: 'my-smart-lock-request', route: '/client/my-smart-lock-request' }
+      ]
     },
     {
       id: 'calendar',
@@ -202,6 +238,8 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
               setServiceDropdownOpen(true);
             } else if (item.id === 'ratings') {
               setRatingDropdownOpen(true);
+            } else if (item.id === 'checkin') {
+              setCheckinDropdownOpen(true);
             }
           }
         });
@@ -219,6 +257,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (!isCollapsed) {
       setRatingDropdownOpen(false);
       setServiceDropdownOpen(false);
+      setCheckinDropdownOpen(false);
     }
   };
 
@@ -226,6 +265,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     // Close all dropdowns when clicking on a non-dropdown item
     setRatingDropdownOpen(false);
     setServiceDropdownOpen(false);
+    setCheckinDropdownOpen(false);
     setActiveItem(item.id);
     
     // Navigate to the item's route
