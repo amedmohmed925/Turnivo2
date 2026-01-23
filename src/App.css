@@ -1715,7 +1715,12 @@ font-weight: 400;
   border: 1px solid #76767B;
   width: 50%;
 }
-.hours-badge h2{
+.hours-badge-2{
+  background-color: #F4F4F4;
+  border: 1px solid #76767B;
+  width: 25%;
+}
+.hours-badge h2, .hours-badge-2 h2{
   color: #4F617D;
   font-size: 24px;
   font-weight: 700;
@@ -1829,7 +1834,7 @@ font-weight: 400;
   width: 50% !important;
   min-width: 50% !important;
 }
-.hours-badge{
+.hours-badge, .hours-badge-2{
   background-color: #F4F4F4;
   border: 1px solid #76767B;
   width: 100%;

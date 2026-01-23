@@ -66,6 +66,8 @@ import CleanerShoppingCart from './cleaner/pages/CleanerShoppingCart'
 import Home from './shared/pages/Home'
 import DashboardMaintenanceOrders from './clients/pages/DashboardMaintenanceOrders'
 
+import DashboardPropertyProblemDetails from './clients/pages/DashboardPropertyProblemDetails'
+
 function App() {
   return (
     <Routes>
@@ -82,6 +84,7 @@ function App() {
       <Route path="client/property-details/:id" element={<DashboardPropertyDetails />} />
       <Route path="client/create-property" element={<DashboardCreateProperty />} />
       <Route path="client/property-problem" element={<DashboardProperyProblem />} />
+      <Route path="client/property-problem-details" element={<DashboardPropertyProblemDetails />} />
       <Route path="client/cleaning-request" element={<DashboardServicesCleaningRequest />} />
       <Route path="client/maintenance" element={<DashboardServicesMaintenance />} />
       <Route path="client/additional-services" element={<DashboardAdditionalServices />} />
@@ -126,7 +129,7 @@ function App() {
       <Route path="cleaner/guest-ratings" element={<CleanerGuestRatings />} />
       <Route path="cleaner/maintenance-requests" element={<CleanerMaintenanceRequest />} />
       <Route path="cleaner/maintenance-details" element={<CleanerMaintenanceDetails />} />
-      <Route path="cleaner/ -requests" element={<CleanerCleaningRequest />} />
+      <Route path="cleaner/cleaning-requests" element={<CleanerCleaningRequest />} />
       <Route path="cleaner/cleaning-details" element={<CleanerCleaningDetails />} />
       <Route path="cleaner/calendar" element={<CleanerCalendar />} />
       <Route path="cleaner/availability" element={<CleanerAvailability />} />

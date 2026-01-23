@@ -295,7 +295,7 @@ const DashboardPropertyManagementMain = ({ onMobileMenuClick }) => {
                           <Link to={`/client/cleaning-request?propertyId=${property.id}`} className="sec-btn rounded-2 px-4 py-2 text-decoration-none w-50-100">
                             Request cleaning service
                           </Link>
-                          <Link to='/client/maintenance' className="main-btn rounded-2 px-3 py-2 text-decoration-none w-50-100">
+                          <Link to={`/client/maintenance?propertyId=${property.id}`} className="main-btn rounded-2 px-3 py-2 text-decoration-none w-50-100">
                             Request maintenance service
                           </Link>
                         </div>

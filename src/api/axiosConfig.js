@@ -47,7 +47,9 @@ axiosInstance.interceptors.response.use(
       
       // Return error message from server or default message
       const errorMessage = data?.message || data?.error || 'An error occurred';
-      return Promise.reject(new Error(errorMessage));
+      const customError = new Error(errorMessage);
+      customError.response = error.response;
+      return Promise.reject(customError);
     } else if (error.request) {
       // Request made but no response received
       return Promise.reject(new Error('Network error. Please check your connection.'));

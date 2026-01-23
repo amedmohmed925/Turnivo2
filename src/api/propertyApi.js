@@ -109,3 +109,39 @@ export const getPropertyCalendar = async (accessToken, propertyId) => {
   return response.data;
 };
 
+/**
+ * Create a smart lock request
+ * @param {string} accessToken - User's access token
+ * @param {Object} requestData - Smart lock request data
+ * @param {number} requestData.property_id - Property ID
+ * @param {string} requestData.date - Date in format YYYY-MM-DD
+ * @param {string} requestData.time_from - Start time
+ * @param {string} requestData.time_to - End time
+ * @param {number} requestData.price - Price
+ * @returns {Promise} API response
+ */
+export const createSmartLockRequest = async (accessToken, requestData) => {
+  const response = await axiosInstance.post(
+    `/demo/turnivo/api/web/v1/site/create-smart-lock-request?access-token=${accessToken}`,
+    requestData,
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+  return response.data;
+};
+
+/**
+ * Get contact information and settings
+ * @param {string} accessToken - User's access token
+ * @returns {Promise} API response with contact info and settings
+ */
+export const getContactInfo = async (accessToken) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/contact-info?access-token=${accessToken}`
+  );
+  return response.data;
+};
+

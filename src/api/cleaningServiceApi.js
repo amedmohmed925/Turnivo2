@@ -227,3 +227,56 @@ export const getMaintenanceServiceDetails = async (serviceId, accessToken) => {
   return response.data;
 };
 
+/**
+ * Create maintenance service request
+ * @param {Object} serviceData - Service request data
+ * @param {number} serviceData.property_id - Property ID
+ * @param {number} serviceData.maintenance_service_type_id - Maintenance service type ID
+ * @param {number} serviceData.maintenance_importance_type_id - Maintenance importance type ID
+ * @param {string} serviceData.description - Service description
+ * @param {string} accessToken - User's access token
+ * @returns {Promise} API response
+ */
+export const createMaintenanceService = async (serviceData, accessToken) => {
+  const response = await axiosInstance.post(
+    `/demo/turnivo/api/web/v1/site/create-maintenance-service?access-token=${accessToken}`,
+    serviceData,
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+  return response.data;
+};
+
+/**
+ * ===== PROPERTY PROBLEM API FUNCTIONS =====
+ */
+
+/**
+ * Get property problems list
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with property problems list
+ */
+export const getPropertyProblems = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/my-report-problem?access-token=${accessToken}&page=${page}`
+  );
+  return response.data;
+};
+
+/**
+ * Get property problem details by ID
+ * @param {number} problemId - Problem ID to view
+ * @param {string} accessToken - User's access token
+ * @returns {Promise} API response with problem details
+ */
+export const getPropertyProblemDetails = async (problemId, accessToken) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/report-problem-view?access-token=${accessToken}&id=${problemId}`
+  );
+  return response.data;
+};
+
