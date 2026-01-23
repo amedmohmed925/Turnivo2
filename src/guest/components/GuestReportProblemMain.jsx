@@ -3,23 +3,25 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ThumbUpOffAltOutlinedIcon from '@mui/icons-material/ThumbUpOffAltOutlined';
 import ThumbDownOffAltOutlinedIcon from '@mui/icons-material/ThumbDownOffAltOutlined';
+import { guestCreateReportProblem } from '../../api/guestApi';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const GuestReportProblemMain = () => {
-  
-  // State to track which problem type is selected
+  const navigate = useNavigate();
   
   // State for form inputs
   const [formData, setFormData] = useState({
-    email: '',
-    bookingDate: '',
-    serviceProviderName: '',
-    typeOfIssue: '',
-    deviceType: '',
-    problemDescription: ''
+    temp_code: '',
+    type: '1',
+    description: '',
+    property_id: 1 // You can set this dynamically based on your needs
   });
+  
+  const [loading, setLoading] = useState(false);
 
 
   // Handle form input changes
@@ -32,14 +34,62 @@ const GuestReportProblemMain = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Add your form submission logic here
+    setLoading(true);
+
+    try {
+      const accessToken = localStorage.getItem('guest_access_token');
+      
+      if (!accessToken) {
+        toast.error('Please login first', {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        setLoading(false);
+        setTimeout(() => {
+          navigate('/guest/login');
+        }, 3000);
+        return;
+      }
+
+      const response = await guestCreateReportProblem(
+        accessToken,
+        formData.property_id,
+        formData.type,
+        formData.temp_code,
+        formData.description
+      );
+      
+      toast.success('Problem reported successfully!', {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      
+      // Reset form
+      setFormData({
+        temp_code: '',
+        type: '1',
+        description: '',
+        property_id: 1
+      });
+    } catch (err) {
+      toast.error(err.message || 'Failed to submit problem report. Please try again.', {
+        position: "top-center",
+        autoClose: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <section>
+        <ToastContainer />
         <div className="container">
             <div className="dashboard-home-content px-3 mt-3">
                 <div className="d-flex justify-content-between align-items-center">
@@ -49,7 +99,7 @@ const GuestReportProblemMain = () => {
                 
                 <form onSubmit={handleSubmit}>
                 <div className="row mt-3 w-100 g-0 g-lg-2">
-                    {/* Email field - always shown */}
+                    {/* Code field */}
                     <div className="col-12">
                     <div className="mb-3 w-100">
                         <label className="form-label mb-1">temp code</label>
@@ -57,6 +107,9 @@ const GuestReportProblemMain = () => {
                         type="text"
                         className="form-control rounded-2 py-2 px-3 w-100"
                         placeholder="Enter code"
+                        name="temp_code"
+                        value={formData.temp_code}
+                        onChange={handleInputChange}
                         />
                     </div>
                     </div>
@@ -66,10 +119,13 @@ const GuestReportProblemMain = () => {
                     <select
                       id="propertyType"
                       className="form-select custom-select-bs py-2"
-                      defaultValue=""
+                      name="type"
+                      value={formData.type}
+                      onChange={handleInputChange}
                       required
                     >
-                      <option value="Electricity">Electricity</option>
+                      <option value="1">Clean</option>
+                      <option value="2">Maintenance</option>
                     </select>
 
                     {/* Bootstrap Icon */}
@@ -77,7 +133,7 @@ const GuestReportProblemMain = () => {
                   </div>
                     </div>
                     
-                    {/* Problem Description - always shown */}
+                    {/* Problem Description */}
                     <div className="col-12">
                     <div className="mb-3 w-100">
                         <label className="form-label mb-1">Problem details</label>
@@ -85,9 +141,9 @@ const GuestReportProblemMain = () => {
                         rows='6' 
                         className='form-control rounded-2 py-2' 
                         placeholder="What's the issue ..."
-                        id="problemDescription"
-                        name="problemDescription"
-                        value={formData.problemDescription}
+                        id="description"
+                        name="description"
+                        value={formData.description}
                         onChange={handleInputChange}
                         required
                         ></textarea>
@@ -95,12 +151,12 @@ const GuestReportProblemMain = () => {
                     </div>
                     
                     <div className="col-md-6 mb-3">
-                    <button type="submit" className="sec-btn rounded-2 px-5 py-2 w-100">
-                        Send a request
+                    <button type="submit" className="sec-btn rounded-2 px-5 py-2 w-100" disabled={loading}>
+                        {loading ? 'Sending...' : 'Send a request'}
                     </button>
                     </div>
                     <div className="col-md-6 mb-3">
-                    <button type="submit" className="delete-btn border-0 rounded-2 px-5 py-2 w-100">
+                    <button type="button" className="delete-btn border-0 rounded-2 px-5 py-2 w-100" onClick={() => navigate(-1)}>
                         Cancel
                     </button>
                     </div>
