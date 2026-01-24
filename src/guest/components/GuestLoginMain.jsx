@@ -10,7 +10,7 @@ const GuestLoginMain = () => {
   
   const [formData, setFormData] = useState({
     email: '',
-    code: '',
+     temp_code: 'TEMP123', // Temporary code for development - will be dynamic later
     property_id: 1 // You can set this dynamically based on your needs
   });
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ const GuestLoginMain = () => {
     setError('');
 
     try {
-      const response = await guestLogin(formData.email, formData.code, formData.property_id);
+      const response = await guestLogin(formData.email, formData.temp_code, formData.property_id);
       
       // Check if response contains error message in data array
       if (response.status === 1 && response.data && Array.isArray(response.data) && response.data.length > 0) {
@@ -121,13 +121,13 @@ const GuestLoginMain = () => {
                     />
                   </div>
                   <div className="mb-3">
-                    <label htmlFor="code" className="form-label mb-1">temp code</label>
+                    <label htmlFor="temp_code" className="form-label mb-1">temp code</label>
                     <input
                       type="text"
                       className="form-control rounded-2 py-2 px-3"
-                      id="code"
-                      name="code"
-                      value={formData.code}
+                      id="temp_code"
+                      name="temp_code"
+                      value={formData.temp_code}
                       onChange={handleInputChange}
                       placeholder="Enter code"
                       required

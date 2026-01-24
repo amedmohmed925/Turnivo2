@@ -15,7 +15,7 @@ const GuestReportProblemMain = () => {
   
   // State for form inputs
   const [formData, setFormData] = useState({
-    temp_code: '',
+    temp_code: 'TEMP123', // Temporary code for development - will be dynamic later
     type: '1',
     description: '',
     property_id: 1 // You can set this dynamically based on your needs
@@ -39,23 +39,26 @@ const GuestReportProblemMain = () => {
     setLoading(true);
 
     try {
-      const accessToken = localStorage.getItem('guest_access_token');
+      const storedToken = localStorage.getItem('guest_access_token');
+      // Temporary: use default token for development if not logged in
+      const accessToken = storedToken || 'q3mdPlSMfSBKo4QrUSXEezb3WU59BLcS';
       
-      if (!accessToken) {
-        toast.error('Please login first', {
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        setLoading(false);
-        setTimeout(() => {
-          navigate('/guest/login');
-        }, 3000);
-        return;
-      }
+      // Temporarily disabled check for development
+      // if (!accessToken) {
+      //   toast.error('Please login first', {
+      //     position: "top-center",
+      //     autoClose: 3000,
+      //     hideProgressBar: false,
+      //     closeOnClick: true,
+      //     pauseOnHover: true,
+      //     draggable: true,
+      //   });
+      //   setLoading(false);
+      //   setTimeout(() => {
+      //     navigate('/guest/login');
+      //   }, 3000);
+      //   return;
+      // }
 
       const response = await guestCreateReportProblem(
         accessToken,
@@ -72,7 +75,7 @@ const GuestReportProblemMain = () => {
       
       // Reset form
       setFormData({
-        temp_code: '',
+        temp_code: 'TEMP123',
         type: '1',
         description: '',
         property_id: 1
