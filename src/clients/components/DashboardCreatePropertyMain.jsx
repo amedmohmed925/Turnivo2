@@ -230,15 +230,22 @@ const DashboardCreatePropertyMain = ({ onMobileMenuClick }) => {
 
       // Create FormData for file upload
       const submitData = new FormData();
+      // Fields that should be integers
+      const integerFields = ['property_type_id', 'area', 'floor', 'number_room', 'number_bathroom', 'city_id', 'platform_id'];
+      
       Object.keys(formData).forEach(key => {
         if (formData[key] !== null && formData[key] !== '') {
           // Only add co-host fields if checkbox is checked
           if (key.startsWith('co_host_') || key.startsWith('platform_')) {
             if (isCoHostChecked) {
-              submitData.append(key, formData[key]);
+              // Convert to integer if it's a numeric field
+              const value = integerFields.includes(key) ? parseInt(formData[key], 10) : formData[key];
+              submitData.append(key, value);
             }
           } else {
-            submitData.append(key, formData[key]);
+            // Convert to integer if it's a numeric field
+            const value = integerFields.includes(key) ? parseInt(formData[key], 10) : formData[key];
+            submitData.append(key, value);
           }
         }
       });
@@ -455,11 +462,11 @@ const DashboardCreatePropertyMain = ({ onMobileMenuClick }) => {
                 <div className="mb-3 w-100">
                   <label htmlFor="area" className="form-label mb-1">Area in square meters</label>
                   <input
-                    type="text"
+                    type="number"
                     className="form-control rounded-2 py-2 px-3 w-100"
                     id="area"
                     name="area"
-                    placeholder="300 m"
+                    placeholder="300"
                     value={formData.area}
                     onChange={handleInputChange}
                     required
