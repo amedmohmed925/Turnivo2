@@ -42,8 +42,20 @@ const GuestListMain = () => {
       const property_id = 1; // You can set this dynamically based on guest data
       const response = await guestCheckout(accessToken, property_id);
 
+      // Check if response contains error message in data array
+      if (response.status === 1 && response.data && Array.isArray(response.data) && response.data.length > 0) {
+        if (response.data[0].status === 0 && response.data[0].message) {
+          toast.error(response.data[0].message, {
+            position: "top-center",
+            autoClose: 3000,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       if (response.status === 1) {
-        toast.success('Checkout successful!', {
+        toast.success(response.message || 'Checkout successful!', {
           position: "top-center",
           autoClose: 2000,
         });
@@ -60,7 +72,8 @@ const GuestListMain = () => {
         });
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred during checkout', {
+      const errorMessage = error.response?.data?.message || error.message || 'An error occurred during checkout';
+      toast.error(errorMessage, {
         position: "top-center",
         autoClose: 2000,
       });

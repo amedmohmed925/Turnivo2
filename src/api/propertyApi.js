@@ -145,3 +145,42 @@ export const getContactInfo = async (accessToken) => {
   return response.data;
 };
 
+/**
+ * Add property rule
+ * @param {string} accessToken - User's access token
+ * @param {number} property_id - Property ID
+ * @param {string} property_rule - Property rule text
+ * @returns {Promise} API response
+ */
+export const addPropertyRule = async (accessToken, property_id, property_rule) => {
+  const response = await axiosInstance.post(
+    `/demo/turnivo/api/web/v1/site/add-property-rule?access-token=${accessToken}`,
+    { property_id, property_rule },
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+  return response.data;
+};
+
+/**
+ * Search for properties by name
+ * @param {string} accessToken - User's access token
+ * @param {string} name - Property name to search for
+ * @returns {Promise} API response with search results
+ */
+export const searchProperty = async (accessToken, name) => {
+  const response = await axiosInstance.post(
+    `/demo/turnivo/api/web/v1/site/search-property?access-token=${accessToken}`,
+    { name },
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+  return response.data;
+};
+

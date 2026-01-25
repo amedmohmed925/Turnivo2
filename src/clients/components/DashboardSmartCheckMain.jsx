@@ -3,8 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { getPropertyById, getPropertyCalendar, getProperties, createSmartLockRequest, getContactInfo } from '../../api/propertyApi';
+import { getPropertyById, getPropertyCalendar, getProperties, createSmartLockRequest, getContactInfo, addPropertyRule } from '../../api/propertyApi';
 import { getSmartLockHistoryCheckin, getSmartLockHistoryCheckout } from '../../api/smartLockApi';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -30,6 +32,13 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
   const [historyTab, setHistoryTab] = useState('checkin'); // 'checkin' or 'checkout'
   const [historyData, setHistoryData] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  
+  // State for message tab (property_rules, welcoming, checkout_msg)
+  const [messageTab, setMessageTab] = useState(null);
+  const [propertyRule, setPropertyRule] = useState('');
+  const [welcomingMessage, setWelcomingMessage] = useState('');
+  const [checkoutMessage, setCheckoutMessage] = useState('');
+  const [submitLoading, setSubmitLoading] = useState(false);
   
   // State for smart lock request
   const [lockRequestData, setLockRequestData] = useState({
@@ -207,6 +216,97 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
   // Handle history tab change
   const handleHistoryTabChange = (tab) => {
     setHistoryTab(tab);
+    setMessageTab(null); // Clear message tab when switching to history
+  };
+
+  // Handle message tab change
+  const handleMessageTabChange = (tab) => {
+    setMessageTab(tab);
+    setHistoryTab(null); // Clear history tab when switching to message
+  };
+
+  // Handle property rule submission
+  const handlePropertyRuleSubmit = async () => {
+    if (!propertyRule.trim()) {
+      toast.error('Please enter property rule', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      const property_id = selectedProperty?.id || 1; // Use selected property or default to 1
+      
+      const response = await addPropertyRule(accessToken, property_id, propertyRule);
+      
+      // Check if response contains error message in data array
+      if (response.status === 1 && response.data && Array.isArray(response.data) && response.data.length > 0) {
+        if (response.data[0].status === 0 && response.data[0].message) {
+          toast.error(response.data[0].message, {
+            position: "top-center",
+            autoClose: 3000,
+          });
+          setSubmitLoading(false);
+          return;
+        }
+      }
+      
+      if (response.status === 1) {
+        toast.success(response.message || 'Property rule added successfully!', {
+          position: "top-center",
+          autoClose: 2000,
+        });
+        setPropertyRule(''); // Clear the textarea
+      } else {
+        toast.error(response.message || 'Failed to add property rule', {
+          position: "top-center",
+          autoClose: 2000,
+        });
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+      toast.error(errorMessage, {
+        position: "top-center",
+        autoClose: 2000,
+      });
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  // Handle welcoming message submission (no API yet)
+  const handleWelcomingMessageSubmit = () => {
+    if (!welcomingMessage.trim()) {
+      toast.error('Please enter welcoming message', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      return;
+    }
+    
+    toast.info('Welcoming message feature coming soon!', {
+      position: "top-center",
+      autoClose: 2000,
+    });
+  };
+
+  // Handle checkout message submission (no API yet)
+  const handleCheckoutMessageSubmit = () => {
+    if (!checkoutMessage.trim()) {
+      toast.error('Please enter checkout message', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      return;
+    }
+    
+    toast.info('Checkout message feature coming soon!', {
+      position: "top-center",
+      autoClose: 2000,
+    });
   };
 
   // Handle payment method selection
@@ -397,6 +497,7 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
 
   return (
     <section>
+      <ToastContainer />
       <div className="dashboard-main-nav px-md-3 px-1 py-1">
         <div className="d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center gap-0">
@@ -545,41 +646,47 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
           <div className="row package-filter align-items-center py-2 px-0 m-0 w-100">
             <div className="col-md-2 col-20-per">
               <button 
-                className={`rounded-2 border-0 px-2 py-2 w-100 ${historyTab === 'checkin' ? 'sec-btn' : 'package-filter-item'}`}
+                className={`rounded-2 border-0 px-2 py-2 w-100 ${historyTab === 'checkin' && !messageTab ? 'sec-btn' : 'package-filter-item'}`}
                 onClick={() => handleHistoryTabChange('checkin')}
               >
                 Checkin history
               </button>
             </div>
             <div className="col-md-2 col-20-per">
-              <p 
-                className={`text-center rounded-2 py-2 m-0 ${historyTab === 'checkout' ? 'sec-btn' : 'package-filter-item'}`}
+              <button 
+                className={`rounded-2 border-0 px-2 py-2 w-100 ${historyTab === 'checkout' && !messageTab ? 'sec-btn' : 'package-filter-item'}`}
                 onClick={() => handleHistoryTabChange('checkout')}
                 style={{ cursor: 'pointer' }}
               >
                 checkout history
-              </p>
+              </button>
             </div>
             <div className="col-md-2 col-20-per">
-              <p 
-                className="text-center rounded-2 py-2 m-0 package-filter-item"
+              <button 
+                className={`rounded-2 border-0 px-2 py-2 w-100 ${messageTab === 'welcoming' ? 'sec-btn' : 'package-filter-item'}`}
+                onClick={() => handleMessageTabChange('welcoming')}
+                style={{ cursor: 'pointer' }}
               >
                 Welcoming message
-              </p>
+              </button>
             </div>
             <div className="col-md-2 col-20-per">
-              <p 
-                className="text-center rounded-2 py-2 m-0 package-filter-item"
+              <button 
+                className={`rounded-2 border-0 px-2 py-2 w-100 ${messageTab === 'checkout_msg' ? 'sec-btn' : 'package-filter-item'}`}
+                onClick={() => handleMessageTabChange('checkout_msg')}
+                style={{ cursor: 'pointer' }}
               >
                 Checkout message
-              </p>
+              </button>
             </div>
             <div className="col-md-2 col-20-per">
-              <p 
-                className="text-center rounded-2 py-2 m-0 package-filter-item"
+              <button 
+                className={`rounded-2 border-0 px-2 py-2 w-100 ${messageTab === 'property_rules' ? 'sec-btn' : 'package-filter-item'}`}
+                onClick={() => handleMessageTabChange('property_rules')}
+                style={{ cursor: 'pointer' }}
               >
                 Property rules
-              </p>
+              </button>
             </div>
           </div>
           <button
@@ -598,33 +705,102 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
               <span className="visually-hidden">Loading...</span>
             </div>
           </div>
-        ) : historyData.length === 0 ? (
-          <div className="text-center mt-4 mb-4">
-            <p className="text-muted">No {historyTab} history found for this property.</p>
-          </div>
-        ) : (
-          <div className="card p-2 rounded-4">
-            {historyData.map((item) => (
-              <div key={item.id} className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-center gap-4 flex-wrap'>
-                <div className="d-flex align-items-center gap-2 m-0">
-                  <img src="/assets/dashboard-card-icon-15.svg" className='img-fluid smart-icon' alt="icon" />
-                  <h6 className='smart-title m-0'>Code {item.code}</h6>
-                </div>
-                <div>
-                  <h6 className="dashboard-home-card-2-desc-1">
-                    {historyTab === 'checkin' ? 'Checkin' : 'Checkout'} with access code {item.code}
-                  </h6>
-                  <div className="d-flex align-items-center gap-1">
+        ) : historyTab === 'checkin' || historyTab === 'checkout' ? (
+          historyData.length === 0 ? (
+            <div className="text-center mt-4 mb-4">
+              <p className="text-muted">No {historyTab} history found for this property.</p>
+            </div>
+          ) : (
+            <div className="card p-2 rounded-4">
+              {historyData.map((item) => (
+                <div key={item.id} className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-center gap-4 flex-wrap'>
+                  <div className="d-flex align-items-center gap-2 m-0">
+                    <img src="/assets/dashboard-card-icon-15.svg" className='img-fluid smart-icon' alt="icon" />
+                    <h6 className='smart-title m-0'>Code {item.code}</h6>
+                  </div>
+                  <div>
+                    <h6 className="dashboard-home-card-2-desc-1">
+                      {historyTab === 'checkin' ? 'Checkin' : 'Checkout'} with access code {item.code}
+                    </h6>
                     <div className="d-flex align-items-center gap-1">
-                      <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
-                      <p className="dashboard-home-card-2-desc-3 m-0">{item.created_at}</p>
+                      <div className="d-flex align-items-center gap-1">
+                        <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
+                        <p className="dashboard-home-card-2-desc-3 m-0">{item.created_at}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )
+        ) : messageTab === 'property_rules' ? (
+          <div className="card p-4 rounded-4 mt-4">
+            <h5 className="dashboard-title mb-3">Property Rules</h5>
+            <div className="mb-3">
+              <label htmlFor="propertyRule" className="form-label mb-1">Property Rule</label>
+              <textarea
+                id="propertyRule"
+                name="property_rule"
+                rows="6"
+                className="form-control rounded-2 py-2 w-100"
+                placeholder="Enter property rules here..."
+                value={propertyRule}
+                onChange={(e) => setPropertyRule(e.target.value)}
+              ></textarea>
+            </div>
+            <button
+              onClick={handlePropertyRuleSubmit}
+              disabled={submitLoading}
+              className="sec-btn rounded-2 px-5 py-2 border-0"
+            >
+              {submitLoading ? 'Submitting...' : 'Submit Rule'}
+            </button>
           </div>
-        )}
+        ) : messageTab === 'welcoming' ? (
+          <div className="card p-4 rounded-4 mt-4">
+            <h5 className="dashboard-title mb-3">Welcoming Message</h5>
+            <div className="mb-3">
+              <label htmlFor="welcomingMessage" className="form-label mb-1">Welcoming Message</label>
+              <textarea
+                id="welcomingMessage"
+                name="welcoming_message"
+                rows="6"
+                className="form-control rounded-2 py-2 w-100"
+                placeholder="Enter welcoming message here..."
+                value={welcomingMessage}
+                onChange={(e) => setWelcomingMessage(e.target.value)}
+              ></textarea>
+            </div>
+            <button
+              onClick={handleWelcomingMessageSubmit}
+              className="sec-btn rounded-2 px-5 py-2 border-0"
+            >
+              Submit Message
+            </button>
+          </div>
+        ) : messageTab === 'checkout_msg' ? (
+          <div className="card p-4 rounded-4 mt-4">
+            <h5 className="dashboard-title mb-3">Checkout Message</h5>
+            <div className="mb-3">
+              <label htmlFor="checkoutMessage" className="form-label mb-1">Checkout Message</label>
+              <textarea
+                id="checkoutMessage"
+                name="checkout_message"
+                rows="6"
+                className="form-control rounded-2 py-2 w-100"
+                placeholder="Enter checkout message here..."
+                value={checkoutMessage}
+                onChange={(e) => setCheckoutMessage(e.target.value)}
+              ></textarea>
+            </div>
+            <button
+              onClick={handleCheckoutMessageSubmit}
+              className="sec-btn rounded-2 px-5 py-2 border-0"
+            >
+              Submit Message
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {/* Temp Access Modal */}

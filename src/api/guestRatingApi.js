@@ -20,3 +20,25 @@ export const getGuestRatings = async (accessToken, page = 1) => {
     throw error;
   }
 };
+
+/**
+ * Rate a service
+ * @param {string} accessToken - User's access token
+ * @param {number} service_id - Service ID
+ * @param {number} type - Service type
+ * @param {number} rate - Rating (1-5 stars)
+ * @param {string} comment - Rating comment
+ * @returns {Promise} API response
+ */
+export const rateService = async (accessToken, service_id, type, rate, comment) => {
+  const response = await axiosInstance.post(
+    `/demo/turnivo/api/web/v1/site/rate-service?access-token=${accessToken}`,
+    { service_id, type, rate, comment },
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
+  return response.data;
+};

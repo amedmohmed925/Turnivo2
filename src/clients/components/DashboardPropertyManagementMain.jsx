@@ -6,7 +6,7 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { getProperties } from '../../api/propertyApi';
+import { getProperties, searchProperty } from '../../api/propertyApi';
 
 const DashboardPropertyManagementMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -19,6 +19,8 @@ const DashboardPropertyManagementMain = ({ onMobileMenuClick }) => {
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
   
   // Properties data from API
   const [properties, setProperties] = useState([]);
@@ -72,12 +74,46 @@ const DashboardPropertyManagementMain = ({ onMobileMenuClick }) => {
     fetchProperties();
   }, [currentPage]);
 
-  // Filter properties based on search query (client-side filtering)
-  const filteredProperties = properties.filter(property => 
-    property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    property.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    property.property_type_id.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Search effect with debounce
+  useEffect(() => {
+    const performSearch = async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          return;
+        }
+
+        const response = await searchProperty(accessToken, searchQuery);
+        
+        if (response.status === 1 && response.data && response.data.length > 0) {
+          const data = response.data[0];
+          setSearchResults(data.items || []);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (error) {
+        console.error('Error searching properties:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // Debounce search - wait 500ms after user stops typing
+    const timeoutId = setTimeout(performSearch, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Use search results if searching, otherwise use all properties
+  const displayedProperties = searchQuery.trim() ? searchResults : properties;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -226,11 +262,11 @@ const DashboardPropertyManagementMain = ({ onMobileMenuClick }) => {
         </div>
         
         {/* Loading state */}
-        {isLoading ? (
+        {(isLoading || isSearching) ? (
           <div className="text-center mt-4 mb-4">
-            <p className="text-muted">Loading properties...</p>
+            <p className="text-muted">{isSearching ? 'Searching...' : 'Loading properties...'}</p>
           </div>
-        ) : filteredProperties.length === 0 ? (
+        ) : displayedProperties.length === 0 ? (
           <div className="text-center mt-4 mb-4">
             <p className="text-muted">
               {searchQuery ? 'No properties found matching your search.' : 'No properties found.'}
@@ -239,7 +275,7 @@ const DashboardPropertyManagementMain = ({ onMobileMenuClick }) => {
         ) : (
           <div className="row">
             {/* Render properties dynamically */}
-            {filteredProperties.map((property) => (
+            {displayedProperties.map((property) => (
               <div className="col-12" key={property.id}>
                 <div className="property-management-card mt-3 w-100">
                   <div className="d-flex align-items-start flex-column flex-md-row gap-3 w-100">

@@ -125,6 +125,19 @@ const GuestContactMain = () => {
                         <div className="col-12">
                           <div className="mb-3 w-100">
                             <input
+                              type="text"
+                              className="form-control rounded-2 py-2 px-3 w-100"
+                              placeholder="Name*"
+                              name="name"
+                              value={formData.name}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div className="col-12">
+                          <div className="mb-3 w-100">
+                            <input
                               type="email"
                               className="form-control rounded-2 py-2 px-3 w-100"
                               placeholder="E-mail address*"

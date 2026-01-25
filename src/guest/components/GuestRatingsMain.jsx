@@ -93,8 +93,20 @@ const GuestRatingsMain = () => {
         formData.comment
       );
 
+      // Check if response contains error message in data array
+      if (response.status === 1 && response.data && Array.isArray(response.data) && response.data.length > 0) {
+        if (response.data[0].status === 0 && response.data[0].message) {
+          toast.error(response.data[0].message, {
+            position: "top-center",
+            autoClose: 3000,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       if (response.status === 1) {
-        toast.success('Rating submitted successfully!', {
+        toast.success(response.message || 'Rating submitted successfully!', {
           position: "top-center",
           autoClose: 2000,
         });
@@ -108,7 +120,8 @@ const GuestRatingsMain = () => {
         });
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred', {
+      const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+      toast.error(errorMessage, {
         position: "top-center",
         autoClose: 2000,
       });

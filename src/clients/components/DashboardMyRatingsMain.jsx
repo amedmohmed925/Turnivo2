@@ -1,16 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
 import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
+import { rateService } from '../../api/guestRatingApi';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const DashboardServicesMaintenanceMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   
-  // Add state to track selected order type
+  // Rating state
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  // Temporary service data - replace with actual service data
+  const [serviceId] = useState(1); // Replace with actual service ID
+  const [serviceType] = useState(1); // Replace with actual service type
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -36,9 +48,99 @@ const DashboardServicesMaintenanceMain = ({ onMobileMenuClick }) => {
     // Add your navigation logic here
   };
 
+  // Handle star click
+  const handleStarClick = (starIndex) => {
+    setRating(starIndex);
+  };
+
+  // Handle star hover
+  const handleStarHover = (starIndex) => {
+    setHoveredRating(starIndex);
+  };
+
+  // Handle star leave
+  const handleStarLeave = () => {
+    setHoveredRating(0);
+  };
+
+  // Handle rating submission
+  const handleRatingSubmit = async () => {
+    if (rating === 0) {
+      toast.error('Please select a rating', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    if (!comment.trim()) {
+      toast.error('Please enter feedback', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const accessToken = localStorage.getItem('access_token') || 'q3mdPlSMfSBKo4QrUSXEezb3WU59BLcS';
+      
+      const response = await rateService(
+        accessToken,
+        serviceId,
+        serviceType,
+        rating,
+        comment
+      );
+
+      // Check if response contains error message in data array
+      if (response.status === 1 && response.data && Array.isArray(response.data) && response.data.length > 0) {
+        if (response.data[0].status === 0 && response.data[0].message) {
+          toast.error(response.data[0].message, {
+            position: "top-center",
+            autoClose: 3000,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (response.status === 1) {
+        toast.success(response.message || 'Rating submitted successfully!', {
+          position: "top-center",
+          autoClose: 2000,
+        });
+        // Reset form
+        setRating(0);
+        setComment('');
+      } else {
+        toast.error(response.message || 'Failed to submit rating', {
+          position: "top-center",
+          autoClose: 2000,
+        });
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+      toast.error(errorMessage, {
+        position: "top-center",
+        autoClose: 2000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle cancel
+  const handleCancel = () => {
+    setRating(0);
+    setComment('');
+    setHoveredRating(0);
+  };
+
 
   return (
     <section>
+      <ToastContainer />
       <div className="dashboard-main-nav px-md-3 px-1 py-1">
         <div className="d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center gap-0">
@@ -145,55 +247,55 @@ const DashboardServicesMaintenanceMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="d-flex">
               <div className="rating-stars-bg p-3 rounded-3 d-flex gap-2 align-items-center mb-3">
-                <FontAwesomeIcon icon={faStar} />
-                <FontAwesomeIcon icon={faStar} />
-                <FontAwesomeIcon icon={faStar} />
-                <FontAwesomeIcon icon={faStar} />
-                <FontAwesomeIcon icon={faStar} />
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FontAwesomeIcon
+                    key={star}
+                    icon={star <= (hoveredRating || rating) ? faStar : faStarRegular}
+                    style={{
+                      cursor: 'pointer',
+                      color: star <= (hoveredRating || rating) ? '#FFD700' : '#ccc',
+                      fontSize: '1.5rem'
+                    }}
+                    onClick={() => handleStarClick(star)}
+                    onMouseEnter={() => handleStarHover(star)}
+                    onMouseLeave={handleStarLeave}
+                  />
+                ))}
               </div>
               </div>
               <div className="row">
                 <div className="col-12">
                 <div className="mb-3 w-100">
-                  <label htmlFor="propertyType" className="form-label mb-1">
-                    Service quality
-                  </label>
-
-                  <div className="position-relative">
-                    <select
-                      id="propertyType"
-                      className="form-select custom-select-bs py-2"
-                      defaultValue=""
-                      required
-                    >
-                      <option value="" disabled>
-                        Select Service quality
-                      </option>
-                      <option value="Excellent cleaning">Excellent cleaning</option>
-                    </select>
-
-                    {/* Bootstrap Icon */}
-                    <i className="bi bi-chevron-down select-bs-icon"></i>
-                  </div>
-                </div>
-              </div>
-                <div className="col-12">
-                <div className="mb-3 w-100">
                   <label htmlFor="notes" className="form-label mb-1">Feedback</label>
-                  <textarea name="notes" id="notes" rows="4" className="form-control rounded-2 py-2 w-100" placeholder='Great and fast service! Booking was easy and the team is very professional. I will definitely order the service again!'></textarea>
+                  <textarea
+                    name="notes"
+                    id="notes"
+                    rows="4"
+                    className="form-control rounded-2 py-2 w-100"
+                    placeholder='Great and fast service! Booking was easy and the team is very professional. I will definitely order the service again!'
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                  ></textarea>
                 </div>
                 </div>
                 <div className="row">
                     <div className="col-md-6 mb-3">
-                        <button className="edit-btn rounded-2 px-5 py-2 w-100 border-0">
-                            Rating
+                        <button
+                          onClick={handleRatingSubmit}
+                          disabled={loading}
+                          className="edit-btn rounded-2 px-5 py-2 w-100 border-0"
+                        >
+                            {loading ? 'Submitting...' : 'Rating'}
                         </button>
                     </div>
                     <div className="col-md-6">
-                        <button className="delete-btn rounded-2 px-5 py-2 w-100 border-0">
+                        <button
+                          onClick={handleCancel}
+                          disabled={loading}
+                          className="delete-btn rounded-2 px-5 py-2 w-100 border-0"
+                        >
                             Cancel
                         </button>
-
                     </div>
                 </div>
               </div>
