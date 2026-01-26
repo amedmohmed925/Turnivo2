@@ -6,6 +6,8 @@ import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link, useNavigate } from 'react-router-dom';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import Swal from 'sweetalert2';
+import { joinTeam } from '../../api/cleanerApi';
 
 const ConfirmProviderStepsMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -20,6 +22,25 @@ const ConfirmProviderStepsMain = ({ onMobileMenuClick }) => {
   
   // Navigation hook
   const navigate = useNavigate();
+  
+  // Form data state
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    postcode: '',
+    city_id: '',
+    region: '',
+    lat: '',
+    lang: '',
+    experience: 0, // Default to 0 (no experience)
+    company: '',
+    start_date: ''
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -62,14 +83,186 @@ const ConfirmProviderStepsMain = ({ onMobileMenuClick }) => {
     setFileName('');
     inputRef.current.value = '';
   };
+  
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  // Validate form data
+  const validateForm = () => {
+    const errors = [];
+    
+    // Step 1 validation
+    if (!formData.first_name.trim()) errors.push('First name is required');
+    if (!formData.last_name.trim()) errors.push('Last name is required');
+    if (!formData.email.trim()) errors.push('Email is required');
+    if (!formData.phone.trim()) errors.push('Phone is required');
+    
+    // Step 2 validation
+    if (!formData.address.trim()) errors.push('Address is required');
+    if (!formData.postcode.trim()) errors.push('Postcode is required');
+    if (!formData.city_id || formData.city_id === '') errors.push('City ID is required');
+    if (!formData.region.trim()) errors.push('Province is required');
+    
+    // Step 3 validation - experience is set by default to 0, so it's always valid
+    
+    // Step 4 validation
+    if (!formData.start_date) errors.push('Start date is required');
+    
+    return errors;
+  };
+  
+  // Handle form submission
+  const handleSubmit = async () => {
+    const errors = validateForm();
+    if (errors.length > 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Validation Error',
+        html: errors.join('<br>'),
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Prepare data for submission
+      const submitData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        postcode: formData.postcode,
+        city_id: parseInt(formData.city_id, 10) || 0, // Convert to integer with fallback
+        region: formData.region,
+        lat: formData.lat || '24.7136', // Default lat if not provided
+        lang: formData.lang || '46.6753', // Default lang if not provided
+        experience: parseInt(formData.experience, 10), // Ensure it's integer
+        company: formData.company || '',
+        start_date: formData.start_date
+      };
+      
+      const response = await joinTeam(submitData);
+      
+      if (response.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Your registration has been submitted successfully',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          navigate('/provider-thanks');
+        });
+      } else {
+        // Handle validation errors from API
+        let errorMessage = '';
+        
+        if (response.data && Array.isArray(response.data)) {
+          // Extract error messages from the response
+          errorMessage = response.data.map(err => {
+            const fieldName = err.field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            return `<strong>${fieldName}:</strong> ${err.message}`;
+          }).join('<br>');
+        } else {
+          errorMessage = response.message || 'Failed to submit registration';
+        }
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Validation Error',
+          html: errorMessage,
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting registration:', error);
+      
+      // Handle error response from API
+      let errorMessage = 'Failed to submit registration. Please try again.';
+      
+      if (error.data && Array.isArray(error.data)) {
+        errorMessage = error.data.map(err => {
+          const fieldName = err.field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          return `<strong>${fieldName}:</strong> ${err.message}`;
+        }).join('<br>');
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        html: errorMessage,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Validate current step
+  const validateCurrentStep = () => {
+    const errors = [];
+    
+    switch (currentStep) {
+      case 1:
+        // Step 1 validation
+        if (!formData.first_name.trim()) errors.push('First name is required');
+        if (!formData.last_name.trim()) errors.push('Last name is required');
+        if (!formData.email.trim()) errors.push('Email is required');
+        else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.push('Email is invalid');
+        if (!formData.phone.trim()) errors.push('Phone is required');
+        break;
+        
+      case 2:
+        // Step 2 validation
+        if (!formData.address.trim()) errors.push('Address is required');
+        if (!formData.postcode.trim()) errors.push('Postcode is required');
+        if (!formData.city_id || formData.city_id === '') errors.push('City ID is required');
+        if (!formData.region.trim()) errors.push('Province is required');
+        break;
+        
+      case 3:
+        // Step 3 validation - check if user made a selection
+        if (hasExperience === null) {
+          errors.push('Please select if you have experience or not');
+        } else if (hasExperience === true && !formData.company.trim()) {
+          errors.push('Please select the company name');
+        }
+        break;
+        
+      case 4:
+        // Step 4 validation
+        if (!formData.start_date) errors.push('Start date is required');
+        break;
+        
+      default:
+        break;
+    }
+    
+    return errors;
+  };
 
   // Function to handle next step
 const handleNextStep = (e) => {
   e?.preventDefault(); // يمنع reload
 
   if (currentStep === totalSteps) {
-    // آخر خطوة → روح على صفحة اللوجن
-    navigate('/provider-thanks');
+    // آخر خطوة → إرسال البيانات
+    handleSubmit();
+    return;
+  }
+
+  // Validate current step before moving to next
+  const errors = validateCurrentStep();
+  if (errors.length > 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Required Fields',
+      html: errors.join('<br>'),
+    });
     return;
   }
 
@@ -86,14 +279,25 @@ const handleNextStep = (e) => {
 
   // Function to handle step click from the step indicator
   const handleStepClick = (stepNumber) => {
-    setCurrentStep(stepNumber);
+    // Only allow going back to previous steps, not jumping forward
+    if (stepNumber < currentStep) {
+      setCurrentStep(stepNumber);
+    } else if (stepNumber > currentStep) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Complete Current Step',
+        text: 'Please complete the current step before moving forward',
+      });
+    }
   };
   
   // Function to handle experience selection
   const handleExperienceSelection = (hasExp) => {
     setHasExperience(hasExp);
+    setFormData(prev => ({ ...prev, experience: hasExp ? 1 : 0 }));
     if (!hasExp) {
-      // If user has no experience, go to next step
+      // If user has no experience, clear company and go to next step
+      setFormData(prev => ({ ...prev, company: '' }));
       handleNextStep();
     }
   };
@@ -186,45 +390,57 @@ const handleNextStep = (e) => {
               
               {/* Login Form */}
               <form>
-                {/* Email Input */}
+                {/* First Name Input */}
                 <div className="mb-3">
                   <label className="form-label mb-1">first name</label>
                   <input
                     type="text"
+                    name="first_name"
                     className="form-control rounded-2 py-2 px-3"
                     placeholder="Enter your first name"
+                    value={formData.first_name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                {/* Last Name Input */}
+                <div className="mb-3">
+                  <label className="form-label mb-1">last name</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    className="form-control rounded-2 py-2 px-3"
+                    placeholder="Enter your last name"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
                 {/* Email Input */}
                 <div className="mb-3">
-                  <label className="form-label mb-1">last name</label>
-                  <input
-                    type="text"
-                    className="form-control rounded-2 py-2 px-3"
-                    placeholder="Enter your last name"
-                    required
-                  />
-                </div>
-                                {/* Email Input */}
-                <div className="mb-3">
                   <label className="form-label mb-1">Email Address</label>
                   <input
-                    type="text"
+                    type="email"
+                    name="email"
                     className="form-control rounded-2 py-2 px-3"
                     id="email"
                     placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
 
-                                {/* Email Input */}
+                {/* Phone Input */}
                 <div className="mb-3">
                   <label className="form-label mb-1">Phone</label>
                   <input
-                    type="text"
+                    type="tel"
+                    name="phone"
                     className="form-control rounded-2 py-2 px-3"
                     placeholder="Enter your phone number"
+                    value={formData.phone}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
@@ -260,45 +476,56 @@ const handleNextStep = (e) => {
               
               {/* Login Form */}
               <form>
-                {/* Email Input */}
+                {/* Address Input */}
                 <div className="mb-3">
                   <label className="form-label mb-1">Address</label>
                   <input
                     type="text"
+                    name="address"
                     className="form-control rounded-2 py-2 px-3"
                     placeholder="Enter your address"
+                    value={formData.address}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
-                {/* Email Input */}
+                {/* Postcode Input */}
                 <div className="mb-3">
                   <label className="form-label mb-1">Postcode</label>
                   <input
                     type="text"
+                    name="postcode"
                     className="form-control rounded-2 py-2 px-3"
                     placeholder="2390"
+                    value={formData.postcode}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
-                                {/* Email Input */}
+                {/* City Input */}
                 <div className="mb-3">
-                  <label className="form-label mb-1">stad</label>
+                  <label className="form-label mb-1">stad (City ID)</label>
                   <input
-                    type="text"
+                    type="number"
+                    name="city_id"
                     className="form-control rounded-2 py-2 px-3"
-
-                    placeholder="stad"
+                    placeholder="Enter city ID (e.g., 1)"
+                    value={formData.city_id}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
 
-                                {/* Email Input */}
+                {/* Province Input */}
                 <div className="mb-3">
                   <label className="form-label mb-1">Provinicie</label>
                   <input
                     type="text"
+                    name="region"
                     className="form-control rounded-2 py-2 px-3"
                     placeholder="Provinicie"
+                    value={formData.region}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
@@ -377,12 +604,18 @@ const handleNextStep = (e) => {
                 </div>
                   <div className="position-relative mb-3">
                     <select
-                      id="propertyType"
+                      id="company"
+                      name="company"
                       className="form-select custom-select-bs py-2"
-                      defaultValue=""
+                      value={formData.company}
+                      onChange={handleInputChange}
                       required
                     >
-                      <option selected >Select the name of the company</option>
+                      <option value="">Select the name of the company</option>
+                      <option value="Company A">Company A</option>
+                      <option value="Company B">Company B</option>
+                      <option value="Company C">Company C</option>
+                      <option value="Other">Other</option>
                     </select>
 
                     {/* Bootstrap Icon */}
@@ -432,7 +665,10 @@ const handleNextStep = (e) => {
                               <div className="mb-3">
                   <input
                     type="date"
+                    name="start_date"
                     className="form-control rounded-2 py-2 px-3"
+                    value={formData.start_date}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
@@ -450,8 +686,12 @@ const handleNextStep = (e) => {
                             <i className="bi bi-chevron-down select-bs-icon"></i>
                         </div>
                         <div className="d-flex justify-content-end align-items-center mb-3">
-                        <button className="sec-btn rounded-2 px-3 py-2 w-50-100" onClick={handleNextStep}>
-                        Next
+                        <button 
+                          className="sec-btn rounded-2 px-3 py-2 w-50-100" 
+                          onClick={handleNextStep}
+                          disabled={isSubmitting}
+                        >
+                        {isSubmitting ? 'Submitting...' : 'Submit'}
                         </button>
                     </div>
               

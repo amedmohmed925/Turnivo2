@@ -1,142 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import {
+  getNewCleanServices,
+  getProgressCleanServices,
+  getCompleteCleanServices,
+  getRejectCleanServices,
+  rejectCleanService,
+} from '../../api/providerCleaningApi';
 
 const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(4); // Fixed total pages like in DashboardPropertyManagementMain
-  const itemsPerPage = 6; // Number of items to show per page
-  
-  // Add state to track selected order filter
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('new');
-  
-  // Sample data for materials with more dynamic fields
-  const materialsData = [
-    {
-      id: 1,
-      title: "Upholstery and carpet cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 12, 2026",
-      time: "8:00 pm - 10:00 pm",
-      price: "250 SAR",
-      location: "Riyadh, Al Narjis Neighborhood",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "new",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 2,
-      title: "Deep cleaning services",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 13, 2026",
-      time: "10:00 am - 12:00 pm",
-      price: "180 SAR",
-      location: "Jeddah, Al Balad District",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "in-progress",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 3,
-      title: "Window and glass cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 10, 2026",
-      time: "2:00 pm - 4:00 pm",
-      price: "120 SAR",
-      location: "Dammam, Al Corniche",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "finished",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 4,
-      title: "Kitchen and bathroom cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 8, 2026",
-      time: "9:00 am - 11:00 am",
-      price: "150 SAR",
-      location: "Khobar, Al Dhabab Street",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "reported", // Changed from "canceled" to "reported"
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 5,
-      title: "Complete house cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 14, 2026",
-      time: "1:00 pm - 5:00 pm",
-      price: "300 SAR",
-      location: "Riyadh, Al Muruj District",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "new",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 6,
-      title: "Post-construction cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 11, 2026",
-      time: "11:00 am - 3:00 pm",
-      price: "280 SAR",
-      location: "Mecca, Al Aziziyah",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "in-progress",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 7,
-      title: "Office cleaning service",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 9, 2026",
-      time: "3:00 pm - 6:00 pm",
-      price: "200 SAR",
-      location: "Riyadh, King Abdullah Financial District",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "finished",
-      image: "/assets/problem-img-2.png"
-    }
-  ];
-  
-  // Filter materials based on selected filter
-  const filteredMaterials = materialsData.filter(item => {
-    if (selectedOrderFilter === 'new') return item.status === 'new';
-    if (selectedOrderFilter === 'in-progress') return item.status === 'in-progress';
-    if (selectedOrderFilter === 'finished') return item.status === 'finished';
-    if (selectedOrderFilter === 'reported') return item.status === 'reported'; // Changed from 'canceled' to 'reported'
-    return true; // Show all if no filter or unrecognized filter
-  });
-  
-  // Calculate total pages based on filtered data
-  useEffect(() => {
-    const calculatedPages = Math.ceil(filteredMaterials.length / itemsPerPage);
-    setTotalPages(calculatedPages);
-    
-    // Reset to first page if current page is beyond the new total pages
-    if (currentPage > calculatedPages && calculatedPages > 0) {
-      setCurrentPage(1);
-    }
-  }, [filteredMaterials.length, currentPage, itemsPerPage]);
-  
-  // Get current items for the current page
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredMaterials.slice(indexOfFirstItem, indexOfLastItem);
+  const [cleaningData, setCleaningData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 6;
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
+  const [rejectComment, setRejectComment] = useState('');
+  const [isSubmittingReject, setIsSubmittingReject] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -160,6 +48,86 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
     console.log(`Clicked on ${item}`);
     setIsDropdownOpen(false);
     // Add your navigation logic here
+  };
+
+  // Fetch cleaning data based on selected tab
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const accessToken = localStorage.getItem('access_token');
+
+        if (!accessToken) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Authentication Required',
+            text: 'Please login to continue',
+          });
+          return;
+        }
+
+        let response;
+        if (selectedOrderFilter === 'new') {
+          response = await getNewCleanServices(accessToken);
+        } else if (selectedOrderFilter === 'in-progress') {
+          response = await getProgressCleanServices(accessToken);
+        } else if (selectedOrderFilter === 'finished') {
+          response = await getCompleteCleanServices(accessToken);
+        } else {
+          response = await getRejectCleanServices(accessToken);
+        }
+
+        if (response.status === 1 && response.data && response.data.length > 0) {
+          const items = response.data?.[0]?.items || [];
+          setCleaningData(items);
+          const total = Math.ceil(items.length / itemsPerPage) || 1;
+          setTotalPages(total);
+          if (currentPage > total) setCurrentPage(1);
+        } else {
+          setCleaningData([]);
+          setTotalPages(1);
+          setCurrentPage(1);
+        }
+      } catch (error) {
+        console.error('Error fetching cleaning services:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'Failed to load cleaning services',
+        });
+        setCleaningData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedOrderFilter]);
+
+  // Search filter
+  const filteredMaterials = cleaningData.filter((item) => {
+    if (!searchQuery.trim()) return true;
+    const term = searchQuery.toLowerCase();
+    const title = (item.property_id?.name || item.clean_service_type_id?.name || '').toLowerCase();
+    const desc = (item.property_id?.address || '').toLowerCase();
+    return title.includes(term) || desc.includes(term);
+  });
+
+  useEffect(() => {
+    const calculatedPages = Math.ceil(filteredMaterials.length / itemsPerPage) || 1;
+    setTotalPages(calculatedPages);
+    if (currentPage > calculatedPages) {
+      setCurrentPage(1);
+    }
+  }, [filteredMaterials.length, itemsPerPage]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredMaterials.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
   
   // Function to handle page change - same as DashboardPropertyManagementMain
@@ -194,25 +162,34 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
     setCurrentPage(1); // Reset to first page when changing filter
   };
   
-  // Function to render badge based on status
+  const getStatusKey = (status) => {
+    if (!status) return '';
+    if (typeof status === 'string') return status.toLowerCase();
+    return (status.name || '').toLowerCase();
+  };
+
   const renderStatusBadge = (status) => {
-    switch(status) {
+    const key = getStatusKey(status);
+    switch (key) {
       case 'new':
         return <div className='new-badge px-2 p-1 rounded-2'>New</div>;
+      case 'progress':
       case 'in-progress':
         return <div className='in-progress-badge px-2 p-1 rounded-2'>In progress</div>;
+      case 'complete':
       case 'finished':
         return <div className='finished-badge px-2 p-1 rounded-2'>Finished</div>;
-      case 'reported': // Changed from 'canceled' to 'reported'
+      case 'reject':
+      case 'reported':
         return <div className='canceled-badge px-2 p-1 rounded-2'>Reported</div>;
       default:
         return null;
     }
   };
   
-  // Function to render action buttons based on status
   const renderActionButtons = (status, itemId) => {
-    switch(status) {
+    const key = getStatusKey(status);
+    switch (key) {
       case 'new':
         return (
           <div className="d-flex gap-2 justify-content-between align-items-end flex-wrap w-100">
@@ -236,22 +213,78 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
             </button>
           </div>
         );
+      case 'progress':
       case 'in-progress':
         return (
           <button 
             className="btn btn-outline-danger py-2"
             data-bs-toggle="modal"
             data-bs-target="#reportOrderModal"
+            onClick={() => setSelectedServiceId(itemId)}
           >
             Report order
           </button>
         );
-      case 'finished':
-        return null; // No buttons for finished orders
-      case 'reported':
-        return null;
       default:
         return null;
+    }
+  };
+
+  const handleRejectSubmit = async () => {
+    if (!selectedServiceId) return;
+    if (!rejectComment.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Comment required',
+        text: 'Please enter a reason.',
+      });
+      return;
+    }
+
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Required',
+        text: 'Please login to continue',
+      });
+      return;
+    }
+
+    try {
+      setIsSubmittingReject(true);
+      const response = await rejectCleanService(accessToken, {
+        service_id: selectedServiceId,
+        comment: rejectComment.trim(),
+      });
+
+      if (response.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Submitted',
+          text: response.message || 'Report submitted successfully.',
+        });
+        setRejectComment('');
+        setSelectedServiceId(null);
+        const closeBtn = document.querySelector('#reportOrderModal .btn-close');
+        if (closeBtn) closeBtn.click();
+        // refresh data
+        setSelectedOrderFilter('reported');
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Unable to submit report.',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to submit report.',
+      });
+    } finally {
+      setIsSubmittingReject(false);
     }
   };
 
@@ -334,6 +367,8 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
               type="text"
               className="search-gray-input form-control"
               placeholder="Find a request..."
+              value={searchQuery}
+              onChange={handleSearchChange}
             />
           </div>
         </div>
@@ -381,24 +416,27 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
           <>
             {/* Render current page items */}
             {currentItems.map((item) => (
-              <Link to='/provider/cleaning-details' key={item.id} className="d-flex text-decoration-none align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3">
+              <Link to={`/provider/cleaning-details?id=${item.id}`} key={item.id} className="d-flex text-decoration-none align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3">
                 <div className="d-flex w-100 align-items-start flex-column flex-md-row gap-2">
-                  <img src={item.image} className='img-fluid materials-img' alt="location" />   
+                  <img src={item.property_id?.image || '/assets/problem-img-2.png'} className='img-fluid materials-img' alt="location" />   
                   <div className='d-flex flex-column gap-2 align-items-start w-100'>
                     <div className="d-flex justify-content-between align-items-center w-100">
-                      <h6 className="property-problem-title mb-0">{item.title}</h6>
+                      <h6 className="property-problem-title mb-0">{item.property_id?.name || item.clean_service_type_id?.name || 'Cleaning Service'}</h6>
                       {renderStatusBadge(item.status)}
                     </div>
                     <div className="d-flex align-items-center gap-1">
+                      <img src="/assets/location-2.svg" alt="location" />
+                      <p className="dashboard-home-card-2-desc-3 m-0">{item.property_id?.address || 'N/A'}</p>
+                    </div>
+                    <div className="d-flex align-items-center gap-1">
                       <img src="/assets/calendar-3.svg" alt="calendar" />
-                      <p className="dashboard-home-card-2-desc-3 m-0">{item.date}</p>
+                      <p className="dashboard-home-card-2-desc-3 m-0">{item.date || 'N/A'}</p>
                     </div>
                     <div className="d-flex align-items-center gap-1">
                       <img src="/assets/clock.svg" alt="clock" />
-                      <p className="dashboard-home-card-2-desc-3 mb-0">{item.time}</p>
+                      <p className="dashboard-home-card-2-desc-3 mb-0">{item.time_from && item.time_to ? `${item.time_from} - ${item.time_to}` : 'N/A'}</p>
                     </div>
                     <div className="d-flex mt-2 gap-2 align-items-center w-100">
-                      {/* Replace hardcoded buttons with conditional rendering */}
                       {renderActionButtons(item.status, item.id)}
                     </div>
                   </div>
@@ -463,6 +501,8 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
                   className="form-control rounded-2 py-2"
                   placeholder="Enter Cause of the problem"
                   rows="4"
+                  value={rejectComment}
+                  onChange={(e) => setRejectComment(e.target.value)}
                 ></textarea>
               </div>
             </div>
@@ -471,9 +511,10 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
               <button
                 type="button"
                 className="sec-btn rounded-2 px-4 py-2"
-                data-bs-dismiss="modal"
+                disabled={isSubmittingReject}
+                onClick={handleRejectSubmit}
               >
-                Submit
+                {isSubmittingReject ? 'Submitting...' : 'Submit'}
               </button>
             </div>
           </div>

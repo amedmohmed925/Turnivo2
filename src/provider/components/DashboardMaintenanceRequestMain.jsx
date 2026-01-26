@@ -4,140 +4,172 @@ import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortaweso
 import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import {
+  getNewMaintenanceServices,
+  getProgressMaintenanceServices,
+  getCompleteMaintenanceServices,
+  getRejectMaintenanceServices,
+  rejectMaintenanceService
+} from '../../api/providerMaintenanceApi';
 
 const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(4); // Fixed total pages like in DashboardPropertyManagementMain
-  const itemsPerPage = 6; // Number of items to show per page
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 6;
   
   // Add state to track selected order filter
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('new');
   
-  // Sample data for materials with more dynamic fields
-  const materialsData = [
-    {
-      id: 1,
-      title: "Upholstery and carpet cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 12, 2026",
-      time: "8:00 pm - 10:00 pm",
-      price: "250 SAR",
-      location: "Riyadh, Al Narjis Neighborhood",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "new",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 2,
-      title: "Deep cleaning services",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 13, 2026",
-      time: "10:00 am - 12:00 pm",
-      price: "180 SAR",
-      location: "Jeddah, Al Balad District",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "in-progress",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 3,
-      title: "Window and glass cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 10, 2026",
-      time: "2:00 pm - 4:00 pm",
-      price: "120 SAR",
-      location: "Dammam, Al Corniche",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "finished",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 4,
-      title: "Kitchen and bathroom cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 8, 2026",
-      time: "9:00 am - 11:00 am",
-      price: "150 SAR",
-      location: "Khobar, Al Dhabab Street",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "reported", // Changed from "canceled" to "reported"
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 5,
-      title: "Complete house cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 14, 2026",
-      time: "1:00 pm - 5:00 pm",
-      price: "300 SAR",
-      location: "Riyadh, Al Muruj District",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "new",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 6,
-      title: "Post-construction cleaning",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 11, 2026",
-      time: "11:00 am - 3:00 pm",
-      price: "280 SAR",
-      location: "Mecca, Al Aziziyah",
-      platform: "booking",
-      platformIcon: "/assets/booking.svg",
-      status: "in-progress",
-      image: "/assets/problem-img-2.png"
-    },
-    {
-      id: 7,
-      title: "Office cleaning service",
-      subtitle: "Upholstery and carpet cleaning",
-      date: "June 9, 2026",
-      time: "3:00 pm - 6:00 pm",
-      price: "200 SAR",
-      location: "Riyadh, King Abdullah Financial District",
-      platform: "airbnb",
-      platformIcon: "/assets/bnb.svg",
-      status: "finished",
-      image: "/assets/problem-img-2.png"
-    }
-  ];
+  // API data state
+  const [maintenanceData, setMaintenanceData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
-  // Filter materials based on selected filter
-  const filteredMaterials = materialsData.filter(item => {
-    if (selectedOrderFilter === 'new') return item.status === 'new';
-    if (selectedOrderFilter === 'in-progress') return item.status === 'in-progress';
-    if (selectedOrderFilter === 'finished') return item.status === 'finished';
-    if (selectedOrderFilter === 'reported') return item.status === 'reported'; // Changed from 'canceled' to 'reported'
-    return true; // Show all if no filter or unrecognized filter
-  });
+  // Modal state
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectComment, setRejectComment] = useState('');
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
   
-  // Calculate total pages based on filtered data
+  // Fetch data based on selected filter
   useEffect(() => {
-    const calculatedPages = Math.ceil(filteredMaterials.length / itemsPerPage);
-    setTotalPages(calculatedPages);
-    
-    // Reset to first page if current page is beyond the new total pages
-    if (currentPage > calculatedPages && calculatedPages > 0) {
-      setCurrentPage(1);
-    }
-  }, [filteredMaterials.length, currentPage, itemsPerPage]);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const accessToken = localStorage.getItem('access_token');
+        
+        if (!accessToken) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Authentication Required',
+            text: 'Please login to continue',
+          });
+          return;
+        }
+
+        let response;
+        switch (selectedOrderFilter) {
+          case 'new':
+            response = await getNewMaintenanceServices(accessToken);
+            break;
+          case 'in-progress':
+            response = await getProgressMaintenanceServices(accessToken);
+            break;
+          case 'finished':
+            response = await getCompleteMaintenanceServices(accessToken);
+            break;
+          case 'reported':
+            response = await getRejectMaintenanceServices(accessToken);
+            break;
+          default:
+            response = await getNewMaintenanceServices(accessToken);
+        }
+
+        if (response.status === 1 && response.data && response.data.length > 0) {
+          const items = response.data[0].items || [];
+          setMaintenanceData(items);
+          
+          // Calculate total pages
+          const totalCount = response.data[0]._meta?.totalCount || items.length;
+          setTotalPages(Math.ceil(totalCount / itemsPerPage));
+        } else {
+          setMaintenanceData([]);
+          setTotalPages(1);
+        }
+      } catch (error) {
+        console.error('Error fetching maintenance data:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load maintenance requests',
+        });
+        setMaintenanceData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedOrderFilter]);
+  
+  // Filter data based on search query
+  const filteredMaterials = maintenanceData.filter(item => {
+    if (!searchQuery) return true;
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      item.property_id?.name?.toLowerCase().includes(searchLower) ||
+      item.maintenance_service_type_id?.name?.toLowerCase().includes(searchLower) ||
+      item.description?.toLowerCase().includes(searchLower)
+    );
+  });
   
   // Get current items for the current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredMaterials.slice(indexOfFirstItem, indexOfLastItem);
-
+  
+  // Handle reject/cancel modal
+  const handleShowRejectModal = (serviceId) => {
+    setSelectedServiceId(serviceId);
+    setRejectComment('');
+    setShowRejectModal(true);
+  };
+  
+  const handleCloseRejectModal = () => {
+    setShowRejectModal(false);
+    setRejectComment('');
+    setSelectedServiceId(null);
+  };
+  
+  const handleRejectSubmit = async () => {
+    if (!rejectComment.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Comment Required',
+        text: 'Please enter a comment before submitting',
+      });
+      return;
+    }
+    
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      await rejectMaintenanceService({
+        service_id: selectedServiceId,
+        comment: rejectComment
+      }, accessToken);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Service has been rejected/cancelled successfully',
+      });
+      
+      handleCloseRejectModal();
+      
+      // Refresh data
+      const response = selectedOrderFilter === 'new' 
+        ? await getNewMaintenanceServices(accessToken)
+        : await getProgressMaintenanceServices(accessToken);
+        
+      if (response.status === 1 && response.data && response.data.length > 0) {
+        setMaintenanceData(response.data[0].items || []);
+      }
+    } catch (error) {
+      console.error('Error rejecting service:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to reject/cancel service',
+      });
+    }
+  };
+  
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -162,18 +194,16 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
     // Add your navigation logic here
   };
   
-  // Function to handle page change - same as DashboardPropertyManagementMain
+  // Function to handle page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      // Here you would typically fetch the data for the new page
     }
   };
   
-  // Function to render pagination numbers - simplified to match DashboardPropertyManagementMain
+  // Function to render pagination numbers
   const renderPaginationNumbers = () => {
     const pages = [];
-    // Render pages in descending order as shown in DashboardPropertyManagementMain
     for (let i = totalPages; i >= 1; i--) {
       pages.push(
         <button
@@ -191,19 +221,26 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
   // Function to handle order filter selection
   const handleOrderFilterClick = (filter) => {
     setSelectedOrderFilter(filter);
-    setCurrentPage(1); // Reset to first page when changing filter
+    setCurrentPage(1);
   };
   
-  // Function to render badge based on status
-  const renderStatusBadge = (status) => {
-    switch(status) {
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+  
+  // Helper function to render status badge
+  const renderStatusBadge = () => {
+    switch(selectedOrderFilter) {
       case 'new':
         return <div className='new-badge px-2 p-1 rounded-2'>New</div>;
       case 'in-progress':
         return <div className='in-progress-badge px-2 p-1 rounded-2'>In progress</div>;
       case 'finished':
         return <div className='finished-badge px-2 p-1 rounded-2'>Finished</div>;
-      case 'reported': // Changed from 'canceled' to 'reported'
+      case 'reported':
         return <div className='canceled-badge px-2 p-1 rounded-2'>Reported</div>;
       default:
         return null;
@@ -211,23 +248,39 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
   };
   
   // Function to render action buttons based on status
-  const renderActionButtons = (status, itemId) => {
-    switch(status) {
+  const renderActionButtons = (item) => {
+    switch(selectedOrderFilter) {
       case 'new':
         return (
           <div className="d-flex gap-2">
             <button className="sec-btn rounded-2 px-4 py-2">
               Submit the order
             </button>
-            <button className="btn btn-outline-danger py-2">Reject order</button>
+            <button 
+              className="btn btn-outline-danger py-2"
+              onClick={(e) => {
+                e.preventDefault();
+                handleShowRejectModal(item.id);
+              }}
+            >
+              Reject order
+            </button>
           </div>
         );
       case 'in-progress':
         return (
-          <button className="btn btn-outline-danger py-2">Cancel order</button>
+          <button 
+            className="btn btn-outline-danger py-2"
+            onClick={(e) => {
+              e.preventDefault();
+              handleShowRejectModal(item.id);
+            }}
+          >
+            Cancel order
+          </button>
         );
       case 'finished':
-        return null; // No buttons for finished orders
+        return null;
       case 'reported':
         return (
           <button className="btn btn-outline-danger py-2">Report problem</button>
@@ -316,6 +369,8 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
               type="text"
               className="search-gray-input form-control"
               placeholder="Find a request..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -354,8 +409,14 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
           </div>
         </div>
         
-        {/* Show message if no orders match the filter */}
-        {filteredMaterials.length === 0 ? (
+        {/* Show message if no orders match the filter or loading */}
+        {isLoading ? (
+          <div className="text-center mt-4 mb-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        ) : filteredMaterials.length === 0 ? (
           <div className="text-center mt-4 mb-4">
             <p className="text-muted">No orders found for the selected filter.</p>
           </div>
@@ -363,25 +424,43 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
           <>
             {/* Render current page items */}
             {currentItems.map((item) => (
-              <Link to='/provider/maintenance-details' key={item.id} className="d-flex text-decoration-none align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3">
+              <Link 
+                to={`/provider/maintenance-details?id=${item.id}`} 
+                key={item.id} 
+                className="d-flex text-decoration-none align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3"
+              >
                 <div className="d-flex w-100 align-items-start flex-column flex-md-row gap-2">
-                  <img src={item.image} className='img-fluid materials-img' alt="location" />   
+                  <img 
+                    src={item.property_id?.image || '/assets/problem-img-2.png'} 
+                    className='img-fluid materials-img' 
+                    alt="property" 
+                  />   
                   <div className='d-flex flex-column gap-2 align-items-start w-100'>
                     <div className="d-flex justify-content-between align-items-center w-100">
-                      <h6 className="property-problem-title mb-0">{item.title}</h6>
-                      {renderStatusBadge(item.status)}
+                      <h6 className="property-problem-title mb-0">
+                        {item.maintenance_service_type_id?.name || 'Maintenance Service'}
+                      </h6>
+                      {renderStatusBadge()}
+                    </div>
+                    <div className="d-flex align-items-center gap-1">
+                      <img src="/assets/location-2.svg" alt="location" />
+                      <p className="dashboard-home-card-2-desc-3 m-0">
+                        {item.property_id?.address || 'N/A'}
+                      </p>
                     </div>
                     <div className="d-flex align-items-center gap-1">
                       <img src="/assets/calendar-3.svg" alt="calendar" />
-                      <p className="dashboard-home-card-2-desc-3 m-0">{item.date}</p>
+                      <p className="dashboard-home-card-2-desc-3 m-0">
+                        {formatDate(item.created_at)}
+                      </p>
                     </div>
-                    <div className="d-flex align-items-center gap-1">
-                      <img src="/assets/clock.svg" alt="clock" />
-                      <p className="dashboard-home-card-2-desc-3 mb-0">{item.time}</p>
-                    </div>
+                    {item.description && (
+                      <p className="dashboard-home-card-2-desc-3 mb-0">
+                        {item.description.substring(0, 100)}...
+                      </p>
+                    )}
                     <div className="d-flex mt-2 gap-2 align-items-center">
-                      {/* Replace hardcoded buttons with conditional rendering */}
-                      {renderActionButtons(item.status, item.id)}
+                      {renderActionButtons(item)}
                     </div>
                   </div>
                 </div>
@@ -415,6 +494,58 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
           </>
         )}
       </div>
+      
+      {/* Reject/Cancel Modal */}
+      {showRejectModal && (
+        <div className="modal fade show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}} tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {selectedOrderFilter === 'new' ? 'Reject Order' : 'Cancel Order'}
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={handleCloseRejectModal}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label htmlFor="rejectComment" className="form-label">
+                    Please provide a reason for {selectedOrderFilter === 'new' ? 'rejection' : 'cancellation'}:
+                  </label>
+                  <textarea
+                    className="form-control"
+                    id="rejectComment"
+                    rows="4"
+                    value={rejectComment}
+                    onChange={(e) => setRejectComment(e.target.value)}
+                    placeholder="Enter your comment here..."
+                    required
+                  ></textarea>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={handleCloseRejectModal}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-danger" 
+                  onClick={handleRejectSubmit}
+                >
+                  {selectedOrderFilter === 'new' ? 'Reject Order' : 'Cancel Order'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

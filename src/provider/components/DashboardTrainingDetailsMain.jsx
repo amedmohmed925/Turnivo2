@@ -1,19 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faDownload } from '@fortawesome/free-solid-svg-icons';
-import {faBookmark as faBookmark} from '@fortawesome/free-regular-svg-icons'
-import { Person, Settings, Logout } from '@mui/icons-material';
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
+import { faBookmark as faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { Link, useSearchParams } from 'react-router-dom';
 import ThumbUpOffAltOutlinedIcon from '@mui/icons-material/ThumbUpOffAltOutlined';
 import ThumbDownOffAltOutlinedIcon from '@mui/icons-material/ThumbDownOffAltOutlined';
+import Swal from 'sweetalert2';
+import { getTrainingById } from '../../api/trainingApi';
+
 const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
+  const [searchParams] = useSearchParams();
+  const [trainingDetails, setTrainingDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -34,10 +35,57 @@ const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
   const handleDropdownItemClick = (item) => {
     console.log(`Clicked on ${item}`);
     setIsDropdownOpen(false);
-    // Add your navigation logic here
   };
 
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        setIsLoading(true);
+        const id = searchParams.get('id');
+        const accessToken = localStorage.getItem('access_token');
 
+        if (!id) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Training ID is missing',
+          });
+          return;
+        }
+
+        if (!accessToken) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Authentication Required',
+            text: 'Please login to continue',
+          });
+          return;
+        }
+
+        const response = await getTrainingById(accessToken, id);
+
+        if (response.status === 1) {
+          const detail = Array.isArray(response.data)
+            ? response.data?.[0]?.items?.[0] || response.data?.[0]
+            : response.data?.items?.[0] || response.data?.[0];
+          setTrainingDetails(detail || null);
+        } else {
+          setTrainingDetails(null);
+        }
+      } catch (error) {
+        console.error('Error fetching training details:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'Failed to load training details',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDetails();
+  }, [searchParams]);
 
   return (
     <section>
@@ -51,7 +99,7 @@ const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
             >
               <FontAwesomeIcon icon={faBars} />
             </button>
-            <h2 className="mb-0 dashboard-title">add training</h2>
+            <h2 className="mb-0 dashboard-title">Training details</h2>
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
@@ -62,7 +110,6 @@ const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
               <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
-            {/* User Profile Dropdown */}
             <div className="user-dropdown-container d-none d-md-block" ref={dropdownRef}>
               <div 
                 className="user-profile-trigger d-flex gap-2 align-items-center"
@@ -109,81 +156,54 @@ const DashboardTrainingDetailsMain = ({ onMobileMenuClick }) => {
           </div>
         </div>
       </div>
+
       <div className="dashboard-home-content px-3 mt-2">
-        <div className="row g-0 g-lg-2 mt-3">
-          <div className="col-12 mb-2">
-  <div className="">
-    <img
-      src="/assets/training-card-img.png"
-      className="training-details-card-img img-fluid w-100 rounded-2"
-      alt="card-img"
-    />
-
-    <div className="card-body p-2 d-flex flex-column">
-            {/* icons */}
-      <div className="d-flex justify-content-between align-items-center">
-        <div className="d-flex align-items-center gap-3">
-          <ThumbDownOffAltOutlinedIcon />
-          <ThumbUpOffAltOutlinedIcon />
-        </div>
-
-        <div className="d-flex align-items-center gap-3">
-          <FontAwesomeIcon icon={faDownload} className="fs-5" />
-          <FontAwesomeIcon icon={faBookmark} className="fs-5" />
-        </div>
-      </div>
-      <div className="training-card-title mb-2">
-        Develop an organized cleaning plan
-      </div>
-
-      <div className="training-details-card-desc mb-2">
-        Cleaning your home is essential for maintaining a clean and healthy environment, but it can be overwhelming if not well-organized. In this guide, we will outline steps and tips to help you clean your home efficiently and easily.
-      </div>
-      <div className="training-card-sub-title mb-2">
-        1. Creating an Organized Cleaning Plan
-      </div>
-      <div className="training-details-card-desc mb-2">
-       Before you start, identify the tasks that need to be completed. You can divide them by room or by type of work (such as floor cleaning, dusting, and organizing). This will help you save time and effort.
-      </div>
-      <div className="training-card-sub-title mb-2">
-        2. Using the Right Tools
-      </div>
-      <div className="training-details-card-desc">
-       For effective cleaning, make sure you have the following supplies:
-      </div>
-      <ul>
-        <li className="training-details-card-desc">
-              Mop and floor cleaning products
-        </li>
-        <li className="training-details-card-desc">
-              Antibacterial cleaning wipes
-        </li>
-        <li className="training-details-card-desc">
-              Cleaning brush and multipurpose spray bottle
-        </li>
-        <li className="training-details-card-desc">
-              Vacuum cleaner or hand broom
-        </li>
-        <li className="training-details-card-desc">
-              Garbage bags
-        </li>
-      </ul>
-            <div className="training-card-sub-title mb-2">
-        3. Regular Cleaning to Keep Your Home Tidy
-      </div>
-      <div className="training-details-card-desc">
-       Schedule daily cleaning for simple tasks like organizing items and wiping surfaces. <br />
-Dedicate one day a week for deep cleaning each room. <br />
-Don’t postpone small tasks to prevent them from piling up.
-      </div>
-
-    </div>
-  </div>
+        {isLoading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
             </div>
+          </div>
+        ) : !trainingDetails ? (
+          <div className="text-center py-5">
+            <p className="m-0">Training not found.</p>
+          </div>
+        ) : (
+          <div className="row g-0 g-lg-2 mt-3">
+            <div className="col-12 mb-2">
+              <div className="">
+                <img
+                  src={trainingDetails.image || '/assets/training-card-img.png'}
+                  className="training-details-card-img img-fluid w-100 rounded-2"
+                  alt={trainingDetails.title || 'training'}
+                />
 
+                <div className="card-body p-2 d-flex flex-column">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div className="d-flex align-items-center gap-3">
+                      <ThumbDownOffAltOutlinedIcon />
+                      <ThumbUpOffAltOutlinedIcon />
+                    </div>
 
-        </div>
-        
+                    <div className="d-flex align-items-center gap-3">
+                      <FontAwesomeIcon icon={faDownload} className="fs-5" />
+                      <FontAwesomeIcon icon={faBookmark} className="fs-5" />
+                    </div>
+                  </div>
+                  <div className="training-card-title mb-2">
+                    {trainingDetails.title || trainingDetails.name || 'Training title'}
+                  </div>
+
+               
+
+                  {trainingDetails.content && (
+                    <div className="training-details-card-desc" dangerouslySetInnerHTML={{ __html: trainingDetails.content }} />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

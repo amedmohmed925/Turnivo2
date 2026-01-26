@@ -7,10 +7,39 @@ import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
 import ThumbUpOffAltOutlinedIcon from '@mui/icons-material/ThumbUpOffAltOutlined';
 import ThumbDownOffAltOutlinedIcon from '@mui/icons-material/ThumbDownOffAltOutlined';
+import { getTerms } from '../../api/cleanerApi';
+import Swal from 'sweetalert2';
+
 const WorkAgreementMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [agreementData, setAgreementData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   
+
+  // Fetch agreement data
+  useEffect(() => {
+    const fetchAgreementData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getTerms(2); // ID 2 for Work Agreement
+        if (response.status === 1 && response.data && response.data.length > 0) {
+          setAgreementData(response.data[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching agreement data:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load work agreement',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAgreementData();
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -110,38 +139,25 @@ const WorkAgreementMain = ({ onMobileMenuClick }) => {
       </div>
       <div className="dashboard-home-content px-3 mt-2">
             <div className="d-flex flex-column gap-2 align-items-center justify-content-center text-center p-md-5 p-4">
-                <h1 className='policy-title m-0'>Work Agreement</h1>
-                <p className='policy-desc mb-5'>Key information about work agreements, company policies, and how to report issues or request materials through the platform.</p>
-                <div className="policy-container">
-                    <p className='policy-item text-center mb-2'>Legal & Contracts</p>
-                    <p className='policy-item text-center mb-2'>We are committed to providing a safe, professional, and transparent environment for all users of our platform. The following sections outline the legal agreements, company policies, and procedures for issue resolution.</p>
-                    <p className='policy-item text-center mb-2'>1. Work Agreement</p>
-                    <p className='policy-item text-center mb-2'>Please review the contract details and terms of service carefully before starting any tasks through the platform.</p>
-                    <ul>
-                        <li className='policy-item text-center mb-2'>The agreement outlines the rights and responsibilities of both the service provider and the host.</li>
-                        <li className='policy-item text-center mb-2'>By joining the platform, you agree to comply with the terms stated in the agreement.</li>
-                    </ul>
-                    <p className='policy-item text-center mb-2'>2. Company Policies</p>
-                    <p className='policy-item text-center mb-2'>To maintain quality and safety across all services, the following company policies must be followed:</p>
-                    <ul>
-                        <li className='policy-item text-center mb-2'>Cleaning Guidelines: Follow the cleaning procedures and standards provided by the platform to ensure consistent service.</li>
-                        <li className='policy-item text-center mb-2'>Safety Protocols: Always wear protective gear when required and maintain professional conduct at job sites.</li>
-                        <li className='policy-item text-center mb-2'>Compliance Requirements: All users must adhere to local laws and the platform’s operational guidelines.</li>
-                    </ul>
-                    <p className='policy-item text-center mb-2'>3. Report Issues</p>
-                    <p className='policy-item text-center mb-2'>Transparency is important to us. If you encounter any issues, you can raise a dispute directly through the platform.</p>
-                    <ul>
-                        <li className='policy-item text-center mb-2'>Payment Issues: Report delays or discrepancies in payments.</li>
-                        <li className='policy-item text-center mb-2'>Job-Related Problems: Such as rejected tasks or incomplete bookings.</li>
-                        <li className='policy-item text-center mb-2'>Host Interactions: Report any inappropriate or uncomfortable behavior during service.</li>
-                    </ul>
-                    <p className='policy-item text-center mb-2'>4. Request Materials</p>
-                    <p className='policy-item text-center mb-2'>Hosts can request essential supplies directly through the platform when needed.</p>
-                    <ul>
-                        <li className='policy-item text-center mb-2'>This includes cleaning materials or specific tools required to complete a job.</li>
-                        <li className='policy-item text-center mb-2'>All requests are reviewed and approved based on task requirements.</li>
-                    </ul>
-                </div>
+                {isLoading ? (
+                  <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                ) : agreementData ? (
+                  <>
+                    <h1 className='policy-title m-0'>{agreementData.title}</h1>
+                    <div 
+                      className="policy-container"
+                      dangerouslySetInnerHTML={{ __html: agreementData.content }}
+                    />
+                  </>
+                ) : (
+                  <div className="text-center py-5">
+                    <p>No agreement data available</p>
+                  </div>
+                )}
             </div>
       </div>
     </section>

@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars } from '@fortawesome/free-solid-svg-icons';
-import { Person, Settings, Logout } from '@mui/icons-material';
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { getCleanServiceDetails } from '../../api/providerCleaningApi';
 
 const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -13,6 +12,9 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
   const [afterImages, setAfterImages] = useState([]);
   const beforeInputRef = useRef(null);
   const afterInputRef = useRef(null);
+  const [searchParams] = useSearchParams();
+  const [serviceDetails, setServiceDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   
 
   // Close dropdown when clicking outside
@@ -49,7 +51,83 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
     // Add your navigation logic here
   };
 
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        setIsLoading(true);
+        const id = searchParams.get('id');
+        const accessToken = localStorage.getItem('access_token');
 
+        if (!id) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Service ID is missing',
+          });
+          return;
+        }
+
+        if (!accessToken) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Authentication Required',
+            text: 'Please login to continue',
+          });
+          return;
+        }
+
+        const response = await getCleanServiceDetails(accessToken, id);
+
+        if (response.status === 1) {
+          const detail = Array.isArray(response.data)
+            ? response.data?.[0]?.items?.[0] || response.data?.[0]
+            : response.data?.items?.[0] || response.data?.[0];
+          setServiceDetails(detail || null);
+        } else {
+          setServiceDetails(null);
+        }
+      } catch (error) {
+        console.error('Error fetching cleaning service details:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'Failed to load service details',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDetails();
+  }, [searchParams]);
+
+
+
+  if (isLoading) {
+    return (
+      <section>
+        <div className="dashboard-home-content px-3 mt-5">
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!serviceDetails) {
+    return (
+      <section>
+        <div className="dashboard-home-content px-3 mt-5">
+          <div className="text-center py-5">
+            <p className="m-0">Service details not found.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section>
@@ -127,35 +205,31 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
                             <h6 className="property-problem-title mb-2 mt-2">Maintenance details</h6>
                 <div className="d-flex align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3">
       <div className="d-flex w-100 align-items-start flex-column flex-md-row gap-2">
-        <img src="/assets/problem-img-2.png" className='img-fluid materials-img' alt="location" />   
+        <img src={serviceDetails.property_id?.image || '/assets/problem-img-2.png'} className='img-fluid materials-img' alt="location" />   
         <div className='d-flex flex-column gap-2 align-items-start w-100'>
                                 <div className="d-flex justify-content-between align-items-center w-100">
-           <h6 className="property-problem-title mb-0 mt-2">Upholstery and carpet cleaning</h6>
-            <div className='new-badge px-2 p-1 rounded-2'>New</div>
+           <h6 className="property-problem-title mb-0 mt-2">{serviceDetails.clean_service_type_id?.name || 'Cleaning Service'}</h6>
+            <div className='new-badge px-2 p-1 rounded-2'>{serviceDetails.status?.name || 'New'}</div>
           </div>
-           <h6 className="property-problem-title mb-0 mt-2">Upholstery and carpet cleaning</h6>
+           <h6 className="property-problem-title mb-0 mt-2">{serviceDetails.property_id?.name || 'Property'}</h6>
           <div className="d-flex align-items-center gap-1">
             <img src="/assets/calendar-3.svg" alt="calendar" />
-            <p className="dashboard-home-card-2-desc-3 m-0">June 12, 2026</p>
+            <p className="dashboard-home-card-2-desc-3 m-0">{serviceDetails.date || 'N/A'}</p>
           </div>
           <div className="d-flex align-items-center gap-1">
             <img src="/assets/clock.svg" alt="clock" />
-            <p className="dashboard-home-card-2-desc-3 mb-0">8:00 pm - 10:00 pm</p>
+            <p className="dashboard-home-card-2-desc-3 mb-0">{serviceDetails.time_from && serviceDetails.time_to ? `${serviceDetails.time_from} - ${serviceDetails.time_to}` : 'N/A'}</p>
           </div>
-            <h6 className="property-problem-title mb-0">Nakheel Neighborhood Hotel</h6>
+            <h6 className="property-problem-title mb-0">{serviceDetails.property_id?.name || 'Property'}</h6>
             <div className="d-flex align-items-center gap-1">
             <img src="/assets/location-2.svg" alt="location" />
-            <p className="dashboard-home-card-2-desc-3 m-0">Riyadh, Al Narjis Neighborhood</p>
+            <p className="dashboard-home-card-2-desc-3 m-0">{serviceDetails.property_id?.address || 'N/A'}</p>
           </div>
             <div className="d-flex align-items-center gap-1">
             <img src="/assets/more-square.svg" alt="location" />
             <p className="dashboard-home-card-2-desc-3 m-0">request number :</p>
-            <p className="smart-access-title m-0">#213232</p>
+            <p className="smart-access-title m-0">#{serviceDetails.id}</p>
           </div>
-            <div className="bnb-badge d-flex align-items-center gap-2 p-2 rounded-2">
-              <img src="/assets/bnb.svg" alt="airbnb" />
-              <span>airbnb</span>
-            </div>
         </div>
       </div>
     </div>
@@ -197,38 +271,30 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
                     </div>
                                         <h6 className="property-management-card-title mb-0 mt-4">Additional Services</h6>
                     <div className="row w-100 g-0 g-lg-2">
-                                      <div className="col-md-2 col-12 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-                                      <div className="col-md-2 col-12 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
-                                      <div className="col-md-2 col-12 mb-3 col-20-per">
-                <div className="bg-light-gray p-3 rounded-3 h-100 active">
-                  <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
-                  <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                    <h3 className='dashboard-routes-sub m-0'>Cleaning the pool</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
-                  </div>
-                </div>
-              </div>
+                      {serviceDetails.addition_service?.length ? (
+                        serviceDetails.addition_service.map((add) => (
+                          <div className="col-md-2 col-12 mb-3 col-20-per" key={add.id}>
+                            <div className="bg-light-gray p-3 rounded-3 h-100 active">
+                              <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
+                              <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
+                                <h3 className='dashboard-routes-sub m-0'>{add.addition_service?.name || 'Service'}</h3>
+                                <div className='third-btn-sm p-1 rounded-2'>
+                                  {add.addition_service?.price ? `$${add.addition_service.price}` : '$0'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-12 mb-2">
+                          <p className='dashboard-home-card-2-desc-3 m-0'>No additional services.</p>
+                        </div>
+                      )}
                     </div>
             <h6 className="property-problem-title my-2">Problem description</h6>
               <div className="d-flex gap-3 align-items-center flex-wrap flex-sm-nowrap">
                 <div className='training-card p-2 rounded-2'>
-                    <p className='m-0 problem-desc'>Poor cooling has been reported in the air conditioner located in Office 204 on the second floor. The user noted that the air conditioner was not cooling sufficiently and that water was leaking from the indoor unit. Please check the filters and gas, and ensure that the pipes and connections are in good condition. A full test is recommended after maintenance to ensure efficient operation.</p>
+                    <p className='m-0 problem-desc'>{serviceDetails.description || 'No description available.'}</p>
                 </div>
               </div>
         <div className="d-flex gap-2 align-items-center justify-content-between flex-wrap my-3">
