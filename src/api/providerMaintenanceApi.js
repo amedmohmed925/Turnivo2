@@ -7,7 +7,7 @@ import axiosInstance from './axiosConfig';
  */
 export const getNewMaintenanceServices = async (accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-new-maintenance-service', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-new-maintenance-service', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept-Language': localStorage.getItem('language') || 'en'
@@ -27,7 +27,7 @@ export const getNewMaintenanceServices = async (accessToken) => {
  */
 export const getProgressMaintenanceServices = async (accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-progress-maintenance-service', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-progress-maintenance-service', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept-Language': localStorage.getItem('language') || 'en'
@@ -47,7 +47,7 @@ export const getProgressMaintenanceServices = async (accessToken) => {
  */
 export const getCompleteMaintenanceServices = async (accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-complete-maintenance-service', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-complete-maintenance-service', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept-Language': localStorage.getItem('language') || 'en'
@@ -67,7 +67,7 @@ export const getCompleteMaintenanceServices = async (accessToken) => {
  */
 export const getRejectMaintenanceServices = async (accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-reject-maintenance-service', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-reject-maintenance-service', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept-Language': localStorage.getItem('language') || 'en'
@@ -88,7 +88,7 @@ export const getRejectMaintenanceServices = async (accessToken) => {
  */
 export const getMaintenanceServiceDetails = async (id, accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-maintenance-service-view', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-maintenance-service-view', {
       params: { id },
       headers: {
         'Authorization': `Bearer ${accessToken}`,

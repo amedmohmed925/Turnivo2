@@ -355,7 +355,7 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
                   <img src="/assets/service-img.png" className='img-fluid w-100' alt="service" />
                   <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
                     <h3 className='dashboard-routes-sub m-0'>Cleaning the surface</h3>
-                    <div className='third-btn-sm p-1 rounded-2'>$50</div>
+                    <div className='third-btn-sm p-1 rounded-2'>$500</div>
                   </div>
                 </div>
               </div>

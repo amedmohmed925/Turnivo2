@@ -4,7 +4,7 @@ const getLanguage = () => localStorage.getItem('language') || 'en';
 
 export const getNewCleanServices = async (accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-new-clean-service', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-new-clean-service', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept-Language': 'ar',
@@ -19,7 +19,7 @@ export const getNewCleanServices = async (accessToken) => {
 
 export const getProgressCleanServices = async (accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-progress-clean-service', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-progress-clean-service', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept-Language': getLanguage(),
@@ -34,7 +34,7 @@ export const getProgressCleanServices = async (accessToken) => {
 
 export const getCompleteCleanServices = async (accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-complete-clean-service', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-complete-clean-service', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept-Language': getLanguage(),
@@ -49,7 +49,7 @@ export const getCompleteCleanServices = async (accessToken) => {
 
 export const getRejectCleanServices = async (accessToken) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-reject-clean-service', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-reject-clean-service', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Accept-Language': getLanguage(),
@@ -64,7 +64,7 @@ export const getRejectCleanServices = async (accessToken) => {
 
 export const getCleanServiceDetails = async (accessToken, id) => {
   try {
-    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-clean-service-view', {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/supervisor-clean-service-view', {
       params: { id },
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -90,5 +90,23 @@ export const rejectCleanService = async (accessToken, data) => {
   } catch (error) {
     console.error('Error rejecting clean service:', error);
     throw error.response?.data || { message: 'Failed to reject clean service' };
+  }
+};
+
+export const reselectCleanService = async (accessToken, provider_id, service_id) => {
+  try {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/supervisor-reselect-clean-service', 
+      { provider_id, service_id },
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept-Language': getLanguage(),
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error reselecting clean service:', error);
+    throw error.response?.data || { message: 'Failed to reselect clean service' };
   }
 };

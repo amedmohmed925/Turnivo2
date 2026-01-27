@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
@@ -9,10 +10,12 @@ import {
   getProgressCleanServices,
   getCompleteCleanServices,
   getRejectCleanServices,
-  rejectCleanService,
+  reselectCleanService,
 } from '../../api/providerCleaningApi';
+import { selectCurrentUser, selectAccessToken } from '../../store/authSlice';
 
 const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('new');
@@ -22,9 +25,10 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 6;
-  const [selectedServiceId, setSelectedServiceId] = useState(null);
-  const [rejectComment, setRejectComment] = useState('');
-  const [isSubmittingReject, setIsSubmittingReject] = useState(false);
+  const [isSubmittingReselect, setIsSubmittingReselect] = useState(false);
+  
+  const currentUser = useSelector(selectCurrentUser);
+  const accessToken = useSelector(selectAccessToken);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -156,10 +160,58 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
     return pages;
   };
   
-  // Function to handle order filter selection
   const handleOrderFilterClick = (filter) => {
     setSelectedOrderFilter(filter);
     setCurrentPage(1); // Reset to first page when changing filter
+  };
+
+  const handleReselectClick = async (serviceId) => {
+    if (!currentUser || !currentUser.user_id) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'User information not found. Please login again.',
+      });
+      return;
+    }
+
+    if (!accessToken) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Required',
+        text: 'Please login to continue',
+      });
+      return;
+    }
+
+    try {
+      setIsSubmittingReselect(true);
+      const response = await reselectCleanService(accessToken, currentUser.user_id, serviceId);
+
+      if (response.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.message || 'Service reassigned successfully.',
+        });
+        // Refresh data
+        setSelectedOrderFilter('new');
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Unable to reselect service.',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to reselect service.',
+      });
+    } finally {
+      setIsSubmittingReselect(false);
+    }
   };
   
   const getStatusKey = (status) => {
@@ -205,88 +257,20 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
             </div>                      
             <button
               className="main-btn rounded-2 px-4 py-2 d-flex justify-content-center align-items-center gap-2 w-50-100"
-              data-bs-toggle="modal"
-              data-bs-target="#tempAccessModal"
+              onClick={() => handleReselectClick(itemId)}
+              disabled={isSubmittingReselect}
             >
               <img src="/assets/people.svg" alt="people" />
-              resellect
+              {isSubmittingReselect ? 'Processing...' : 'resellect'}
             </button>
           </div>
-        );
-      case 'progress':
-      case 'in-progress':
-        return (
-          <button 
-            className="btn btn-outline-danger py-2"
-            data-bs-toggle="modal"
-            data-bs-target="#reportOrderModal"
-            onClick={() => setSelectedServiceId(itemId)}
-          >
-            Report order
-          </button>
         );
       default:
         return null;
     }
   };
 
-  const handleRejectSubmit = async () => {
-    if (!selectedServiceId) return;
-    if (!rejectComment.trim()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Comment required',
-        text: 'Please enter a reason.',
-      });
-      return;
-    }
 
-    const accessToken = localStorage.getItem('access_token');
-    if (!accessToken) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Authentication Required',
-        text: 'Please login to continue',
-      });
-      return;
-    }
-
-    try {
-      setIsSubmittingReject(true);
-      const response = await rejectCleanService(accessToken, {
-        service_id: selectedServiceId,
-        comment: rejectComment.trim(),
-      });
-
-      if (response.status === 1) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Submitted',
-          text: response.message || 'Report submitted successfully.',
-        });
-        setRejectComment('');
-        setSelectedServiceId(null);
-        const closeBtn = document.querySelector('#reportOrderModal .btn-close');
-        if (closeBtn) closeBtn.click();
-        // refresh data
-        setSelectedOrderFilter('reported');
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Failed',
-          text: response.message || 'Unable to submit report.',
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to submit report.',
-      });
-    } finally {
-      setIsSubmittingReject(false);
-    }
-  };
 
   return (
     <section>
@@ -470,55 +454,6 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
             )}
           </>
         )}
-      </div>
-      
-      {/* Report Order Modal */}
-      <div
-        className="modal fade"
-        id="reportOrderModal"
-        tabIndex="-1"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content rounded-4">
-            <div className="modal-header border-0">
-              <h5 className="m-0 dashboard-home-card-2-title-1">
-                What issue are you facing?
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
-            </div>
-
-            <div className="modal-body">
-              <div className="">
-                <label className="dashboard-home-card-2-title-1 fw-bold">
-                  Cause of the problem
-                </label>
-                <textarea
-                  className="form-control rounded-2 py-2"
-                  placeholder="Enter Cause of the problem"
-                  rows="4"
-                  value={rejectComment}
-                  onChange={(e) => setRejectComment(e.target.value)}
-                ></textarea>
-              </div>
-            </div>
-
-            <div className="modal-footer border-0">
-              <button
-                type="button"
-                className="sec-btn rounded-2 px-4 py-2"
-                disabled={isSubmittingReject}
-                onClick={handleRejectSubmit}
-              >
-                {isSubmittingReject ? 'Submitting...' : 'Submit'}
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );

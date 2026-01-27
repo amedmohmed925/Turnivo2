@@ -1,21 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars } from '@fortawesome/free-solid-svg-icons';
 import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import {faCalendar} from '@fortawesome/free-regular-svg-icons'
-import {faUser} from '@fortawesome/free-regular-svg-icons'
+import { faCalendar } from '@fortawesome/free-regular-svg-icons';
+import { faUser } from '@fortawesome/free-regular-svg-icons';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { getCleanerCalendar } from '../../api/cleanerCalenderApi';
+import { selectAccessToken } from '../../store/authSlice';
 
 
 const CleanerCalendarMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [calendarData, setCalendarData] = useState([]);
+  const accessToken = useSelector(selectAccessToken);
 
-
-
-  
   // Add state to track selected order type
 
   // Close dropdown when clicking outside
@@ -41,6 +45,56 @@ const CleanerCalendarMain = ({ onMobileMenuClick }) => {
     setIsDropdownOpen(false);
     // Add your navigation logic here
   };
+
+  useEffect(() => {
+    const fetchCalendar = async () => {
+      try {
+        setIsLoading(true);
+
+        if (!accessToken) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Authentication Required',
+            text: 'Please login to continue',
+          });
+          return;
+        }
+
+        const response = await getCleanerCalendar(accessToken);
+        if (response.status === 1 && Array.isArray(response.data)) {
+          const flat = response.data.flat().filter(Boolean);
+          setCalendarData(flat);
+        } else {
+          setCalendarData([]);
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'Failed to load calendar',
+        });
+        setCalendarData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCalendar();
+  }, [accessToken]);
+
+  const uniqueDates = Array.from(new Set(calendarData.map((item) => item.date))).sort();
+  const timeSlots = Array.from(
+    new Set(
+      calendarData.map((item) => `${item.time_from || ''}-${item.time_to || ''}`).filter((slot) => slot !== '-')
+    )
+  ).sort();
+
+  const getStatusBadge = (status) => {
+    if (status === 1) return { className: 'third-btn-sm', label: 'At work' };
+    return { className: 'sec-btn-sm h-100', label: 'Available for work' };
+  };
+
+  const getReservationsCount = (date) => calendarData.filter((item) => item.date === date).length;
 
 
   return (
@@ -154,67 +208,53 @@ const CleanerCalendarMain = ({ onMobileMenuClick }) => {
 
             {/* Calendar Table */}
             <div className="calendar-wrapper">
-              <table className="table calendar-table text-center">
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Sunday 07/10<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Monday 07/11<br /><small className='fw-bold'>03 Reservation</small></th>
-                    <th>Tuesday 07/12<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Wednesday 07/13<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Thursday 07/14<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Friday 07/15<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Saturday 07/16<br /><small className='fw-bold'>0 Reservation</small></th>
-                  </tr>
-                </thead>
+              {isLoading ? (
+                <div className="text-center my-4">
+                  <div className="spinner-border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : uniqueDates.length === 0 ? (
+                <div className="text-center my-4 text-muted">No reservations found.</div>
+              ) : (
+                <table className="table calendar-table text-center">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      {uniqueDates.map((date) => (
+                        <th key={date}>
+                          {date}
+                          <br />
+                          <small className="fw-bold">{getReservationsCount(date)} Reservation</small>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
 
-                <tbody>
-                  <tr>
-                    <td className='table-time'>8:00 AM</td>
-                    <td></td>
-
-                    <td></td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">At work</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-
-                  <tr>
-                    <td className='table-time'>10:00 AM</td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">At work</div>
-                    </td>
-                    <td>
-                      <div className="sec-btn-sm h-100">Available for work</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-
-                    <td>
-                      <div className="sec-btn-sm h-100">Available for work</div>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td className='table-time'>12:00 PM</td>
-                    <td>
-                      <div className="sec-btn-sm h-100">Available for work</div>
-                    </td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">At work</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-                </tbody>
-              </table>
+                  <tbody>
+                    {timeSlots.map((slot) => {
+                      const [from, to] = slot.split('-');
+                      return (
+                        <tr key={slot}>
+                          <td className="table-time">{from}</td>
+                          {uniqueDates.map((date) => {
+                            const match = calendarData.find(
+                              (item) => item.date === date && `${item.time_from}-${item.time_to}` === slot
+                            );
+                            if (!match) return <td key={`${date}-${slot}`}></td>;
+                            const badge = getStatusBadge(match.status);
+                            return (
+                              <td key={`${date}-${slot}`}>
+                                <div className={badge.className}>{badge.label}</div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
 
       </div>

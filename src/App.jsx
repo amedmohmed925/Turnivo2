@@ -128,12 +128,12 @@ function App() {
       <Route path="cleaner/notifications" element={<CleanerNotifications />} />
       <Route path="cleaner/company-policies" element={<CleanerCompanyPolicies />} />
       <Route path="cleaner/work-agreement" element={<CleanerWorkAgreement />} />
-      <Route path="cleaner/guest-ratings" element={<CleanerGuestRatings />} />
       <Route path="cleaner/maintenance-requests" element={<CleanerMaintenanceRequest />} />
       <Route path="cleaner/maintenance-details" element={<CleanerMaintenanceDetails />} />
       <Route path="cleaner/cleaning-requests" element={<CleanerCleaningRequest />} />
       <Route path="cleaner/cleaning-details" element={<CleanerCleaningDetails />} />
       <Route path="cleaner/calendar" element={<CleanerCalendar />} />
+      <Route path="cleaner/guest-ratings" element={<CleanerGuestRatings />} />
       <Route path="cleaner/availability" element={<CleanerAvailability />} />
       <Route path="cleaner/material-requests" element={<CleanerMaterialRequest />} />
       <Route path="cleaner/training" element={<CleanerTraining />} />

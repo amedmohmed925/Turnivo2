@@ -1,10 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars } from '@fortawesome/free-solid-svg-icons';
 import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import {
+  getMaintenanceServiceDetails,
+  addMaintenanceServiceBeforeImages,
+  addMaintenanceServiceAfterImages,
+} from '../../api/cleanerMaintenanceApi';
+import { selectAccessToken } from '../../store/authSlice';
 
 const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -13,6 +22,48 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
   const [afterImages, setAfterImages] = useState([]);
   const beforeInputRef = useRef(null);
   const afterInputRef = useRef(null);
+  const [serviceDetails, setServiceDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingBefore, setIsUploadingBefore] = useState(false);
+  const [isUploadingAfter, setIsUploadingAfter] = useState(false);
+  
+  const [searchParams] = useSearchParams();
+  const serviceId = searchParams.get('id');
+  const accessToken = useSelector(selectAccessToken);
+
+  // Fetch service details
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (!serviceId || !accessToken) return;
+
+      try {
+        setIsLoading(true);
+        const response = await getMaintenanceServiceDetails(accessToken, serviceId);
+
+        if (response.status === 1 && response.data && response.data.length > 0) {
+          const details = response.data[0];
+          setServiceDetails(details);
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Service details not found',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching service details:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'Failed to load service details',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDetails();
+  }, [serviceId, accessToken]);
   
 
   // Close dropdown when clicking outside
@@ -33,14 +84,90 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const handleBeforeUpload = (e) => {
+  const handleBeforeUpload = async (e) => {
     const files = Array.from(e.target.files);
-    setBeforeImages(prev => [...prev, ...files]);
+    if (files.length === 0) return;
+
+    if (!serviceId || !accessToken) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Service ID or access token missing',
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingBefore(true);
+      const response = await addMaintenanceServiceBeforeImages(accessToken, serviceId, files);
+
+      if (response.status === 1) {
+        setBeforeImages(prev => [...prev, ...files]);
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.message || 'Before images uploaded successfully',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Failed to upload before images',
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading before images:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to upload before images',
+      });
+    } finally {
+      setIsUploadingBefore(false);
+    }
   };
 
-  const handleAfterUpload = (e) => {
+  const handleAfterUpload = async (e) => {
     const files = Array.from(e.target.files);
-    setAfterImages(prev => [...prev, ...files]);
+    if (files.length === 0) return;
+
+    if (!serviceId || !accessToken) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Service ID or access token missing',
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingAfter(true);
+      const response = await addMaintenanceServiceAfterImages(accessToken, serviceId, files);
+
+      if (response.status === 1) {
+        setAfterImages(prev => [...prev, ...files]);
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.message || 'After images uploaded successfully',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Failed to upload after images',
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading after images:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to upload after images',
+      });
+    } finally {
+      setIsUploadingAfter(false);
+    }
   };
 
   const handleDropdownItemClick = (item) => {
@@ -125,6 +252,17 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
         </div>
       </div>
       <div className="dashboard-home-content px-3 mt-2">
+        {isLoading ? (
+          <div className="text-center mt-4">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        ) : !serviceDetails ? (
+          <div className="text-center mt-4">
+            <p className="text-muted">Service details not found</p>
+          </div>
+        ) : (
         <div className="row">
           <div className="col-12">
             <div className=" mt-3 w-100">
@@ -206,25 +344,49 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
                 <div className='rating-stars-bg p-2 rounded-2'>
                     <h3 className='form-label mb-2'>Before cleaning</h3>
                     <div className="d-flex gap-2 align-items-center flex-wrap">
-                        <div className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" onClick={() => beforeInputRef.current.click()}>
-                            <img src="/assets/gallery-add.svg" alt="gallery" />
-                            <h6 className='table-time m-0'>Add room photos</h6>
+                        <div 
+                          className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" 
+                          onClick={() => !isUploadingBefore && beforeInputRef.current.click()}
+                          style={{ cursor: isUploadingBefore ? 'not-allowed' : 'pointer', opacity: isUploadingBefore ? 0.6 : 1 }}
+                        >
+                            {isUploadingBefore ? (
+                              <div className="spinner-border spinner-border-sm" role="status">
+                                <span className="visually-hidden">Uploading...</span>
+                              </div>
+                            ) : (
+                              <>
+                                <img src="/assets/gallery-add.svg" alt="gallery" />
+                                <h6 className='table-time m-0'>Add room photos</h6>
+                              </>
+                            )}
                         </div>
                         {beforeImages.map((img, idx) => <img key={idx} src={URL.createObjectURL(img)} className='added-img' alt="uploaded" />)}
                     </div>
-                    <input type="file" multiple accept="image/*" ref={beforeInputRef} onChange={handleBeforeUpload} style={{display: 'none'}} />
+                    <input type="file" multiple accept="image/*" ref={beforeInputRef} onChange={handleBeforeUpload} style={{display: 'none'}} disabled={isUploadingBefore} />
                 </div>
                 <div className='rating-stars-bg p-2 rounded-2'>
                     <h3 className='form-label mb-2'>After cleaning</h3>
                     <div className="d-flex gap-2 align-items-center flex-wrap">
-                        <div className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" onClick={() => afterInputRef.current.click()}>
-                            <img src="/assets/gallery-add.svg" alt="gallery" />
-                            <h6 className='table-time m-0'>Add room photos</h6>
+                        <div 
+                          className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" 
+                          onClick={() => !isUploadingAfter && afterInputRef.current.click()}
+                          style={{ cursor: isUploadingAfter ? 'not-allowed' : 'pointer', opacity: isUploadingAfter ? 0.6 : 1 }}
+                        >
+                            {isUploadingAfter ? (
+                              <div className="spinner-border spinner-border-sm" role="status">
+                                <span className="visually-hidden">Uploading...</span>
+                              </div>
+                            ) : (
+                              <>
+                                <img src="/assets/gallery-add.svg" alt="gallery" />
+                                <h6 className='table-time m-0'>Add room photos</h6>
+                              </>
+                            )}
                         </div>
                         {afterImages.map((img, idx) => <img key={idx} src={URL.createObjectURL(img)} className='added-img' alt="uploaded" />)}
 
                     </div>
-                    <input type="file" multiple accept="image/*" ref={afterInputRef} onChange={handleAfterUpload} style={{display: 'none'}} />
+                    <input type="file" multiple accept="image/*" ref={afterInputRef} onChange={handleAfterUpload} style={{display: 'none'}} disabled={isUploadingAfter} />
                 </div>
 
             </div>
@@ -258,7 +420,7 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
                         </button>
           </div>
         </div>
-        
+        )}
       </div>
     </section>
   );
