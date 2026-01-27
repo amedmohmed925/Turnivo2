@@ -60,6 +60,7 @@ import CleanerCleaningDetails from './cleaner/pages/CleanerCleaningDetails'
 import CleanerCalendar from './cleaner/pages/CleanerCalendar'
 import CleanerAvailability from './cleaner/pages/CleanerAvailability'
 import CleanerMaterialRequest from './cleaner/pages/CleanerMaterialRequest'
+import CleanerMaterialDetails from './cleaner/pages/CleanerMaterialDetails'
 import CleanerTraining from './cleaner/pages/CleanerTraining'
 import CleanerTrainingDetails from './cleaner/pages/CleanerTrainingDetails'
 import CleanerReportProblem from './cleaner/pages/CleanerReportProblem'
@@ -133,13 +134,14 @@ function App() {
       <Route path="cleaner/cleaning-requests" element={<CleanerCleaningRequest />} />
       <Route path="cleaner/cleaning-details" element={<CleanerCleaningDetails />} />
       <Route path="cleaner/calendar" element={<CleanerCalendar />} />
-      <Route path="cleaner/guest-ratings" element={<CleanerGuestRatings />} />
-      <Route path="cleaner/availability" element={<CleanerAvailability />} />
       <Route path="cleaner/material-requests" element={<CleanerMaterialRequest />} />
+      <Route path="cleaner/material-details" element={<CleanerMaterialDetails />} />
       <Route path="cleaner/training" element={<CleanerTraining />} />
       <Route path="cleaner/training-details" element={<CleanerTrainingDetails />} />
-      <Route path="cleaner/report-problem" element={<CleanerReportProblem />} />
       <Route path="cleaner/shopping-cart" element={<CleanerShoppingCart />} />
+      <Route path="cleaner/report-problem" element={<CleanerReportProblem />} />
+      <Route path="cleaner/guest-ratings" element={<CleanerGuestRatings />} />
+      <Route path="cleaner/availability" element={<CleanerAvailability />} />
 
       {/* guest */}
       <Route path="guest/login" element={<GuestLogin />} />
