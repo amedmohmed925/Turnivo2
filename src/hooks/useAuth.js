@@ -1,8 +1,19 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { loginUser, activateUser } from '../api/authApi';
-import { saveUserData, saveUserEmail, saveActivationCode } from '../utils/authStorage';
+import { saveUserEmail, saveActivationCode } from '../utils/authStorage';
+import { setCredentials } from '../store/authSlice';
+
+const resolveDashboardPath = (roleId) => {
+  const id = Number(roleId);
+  if (id === 3) return '/client/dashboard';
+  if (id === 4) return '/provider/dashboard';
+  if (id === 5) return '/provider/dashboard';
+  if (id === 6) return '/guest/list';
+  return '/';
+};
 
 /**
  * Custom hook for login mutation
@@ -57,6 +68,7 @@ export const useLogin = () => {
  */
 export const useActivate = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   return useMutation({
     mutationFn: activateUser,
@@ -79,8 +91,10 @@ export const useActivate = () => {
         
         // Only proceed if inner status is success (1 or "1")
         if (innerStatus === 1 || innerStatus === "1") {
-          // Save user data and token
-          saveUserData(responseData);
+          // Save user data and token to Redux + localStorage
+          dispatch(setCredentials(responseData));
+          const roleId = responseData?.data?.user_type;
+          const destination = resolveDashboardPath(roleId);
           
           // Show success message
           toast.success(responseData.message || 'Login successful!');
@@ -90,7 +104,7 @@ export const useActivate = () => {
           sessionStorage.removeItem('activation_code');
           
           // Navigate to dashboard
-          navigate('/client/dashboard');
+          navigate(destination);
         } else {
           toast.error(responseData.message || 'Activation failed. Please try again.');
         }
