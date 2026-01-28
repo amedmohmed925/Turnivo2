@@ -11,7 +11,7 @@ import {
   getCompleteCleanServices,
   getRejectCleanServices,
   reselectCleanService,
-} from '../../api/providerCleaningApi';
+} from '../../api/superviserCleaningApi';
 import { selectCurrentUser, selectAccessToken } from '../../store/authSlice';
 
 const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {

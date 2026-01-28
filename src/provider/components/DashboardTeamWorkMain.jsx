@@ -7,12 +7,48 @@ import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
 import ThumbUpOffAltOutlinedIcon from '@mui/icons-material/ThumbUpOffAltOutlined';
 import ThumbDownOffAltOutlinedIcon from '@mui/icons-material/ThumbDownOffAltOutlined';
+import { getTeam, getTeamMemberDetails } from '../../api/superviserTeamApi';
+import { useSelector } from 'react-redux';
 
 const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
-  
+  const { token: accessToken } = useSelector((state) => state.auth);
+  const [teamData, setTeamData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  // Fetch team data
+  useEffect(() => {
+    const fetchTeam = async () => {
+      if (!accessToken) return;
+      try {
+        setLoading(true);
+        const response = await getTeam(accessToken);
+        if (response.status === 1 && response.data?.[0]?.items) {
+          setTeamData(response.data[0].items);
+        }
+      } catch (error) {
+        console.error('Failed to fetch team:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeam();
+  }, [accessToken]);
+
+  const handleViewProfile = async (id) => {
+    try {
+      const response = await getTeamMemberDetails(accessToken, id);
+      if (response.status === 1 && response.data) {
+        setSelectedMember(response.data);
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to fetch member details:', error);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -145,343 +181,72 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
 
         </div>
         <div className="row">
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100 active">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
+          {loading ? (
+            <div className="col-12 text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : teamData.length > 0 ? (
+            teamData.map((item) => (
+              <div className="col-lg-3 col-md-6 mb-3" key={item.id}>
+                <div className="bg-light-gray p-1 rounded-3 h-100" onClick={() => handleViewProfile(item.id)} style={{cursor: 'pointer'}}>
+                  <img src={item.user?.avatar || "/assets/team-img.png"} className='img-fluid w-100 team-img' alt="service" />
+                  <h2 className="mb-0 dashboard-title py-2 ps-1">{item.first_name} {item.last_name}</h2>
                   <div className="d-flex align-items-center gap-1">
                     <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
+                    <h3 className='training-details-card-desc m-0'>{item.company || 'Team Member'}</h3>
                   </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                    <button
+                      className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
+                      onClick={(e) => { e.stopPropagation(); handleViewProfile(item.id); }}
+                    >
+                      <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
+                      Profile
+                    </button>
+                    <button
+                      className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
+                    >
+                      <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
+                      Availability
+                    </button>
                   </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
                 </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
-          <div className="col-lg-3 col-md-6 mb-3">
-                            <div className="bg-light-gray p-1 rounded-3 h-100">
-                  <img src="/assets/team-img.png" className='img-fluid w-100 team-img' alt="service" />
-                  <h2 className="mb-0 dashboard-title py-2 ps-1">Leslie Alexander</h2>
-                  <div className="d-flex align-items-center gap-1">
-                    <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
-                    <h3 className='training-details-card-desc m-0'>Operations Manager</h3>
-                  </div>
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/user-icon.svg" className='flag-icon' alt="user" />
- Profile
-                        </button>
-                      <button
-  className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 mt-2 flex-grow-1"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
->
-  <img src="/assets/calendar-tick.svg" className='flag-icon' alt="user" />
- Availability
-                        </button>
-          </div>
-                </div>
-          </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-12 text-center py-5">No team members found</div>
+          )}
         </div>
+
+        {/* Profile Modal */}
+        {showModal && selectedMember && (
+          <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowModal(false)}>
+            <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Team Member Profile</h5>
+                  <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                </div>
+                <div className="modal-body">
+                  <div className="text-center mb-3">
+                    <img src={selectedMember.user?.avatar || "/assets/user.png"} alt="Avatar" className="rounded-circle" style={{width: '100px', height: '100px', objectFit: 'cover'}} />
+                    <h4 className="mt-2">{selectedMember.first_name} {selectedMember.last_name}</h4>
+                  </div>
+                  <div className="row g-3">
+                    <div className="col-md-6"><p><strong>Email:</strong> {selectedMember.email}</p></div>
+                    <div className="col-md-6"><p><strong>Phone:</strong> {selectedMember.phone}</p></div>
+                    {selectedMember.address && <div className="col-12"><p><strong>Address:</strong> {selectedMember.address}</p></div>}
+                    {selectedMember.company && <div className="col-md-6"><p><strong>Company:</strong> {selectedMember.company}</p></div>}
+                    <div className="col-md-6"><p><strong>Experience:</strong> {selectedMember.experience} Years</p></div>
+                    <div className="col-md-6"><p><strong>Start Date:</strong> {selectedMember.start_date}</p></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

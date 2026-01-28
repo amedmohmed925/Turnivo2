@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars } from '@fortawesome/free-solid-svg-icons';
 import { Link, useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { getCleanServiceDetails } from '../../api/providerCleaningApi';
+import { getCleanServiceDetails } from '../../api/superviserCleaningApi';
 
 const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

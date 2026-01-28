@@ -28,6 +28,7 @@ import DashboardAvailability from './provider/pages/DashboardAvailability'
 import DashboardMaintenanceRequest from './provider/pages/DashboardMaintenanceRequest'
 import DashboardMaintenanceDetails from './provider/pages/DashboardMaintenanceDetails'
 import DashboardMaterialRequest from './provider/pages/DashboardMaterialRequest'
+import DashboardMaterialDetails from './provider/pages/DashboardMaterialDetails'
 import DashboardCleaningRequest from './provider/pages/DashboardCleaningRequest'
 import DashboardCleaningDetails from './provider/pages/DashboardCleaningDetails'
 import DashboarProviderGuestRatings from './provider/pages/DashboarProviderGuestRatings'
@@ -113,6 +114,7 @@ function App() {
       <Route path="provider/maintenance-request" element={<DashboardMaintenanceRequest />} />
       <Route path="provider/maintenance-details" element={<DashboardMaintenanceDetails />} />
       <Route path="provider/material-request" element={<DashboardMaterialRequest />} />
+      <Route path="provider/material-details" element={<DashboardMaterialDetails />} />
       <Route path="provider/cleaning-request" element={<DashboardCleaningRequest />} />
       <Route path="provider/cleaning-details" element={<DashboardCleaningDetails />} />
       <Route path="provider/guests-ratings" element={<DashboarProviderGuestRatings />} />
