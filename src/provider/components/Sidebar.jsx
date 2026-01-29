@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import {
   ExpandMore,
   ExpandLess
 } from '@mui/icons-material';
 import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined';
+import { logout } from '../../store/authSlice';
+import { useProviderData } from '../context/ProviderDataContext';
 
 const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -16,6 +19,10 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   // Navigation hooks
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  
+  // Get user data from context
+  const { userFullName, userAvatar, unreadNotificationsCount } = useProviderData();
 
   // Function to determine active item based on current path
   const getActiveItemFromPath = (path) => {
@@ -196,22 +203,23 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   const bottomItems = [
     {
       id: 'user-profile',
-      label: 'Omar Alrajhi',
-      iconPath: "/assets/user.png",
+      label: userFullName,
+      iconPath: userAvatar,
       isUserProfile: true,
       route: '/provider/availability'
     },
     {
-      id: 'settings',
-      label: 'Settings',
-      iconPath: "/assets/setting-icon.svg",
-      route: '/provider/settings'
+      id: 'notifications',
+      label: 'Notifications',
+      iconPath: "/assets/notification.svg",
+      route: '/provider/notifications',
+      badge: unreadNotificationsCount
     },
     {
       id: 'logout',
       label: 'Logout',
       iconPath: "/assets/logout-icon.svg",
-      route: '/login'
+      isLogout: true
     },
     {
       id: 'back',
@@ -268,6 +276,13 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   };
 
   const handleItemClick = (item) => {
+    // Handle logout
+    if (item.isLogout) {
+      dispatch(logout());
+      navigate('/login');
+      return;
+    }
+    
     // Close all dropdowns when clicking on a non-dropdown item
     setRatingDropdownOpen(false);
     setServiceDropdownOpen(false);
@@ -408,6 +423,9 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
                     src={getIcon(item.iconPath, activeItem === item.id, false, true)} 
                     alt={item.label}
                   />
+                )}
+                {item.badge > 0 && (
+                  <span className="notification-badge">{item.badge > 99 ? '99+' : item.badge}</span>
                 )}
               </span>
               <span className="side-label">{item.label}</span>

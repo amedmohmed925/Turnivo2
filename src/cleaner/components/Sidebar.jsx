@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import {
   ExpandMore,
   ExpandLess
 } from '@mui/icons-material';
 import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined';
+import { logout } from '../../store/authSlice';
+import { useCleanerData } from '../context/CleanerDataContext';
 
 const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -16,31 +19,30 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   // Navigation hooks
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  
+  // Get user data from context
+  const { userFullName, userAvatar, unreadNotificationsCount } = useCleanerData();
 
   // Function to determine active item based on current path
   const getActiveItemFromPath = (path) => {
     switch (path) {
-      case '/provider/dashboard': return 'home';
-      case '/provider/team-work':
-      case '/provider/team-work-requests':
-      case '/provider/team-work-add-employee': return 'team';
-      case '/provider/smart-access':
-      case '/provider/smart-lock-requests': return 'checkin';
-      case '/provider/calendar':
-      case '/provider/availability': return 'calendar';
-      case '/provider/maintenance-request':
-      case '/provider/maintenance-details':
-      case '/provider/material-request':
-      case '/provider/cleaning-request':
-      case '/provider/cleaning-details': return 'service';
-      case '/provider/guests-ratings':
-      case '/provider/my-ratings': return 'ratings';
-      case '/provider/training':
-      case '/provider/training-details': return 'training';
-      case '/provider/company-policies':
-      case '/provider/work-agreement': return 'legal';
-      case '/provider/report-problem': return 'report';
-      default: return 'home';
+      case '/cleaner/cleaning-requests':
+      case '/cleaner/cleaning-details':
+      case '/cleaner/maintenance-requests':
+      case '/cleaner/maintenance-details':
+      case '/cleaner/material-requests':
+      case '/cleaner/material-details': return 'service';
+      case '/cleaner/calendar':
+      case '/cleaner/availability': return 'calendar';
+      case '/cleaner/guest-ratings': return 'ratings';
+      case '/cleaner/training':
+      case '/cleaner/training-details': return 'training';
+      case '/cleaner/company-policies':
+      case '/cleaner/work-agreement': return 'legal';
+      case '/cleaner/report-problem': return 'report';
+      case '/cleaner/shopping-cart': return 'cart';
+      default: return 'service';
     }
   };
 
@@ -74,7 +76,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (!serviceDropdownOpen) {
       setActiveItem('service');
       // Navigate to the service management main page when opening the dropdown
-      navigate('/provider/maintenance-request');
+      navigate('/cleaner/maintenance-requests');
     }
   };
 
@@ -91,7 +93,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (!ratingDropdownOpen) {
       setActiveItem('ratings');
       // Navigate to the ratings main page when opening the dropdown
-      navigate('/provider/guests-ratings');
+      navigate('/cleaner/guest-ratings');
     }
   };
   
@@ -108,19 +110,12 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (!legalDropdownOpen) {
       setActiveItem('legal');
       // Navigate to the legal main page when opening the dropdown
-      navigate('/provider/company-policies');
+      navigate('/cleaner/company-policies');
     }
   };
   
-  // Define routes for sidebar items - keeping your original structure
+  // Define routes for sidebar items - Cleaner specific routes
   const sidebarItems = [
-    {
-      id: 'home',
-      label: 'Home',
-      iconPath: "/assets/home-icon.svg",
-      route: '/provider/dashboard'
-    },
-
     {
       id: 'service',
       label: 'Service Management',
@@ -128,49 +123,36 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       hasDropdown: true,
       dropdownOpen: serviceDropdownOpen,
       onToggle: toggleServiceDropdown,
-      route: '/provider/maintenance-request',
+      route: '/cleaner/cleaning-requests',
       subItems: [
-        { id: 'maintenance-requests', label: 'Maintenance Requests', route: '/provider/maintenance-request' },
-        { id: 'material-requests', label: 'Materials Requests', route: '/provider/material-request' },
-        { id: 'cleaning-requests', label: 'Cleaning Requests', route: '/provider/cleaning-request' }
+        { id: 'cleaning-requests', label: 'Cleaning Requests', route: '/cleaner/cleaning-requests' },
+        { id: 'maintenance-requests', label: 'Maintenance Requests', route: '/cleaner/maintenance-requests' },
+        { id: 'material-requests', label: 'Materials Requests', route: '/cleaner/material-requests' }
       ]
-    },
-    {
-      id: 'team',
-      label: 'Work team',
-      iconPath: "/assets/team-icon.svg",
-      route: '/provider/team-work'
-    },
-    {
-      id: 'checkin',
-      label: 'Smart Access',
-      iconPath: "/assets/key-icon.svg",
-      route: '/provider/smart-access'
     },
     {
       id: 'calendar',
       label: 'Calendar & Availability',
       iconPath: "/assets/calendar-icon.svg",
-      route: '/provider/calendar'
+      route: '/cleaner/calendar'
     },
     {
       id: 'ratings',
-      label: 'Ratings & Ratings',
+      label: 'Guest Ratings',
       iconPath: "/assets/medal-icon.svg",
-      hasDropdown: true,
-      dropdownOpen: ratingDropdownOpen,
-      onToggle: toggleRatingDropdown,
-      route: '/provider/guests-ratings',
-      subItems: [
-        { id: 'guest-reviews', label: 'Guest Reviews', route: '/provider/guests-ratings' },
-        { id: 'my-ratings', label: 'My Ratings', route: '/provider/my-ratings' },
-      ]
+      route: '/cleaner/guest-ratings'
     },
     {
       id: 'training',
       label: 'Training',
       iconPath: "/assets/cup-icon.svg",
-      route: '/provider/training'
+      route: '/cleaner/training'
+    },
+    {
+      id: 'cart',
+      label: 'Shopping Cart',
+      iconPath: "/assets/service-icon.svg",
+      route: '/cleaner/shopping-cart'
     },
     {
       id: 'legal',
@@ -179,39 +161,40 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       hasDropdown: true,
       dropdownOpen: legalDropdownOpen,
       onToggle: toggleLegalDropdown,
-      route: '/provider/company-policies',
+      route: '/cleaner/company-policies',
       subItems: [
-        { id: 'work-agreement', label: 'Work Agreement', route: '/provider/work-agreement' },
-        { id: 'company-policies', label: 'Company Policies', route: '/provider/company-policies' },
+        { id: 'work-agreement', label: 'Work Agreement', route: '/cleaner/work-agreement' },
+        { id: 'company-policies', label: 'Company Policies', route: '/cleaner/company-policies' }
       ]
     },
     {
       id: 'report',
       label: 'Report a problem',
       iconPath: "/assets/report-icon.svg",
-      route: '/provider/report-problem'
+      route: '/cleaner/report-problem'
     }
   ];
 
   const bottomItems = [
     {
       id: 'user-profile',
-      label: 'Omar Alrajhi',
-      iconPath: "/assets/user.png",
+      label: userFullName,
+      iconPath: userAvatar,
       isUserProfile: true,
-      route: '/provider/availability'
+      route: '/cleaner/availability'
     },
     {
-      id: 'settings',
-      label: 'Settings',
-      iconPath: "/assets/setting-icon.svg",
-      route: '/provider/settings'
+      id: 'notifications',
+      label: 'Notifications',
+      iconPath: "/assets/notification.svg",
+      route: '/cleaner/notifications',
+      badge: unreadNotificationsCount
     },
     {
       id: 'logout',
       label: 'Logout',
       iconPath: "/assets/logout-icon.svg",
-      route: '/login'
+      isLogout: true
     },
     {
       id: 'back',
@@ -268,6 +251,13 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   };
 
   const handleItemClick = (item) => {
+    // Handle logout
+    if (item.isLogout) {
+      dispatch(logout());
+      navigate('/login');
+      return;
+    }
+    
     // Close all dropdowns when clicking on a non-dropdown item
     setRatingDropdownOpen(false);
     setServiceDropdownOpen(false);
@@ -408,6 +398,9 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
                     src={getIcon(item.iconPath, activeItem === item.id, false, true)} 
                     alt={item.label}
                   />
+                )}
+                {item.badge > 0 && (
+                  <span className="notification-badge">{item.badge > 99 ? '99+' : item.badge}</span>
                 )}
               </span>
               <span className="side-label">{item.label}</span>

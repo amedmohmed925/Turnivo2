@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -11,10 +11,9 @@ import {
   getRejectMaterialRequests,
   rejectMaterialRequest,
 } from '../../api/superviserMatrialsApi';
+import ProviderHeader from './ProviderHeader';
 
 const DashboardMaterialRequestMain = ({ onMobileMenuClick }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('new');
   const [materialsData, setMaterialsData] = useState([]);
@@ -23,29 +22,6 @@ const DashboardMaterialRequestMain = ({ onMobileMenuClick }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 6;
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const handleDropdownItemClick = (item) => {
-    console.log(`Clicked on ${item}`);
-    setIsDropdownOpen(false);
-  };
 
   // Fetch materials data based on selected tab
   useEffect(() => {

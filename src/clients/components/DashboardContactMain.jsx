@@ -1,18 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faBars } from '@fortawesome/free-solid-svg-icons';
-import { Link, useNavigate } from 'react-router-dom';
-import { getUserData, clearUserData } from '../../utils/authStorage';
+import React, { useState, useEffect } from 'react';
 import { useUserInfo, useContactForm } from '../../hooks/useContact';
+import ClientHeader from './ClientHeader';
 
 const DashboardContactMain = ({ onMobileMenuClick }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const navigate = useNavigate();
-  
-  // Get user data from localStorage
-  const storedUserData = getUserData();
-  
   // Fetch fresh user info from API
   const { data: userInfoData, isLoading } = useUserInfo();
   const contactMutation = useContactForm();
@@ -35,44 +25,8 @@ const DashboardContactMain = ({ onMobileMenuClick }) => {
         mobile: userData.mobile || '',
         email: userData.email || '',
       }));
-    } else if (storedUserData) {
-      setFormData(prev => ({
-        ...prev,
-        name: storedUserData.name || '',
-        mobile: storedUserData.mobile || '',
-        email: storedUserData.email || '',
-      }));
     }
-  }, [userInfoData, storedUserData]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const handleDropdownItemClick = (item) => {
-    setIsDropdownOpen(false);
-    
-    if (item === 'logout') {
-      clearUserData();
-      navigate('/login');
-    } else if (item === 'profile') {
-      navigate('/client/profile');
-    }
-  };
+  }, [userInfoData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -102,82 +56,15 @@ const DashboardContactMain = ({ onMobileMenuClick }) => {
     });
   };
 
-  // Get display data from API or localStorage
-  const userData = userInfoData?.data?.[0] || storedUserData;
+  // Get display data from API
+  const userData = userInfoData?.data?.[0];
   const displayName = userData?.name || 'User';
   const displayAvatar = userData?.avatar || '/assets/user.png';
   const displayDate = userData?.created_at || new Date().toISOString().split('T')[0];
 
   return (
     <section>
-      <div className="dashboard-main-nav px-md-3 px-1 py-1">
-        <div className="d-flex justify-content-between align-items-center">
-          <div className="d-flex align-items-center gap-0">
-            <button 
-              className="mobile-menu-btn"
-              onClick={onMobileMenuClick}
-              aria-label="Toggle menu"
-            >
-              <FontAwesomeIcon icon={faBars} />
-            </button>
-            <h2 className="mb-0 dashboard-title">Contact us</h2>
-          </div>
-          <div className="d-flex justify-content-end gap-2 align-items-center">
-            <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="/assets/global.svg" alt="notification" />
-              <span>English</span>
-            </div>
-            <Link to='/client/notifications' className="notification-icon-container">
-              <img src="/assets/notification.svg" alt="notification" />
-            </Link>
-            
-            {/* User Profile Dropdown */}
-            <div className="user-dropdown-container d-none d-md-block" ref={dropdownRef}>
-              <div 
-                className="user-profile-trigger d-flex gap-2 align-items-center"
-                onClick={toggleDropdown}
-              >
-                <FontAwesomeIcon 
-                  icon={faChevronDown} 
-                  className={`dropdown-chevron ${isDropdownOpen ? 'open' : ''}`}
-                />
-                <span className="user-name">{displayName}</span>
-                <img 
-                  src={displayAvatar}
-                  alt="User Profile" 
-                  className="user-avatar-small"
-                />
-              </div>
-              
-              {isDropdownOpen && (
-                <div className="user-dropdown-menu">
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('profile')}
-                  >
-                    <img src="/assets/user-square.svg" alt="profile" />
-                    <span>Profile</span>
-                  </div>
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('settings')}
-                  >
-                    <img src="/assets/setting-icon.svg" alt="settings" />
-                    <span>Settings</span>
-                  </div>
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('logout')}
-                  >
-                    <img src="/assets/logout-icon.svg" alt="logout" />
-                    <span>Logout</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <ClientHeader title="Contact us" onMobileMenuClick={onMobileMenuClick} />
       <div className="dashboard-home-content px-3 mt-2">
         <h6 className="dashboard-routes-sub m-0">Contact us</h6>
         <div className="d-flex align-items-center gap-2 my-3">

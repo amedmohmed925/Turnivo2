@@ -518,6 +518,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .side-icon img {
@@ -525,6 +526,23 @@ footer {
   height: 24px;
   object-fit: contain;
   display: block;
+}
+
+.side-icon .notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background-color: var(--color-danger, #FF3B30);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 3px;
 }
 
 .side-label {
@@ -694,7 +712,26 @@ footer {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
+
+.notification-icon-container .notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--color-danger, #FF3B30);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 4px;
+}
+
 .notification-icon-container.sec-btn{
   background-color: #F59331;
 }

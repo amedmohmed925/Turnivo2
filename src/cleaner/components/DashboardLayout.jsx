@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
+import { CleanerDataProvider } from '../context/CleanerDataContext';
 
 const DashboardLayout = ({ children }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -13,19 +14,21 @@ const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="dashboard-container">
-      <Sidebar 
-        isMobileOpen={isMobileSidebarOpen}
-        onMobileClose={closeMobileSidebar}
-      />
-      <div className="dashboard-content">
-        {/* Clone children and pass mobile menu toggle function */}
-        {typeof children === 'function' 
-          ? children({ onMobileMenuClick: toggleMobileSidebar })
-          : children
-        }
+    <CleanerDataProvider>
+      <div className="dashboard-container">
+        <Sidebar 
+          isMobileOpen={isMobileSidebarOpen}
+          onMobileClose={closeMobileSidebar}
+        />
+        <div className="dashboard-content">
+          {/* Clone children and pass mobile menu toggle function */}
+          {typeof children === 'function' 
+            ? children({ onMobileMenuClick: toggleMobileSidebar })
+            : children
+          }
+        </div>
       </div>
-    </div>
+    </CleanerDataProvider>
   );
 };
 

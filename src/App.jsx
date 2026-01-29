@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
+import ProtectedRoute, { PublicRoute, ROLES } from './components/ProtectedRoute'
 import Login from './shared/pages/Login'
 import ActivationCode from './shared/pages/ActivationCode'
 import DashboardHome from './clients/pages/DashboardHome'
@@ -74,85 +75,90 @@ import DashboardPropertyProblemDetails from './clients/pages/DashboardPropertyPr
 function App() {
   return (
     <Routes>
-      {/* shared */}
-      <Route path="/login" element={<Login />} />
+      {/* shared - Public Routes */}
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/activation-code" element={<ActivationCode />} />
       <Route path="/join-confirm-page" element={<JoinConfirmPage />} />
       <Route path="/confirm-provider-steps" element={<ConfirmProviderSteps />} />
       <Route path="/provider-thanks" element={<ProviderThanks />} />
 
-      {/* client */}
-      <Route path="client/dashboard" element={<DashboardHome />} />
-      <Route path="client/property-management" element={<DashboardPropertyManagement />} />
-      <Route path="client/property-details/:id" element={<DashboardPropertyDetails />} />
-      <Route path="client/create-property" element={<DashboardCreateProperty />} />
-      <Route path="client/property-problem" element={<DashboardProperyProblem />} />
-      <Route path="client/property-problem-details" element={<DashboardPropertyProblemDetails />} />
-      <Route path="client/cleaning-request" element={<DashboardServicesCleaningRequest />} />
-      <Route path="client/maintenance" element={<DashboardServicesMaintenance />} />
-      <Route path="client/additional-services" element={<DashboardAdditionalServices />} />
-      <Route path="client/orders" element={<DashboardOrders />} />
-      <Route path="client/service-details" element={<DashboardServiceDetails />} />
-      <Route path="client/profile" element={<DashboardClientProfile />} />
-      <Route path="client/smart-checkin-checkout" element={<DashboardSmartCheck />} />
-      <Route path="client/my-smart-lock-request" element={<MySmartLockRequest />} />
-      <Route path="client/my-ratings" element={<DashboardMyRatings />} />
-      <Route path="client/guest-ratings" element={<DashboarGuestRatings />} />
-      <Route path="client/contact-us" element={<DashboardContact />} />
-      <Route path="client/calendar" element={<DashboardCalendar />} />
-      <Route path="client/calendar/:id" element={<DashboardCalendar />} />
-      <Route path="client/notifications" element={<ClientNotifications />} />
-      <Route path="client/maintenance-orders" element={<DashboardMaintenanceOrders />} />
+      {/* client - Role ID: 3 */}
+      <Route path="client/dashboard" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardHome /></ProtectedRoute>} />
+      <Route path="client/property-management" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardPropertyManagement /></ProtectedRoute>} />
+      <Route path="client/property-details/:id" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardPropertyDetails /></ProtectedRoute>} />
+      <Route path="client/create-property" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardCreateProperty /></ProtectedRoute>} />
+      <Route path="client/property-problem" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardProperyProblem /></ProtectedRoute>} />
+      <Route path="client/property-problem-details" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardPropertyProblemDetails /></ProtectedRoute>} />
+      <Route path="client/cleaning-request" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardServicesCleaningRequest /></ProtectedRoute>} />
+      <Route path="client/maintenance" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardServicesMaintenance /></ProtectedRoute>} />
+      <Route path="client/additional-services" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardAdditionalServices /></ProtectedRoute>} />
+      <Route path="client/orders" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardOrders /></ProtectedRoute>} />
+      <Route path="client/service-details" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardServiceDetails /></ProtectedRoute>} />
+      <Route path="client/profile" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardClientProfile /></ProtectedRoute>} />
+      <Route path="client/smart-checkin-checkout" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardSmartCheck /></ProtectedRoute>} />
+      <Route path="client/my-smart-lock-request" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><MySmartLockRequest /></ProtectedRoute>} />
+      <Route path="client/my-ratings" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardMyRatings /></ProtectedRoute>} />
+      <Route path="client/guest-ratings" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboarGuestRatings /></ProtectedRoute>} />
+      <Route path="client/contact-us" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardContact /></ProtectedRoute>} />
+      <Route path="client/calendar" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardCalendar /></ProtectedRoute>} />
+      <Route path="client/calendar/:id" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardCalendar /></ProtectedRoute>} />
+      <Route path="client/notifications" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><ClientNotifications /></ProtectedRoute>} />
+      <Route path="client/maintenance-orders" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardMaintenanceOrders /></ProtectedRoute>} />
 
-      {/* provider */}
-      <Route path="provider/training" element={<DashboardTraining />} />
-      <Route path="provider/training-details" element={<DashboardTrainingDetails />} />
-      <Route path="provider/smart-access" element={<DashboardSmartAccess />} />
-      <Route path="provider/smart-lock-requests" element={<DashboardSmartLockRequests />} />
-      <Route path="provider/calendar" element={<DashboardProviderCalendar />} />
-      <Route path="provider/availability" element={<DashboardAvailability />} />
-      <Route path="provider/maintenance-request" element={<DashboardMaintenanceRequest />} />
-      <Route path="provider/maintenance-details" element={<DashboardMaintenanceDetails />} />
-      <Route path="provider/material-request" element={<DashboardMaterialRequest />} />
-      <Route path="provider/material-details" element={<DashboardMaterialDetails />} />
-      <Route path="provider/cleaning-request" element={<DashboardCleaningRequest />} />
-      <Route path="provider/cleaning-details" element={<DashboardCleaningDetails />} />
-      <Route path="provider/guests-ratings" element={<DashboarProviderGuestRatings />} />
-      <Route path="provider/company-policies" element={<CompanyPolicies />} />
-      <Route path="provider/work-agreement" element={<WorkAgreement />} />
-      <Route path="provider/report-problem" element={<DashboardReportProblem />} />
-      <Route path="provider/dashboard" element={<DashboardProviderHome />} />
-      <Route path="provider/team-work" element={<DashboardTeamWork />} />
-      <Route path="provider/team-work-requests" element={<TeamWorkRequests />} />
-      <Route path="provider/team-work-add-employee" element={<DashboardAddWorkEmp />} />
-      <Route path="provider/notifications" element={<ProviderNotifications />} />
+      {/* provider/supervisor - Role ID: 5 */}
+      <Route path="provider/training" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTraining /></ProtectedRoute>} />
+      <Route path="provider/training-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTrainingDetails /></ProtectedRoute>} />
+      <Route path="provider/smart-access" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardSmartAccess /></ProtectedRoute>} />
+      <Route path="provider/smart-lock-requests" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardSmartLockRequests /></ProtectedRoute>} />
+      <Route path="provider/calendar" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardProviderCalendar /></ProtectedRoute>} />
+      <Route path="provider/availability" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardAvailability /></ProtectedRoute>} />
+      <Route path="provider/maintenance-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaintenanceRequest /></ProtectedRoute>} />
+      <Route path="provider/maintenance-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaintenanceDetails /></ProtectedRoute>} />
+      <Route path="provider/material-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaterialRequest /></ProtectedRoute>} />
+      <Route path="provider/material-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaterialDetails /></ProtectedRoute>} />
+      <Route path="provider/cleaning-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardCleaningRequest /></ProtectedRoute>} />
+      <Route path="provider/cleaning-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardCleaningDetails /></ProtectedRoute>} />
+      <Route path="provider/guests-ratings" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboarProviderGuestRatings /></ProtectedRoute>} />
+      <Route path="provider/company-policies" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><CompanyPolicies /></ProtectedRoute>} />
+      <Route path="provider/work-agreement" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><WorkAgreement /></ProtectedRoute>} />
+      <Route path="provider/report-problem" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardReportProblem /></ProtectedRoute>} />
+      <Route path="provider/dashboard" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardProviderHome /></ProtectedRoute>} />
+      <Route path="provider/team-work" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTeamWork /></ProtectedRoute>} />
+      <Route path="provider/team-work-requests" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><TeamWorkRequests /></ProtectedRoute>} />
+      <Route path="provider/team-work-add-employee" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardAddWorkEmp /></ProtectedRoute>} />
+      <Route path="provider/notifications" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><ProviderNotifications /></ProtectedRoute>} />
 
-      {/* cleaner */}
-      <Route path="cleaner/notifications" element={<CleanerNotifications />} />
-      <Route path="cleaner/company-policies" element={<CleanerCompanyPolicies />} />
-      <Route path="cleaner/work-agreement" element={<CleanerWorkAgreement />} />
-      <Route path="cleaner/maintenance-requests" element={<CleanerMaintenanceRequest />} />
-      <Route path="cleaner/maintenance-details" element={<CleanerMaintenanceDetails />} />
-      <Route path="cleaner/cleaning-requests" element={<CleanerCleaningRequest />} />
-      <Route path="cleaner/cleaning-details" element={<CleanerCleaningDetails />} />
-      <Route path="cleaner/calendar" element={<CleanerCalendar />} />
-      <Route path="cleaner/material-requests" element={<CleanerMaterialRequest />} />
-      <Route path="cleaner/material-details" element={<CleanerMaterialDetails />} />
-      <Route path="cleaner/training" element={<CleanerTraining />} />
-      <Route path="cleaner/training-details" element={<CleanerTrainingDetails />} />
-      <Route path="cleaner/shopping-cart" element={<CleanerShoppingCart />} />
-      <Route path="cleaner/report-problem" element={<CleanerReportProblem />} />
-      <Route path="cleaner/guest-ratings" element={<CleanerGuestRatings />} />
-      <Route path="cleaner/availability" element={<CleanerAvailability />} />
+      {/* cleaner - Role ID: 4 */}
+      <Route path="cleaner/notifications" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerNotifications /></ProtectedRoute>} />
+      <Route path="cleaner/company-policies" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerCompanyPolicies /></ProtectedRoute>} />
+      <Route path="cleaner/work-agreement" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerWorkAgreement /></ProtectedRoute>} />
+      <Route path="cleaner/maintenance-requests" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerMaintenanceRequest /></ProtectedRoute>} />
+      <Route path="cleaner/maintenance-details" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerMaintenanceDetails /></ProtectedRoute>} />
+      <Route path="cleaner/cleaning-requests" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerCleaningRequest /></ProtectedRoute>} />
+      <Route path="cleaner/cleaning-details" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerCleaningDetails /></ProtectedRoute>} />
+      <Route path="cleaner/calendar" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerCalendar /></ProtectedRoute>} />
+      <Route path="cleaner/material-requests" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerMaterialRequest /></ProtectedRoute>} />
+      <Route path="cleaner/material-details" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerMaterialDetails /></ProtectedRoute>} />
+      <Route path="cleaner/training" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerTraining /></ProtectedRoute>} />
+      <Route path="cleaner/training-details" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerTrainingDetails /></ProtectedRoute>} />
+      <Route path="cleaner/shopping-cart" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerShoppingCart /></ProtectedRoute>} />
+      <Route path="cleaner/report-problem" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerReportProblem /></ProtectedRoute>} />
+      <Route path="cleaner/guest-ratings" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerGuestRatings /></ProtectedRoute>} />
+      <Route path="cleaner/availability" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerAvailability /></ProtectedRoute>} />
 
-      {/* guest */}
+      {/* guest - Role ID: 6 */}
       <Route path="guest/login" element={<GuestLogin />} />
       <Route path="guest/login-successfuly" element={<GuestLoginDone />} />
-      <Route path="guest/list" element={<GuestList />} />
-      <Route path="guest/report-problem" element={<GuestReportProblem />} />
-      <Route path="guest/contact" element={<GuestContact />} />
-      <Route path="guest/my-ratings" element={<GuestRatings />} />
+      <Route path="guest/list" element={<ProtectedRoute allowedRoles={[ROLES.GUEST]}><GuestList /></ProtectedRoute>} />
+      <Route path="guest/report-problem" element={<ProtectedRoute allowedRoles={[ROLES.GUEST]}><GuestReportProblem /></ProtectedRoute>} />
+      <Route path="guest/contact" element={<ProtectedRoute allowedRoles={[ROLES.GUEST]}><GuestContact /></ProtectedRoute>} />
+      <Route path="guest/my-ratings" element={<ProtectedRoute allowedRoles={[ROLES.GUEST]}><GuestRatings /></ProtectedRoute>} />
+      
+      {/* Home Page */}
       <Route path="/" element={<Home />} />
+      
+      {/* 404 - Redirect to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
