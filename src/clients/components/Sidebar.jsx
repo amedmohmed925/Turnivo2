@@ -38,9 +38,12 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       case '/client/profile': return 'user-profile';
       case '/client/cleaning-request':
       case '/client/maintenance':
+      case '/client/maintenance-orders':
       case '/client/additional-services':
       case '/client/orders':
       case '/client/service-details': return 'service';
+      case '/client/property-problem':
+      case '/client/property-problem-details': return 'reports';
       case '/client/guest-ratings':
       case '/client/my-ratings': return 'ratings';
       default: return 'home';
@@ -80,7 +83,6 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (!serviceDropdownOpen) {
       setActiveItem('service');
       // Navigate to the service management main page when opening the dropdown
-      navigate('/client/property-problem');
     }
   };
 
@@ -142,12 +144,18 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       hasDropdown: true,
       dropdownOpen: serviceDropdownOpen,
       onToggle: toggleServiceDropdown,
-      route: '/client/property-problem',
+      route: '/client/orders',
       subItems: [
-        { id: 'cleaning-requests', label: 'Cleaning Requests', route: '/client/cleaning-request' },
-        { id: 'maintenance-requests', label: 'Maintenance Requests', route: '/client/maintenance' },
+        { id: 'cleaning-requests', label: 'Cleaning Requests', route: '/client/orders' },
+        { id: 'maintenance-requests', label: 'Maintenance Requests', route: '/client/maintenance-orders' },
         { id: 'additional-services', label: 'Additional Services', route: '/client/additional-services' }
       ]
+    },
+    {
+      id: 'reports',
+      label: 'Reports',
+      iconPath: "/assets/report-icon.svg",
+      route: '/client/property-problem'
     },
     {
       id: 'checkin',

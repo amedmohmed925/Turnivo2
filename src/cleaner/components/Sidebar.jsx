@@ -76,7 +76,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (!serviceDropdownOpen) {
       setActiveItem('service');
       // Navigate to the service management main page when opening the dropdown
-      navigate('/cleaner/maintenance-requests');
+
     }
   };
 
