@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { getMaintenanceServiceDetails } from '../../api/providerMaintenanceApi';
+import { getMaintenanceServiceDetails } from '../../api/superviserMaintenanceApi';
 import ProviderHeader from './ProviderHeader';
 
 const DashboardMaintenanceDetailsMain = ({ onMobileMenuClick }) => {

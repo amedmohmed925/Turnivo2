@@ -20,6 +20,9 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  
   // Add state to track selected order filter
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('new');
   
@@ -169,8 +172,19 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
     };
   };
   
-  // Map orders to display format
-  const currentItems = orders.map(mapOrderToCard);
+  // Map orders to display format and filter by search term
+  const currentItems = orders.map(mapOrderToCard).filter(item => {
+    if (!searchTerm.trim()) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      item.title?.toLowerCase().includes(search) ||
+      item.subtitle?.toLowerCase().includes(search) ||
+      item.location?.toLowerCase().includes(search) ||
+      item.date?.toLowerCase().includes(search) ||
+      item.platform?.toLowerCase().includes(search) ||
+      item.price?.toLowerCase().includes(search)
+    );
+  });
 
   // Function to handle page change
   const handlePageChange = (page) => {
@@ -260,6 +274,8 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
               type="text"
               className="search-gray-input form-control"
               placeholder="Find a request..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <Link to='/client/cleaning-request' 

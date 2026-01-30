@@ -124,3 +124,28 @@ export const rejectMaintenanceService = async (data, accessToken) => {
     throw error.response?.data || { message: 'Failed to reject maintenance service' };
   }
 };
+
+/**
+ * Reselect/reassign maintenance service to another provider
+ * @param {string} accessToken - Access token
+ * @param {number} provider_id - Provider ID to assign
+ * @param {number} service_id - Service ID to reassign
+ * @returns {Promise} Response from the server
+ */
+export const reselectMaintenanceService = async (accessToken, provider_id, service_id) => {
+  try {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/supervisor-reselect-maintenance-service', 
+      { provider_id, service_id },
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept-Language': localStorage.getItem('language') || 'en'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error reselecting maintenance service:', error);
+    throw error.response?.data || { message: 'Failed to reselect maintenance service' };
+  }
+};

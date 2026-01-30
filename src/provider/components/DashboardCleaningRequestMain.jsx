@@ -1,39 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import {
   getNewCleanServices,
   getProgressCleanServices,
   getCompleteCleanServices,
   getRejectCleanServices,
-  reselectCleanService,
 } from '../../api/superviserCleaningApi';
-import { selectCurrentUser, selectAccessToken } from '../../store/authSlice';
 import ProviderHeader from './ProviderHeader';
 
 const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
+  const navigate = useNavigate();
 
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('new');
   const [cleaningData, setCleaningData] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 6;
-  const [isSubmittingReselect, setIsSubmittingReselect] = useState(false);
-  
-  const currentUser = useSelector(selectCurrentUser);
-  const accessToken = useSelector(selectAccessToken);
 
   // Fetch cleaning data based on selected tab
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true);
         const accessToken = localStorage.getItem('access_token');
 
         if (!accessToken) {
@@ -75,13 +67,11 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
           text: error.message || 'Failed to load cleaning services',
         });
         setCleaningData([]);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [selectedOrderFilter]);
+  }, [selectedOrderFilter, currentPage]);
 
   // Search filter
   const filteredMaterials = cleaningData.filter((item) => {
@@ -98,7 +88,7 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
     if (currentPage > calculatedPages) {
       setCurrentPage(1);
     }
-  }, [filteredMaterials.length, itemsPerPage]);
+  }, [filteredMaterials.length, itemsPerPage, currentPage]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -140,53 +130,9 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
     setCurrentPage(1); // Reset to first page when changing filter
   };
 
-  const handleReselectClick = async (serviceId) => {
-    if (!currentUser || !currentUser.user_id) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'User information not found. Please login again.',
-      });
-      return;
-    }
-
-    if (!accessToken) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Authentication Required',
-        text: 'Please login to continue',
-      });
-      return;
-    }
-
-    try {
-      setIsSubmittingReselect(true);
-      const response = await reselectCleanService(accessToken, currentUser.user_id, serviceId);
-
-      if (response.status === 1) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: response.message || 'Service reassigned successfully.',
-        });
-        // Refresh data
-        setSelectedOrderFilter('new');
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Failed',
-          text: response.message || 'Unable to reselect service.',
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to reselect service.',
-      });
-    } finally {
-      setIsSubmittingReselect(false);
-    }
+  const handleReselectClick = (serviceId) => {
+    // Navigate to team selection page with service info
+    navigate(`/provider/team-work?select=true&service_id=${serviceId}&type=cleaning`);
   };
   
   const getStatusKey = (status) => {
@@ -233,10 +179,9 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
             <button
               className="main-btn rounded-2 px-4 py-2 d-flex justify-content-center align-items-center gap-2 w-50-100"
               onClick={() => handleReselectClick(itemId)}
-              disabled={isSubmittingReselect}
             >
               <img src="/assets/people.svg" alt="people" />
-              {isSubmittingReselect ? 'Processing...' : 'resellect'}
+              resellect
             </button>
           </div>
         );

@@ -10,8 +10,9 @@ import {
   getProgressMaintenanceServices,
   getCompleteMaintenanceServices,
   getRejectMaintenanceServices,
-  rejectMaintenanceService
-} from '../../api/providerMaintenanceApi';
+  rejectMaintenanceService,
+  reselectMaintenanceService
+} from '../../api/superviserMaintenanceApi';
 import ProviderHeader from './ProviderHeader';
 
 const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
@@ -226,18 +227,30 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
     switch(selectedOrderFilter) {
       case 'new':
         return (
-          <div className="d-flex gap-2">
-            <button className="sec-btn rounded-2 px-4 py-2">
-              Submit the order
-            </button>
-            <button 
-              className="btn btn-outline-danger py-2"
+          <div className="d-flex gap-2 justify-content-between align-items-end flex-wrap w-100">
+            <div className="d-flex gap-2">
+              <button className="sec-btn rounded-2 px-4 py-2">
+                Submit the order
+              </button>
+              <button 
+                className="btn btn-outline-danger py-2"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleShowRejectModal(item.id);
+                }}
+              >
+                Reject order
+              </button>
+            </div>
+            <button
+              className="main-btn rounded-2 px-4 py-2 d-flex justify-content-center align-items-center gap-2"
               onClick={(e) => {
                 e.preventDefault();
-                handleShowRejectModal(item.id);
+                navigate(`/provider/team-work?select=true&service_id=${item.id}&type=maintenance`);
               }}
             >
-              Reject order
+              <img src="/assets/people.svg" alt="people" />
+              resellect
             </button>
           </div>
         );

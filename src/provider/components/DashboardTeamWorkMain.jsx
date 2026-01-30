@@ -1,15 +1,24 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import { Link } from 'react-router-dom';
-import { getTeam, getPendingTeam, getSupervisorProviderCalendar } from '../../api/superviserTeamApi';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { getTeam, getPendingTeam, getSupervisorProviderCalendar, upgradeUser } from '../../api/superviserTeamApi';
+import { reselectCleanService } from '../../api/superviserCleaningApi';
+import { reselectMaintenanceService } from '../../api/superviserMaintenanceApi';
 import { useSelector } from 'react-redux';
 import ProviderHeader from './ProviderHeader';
+import Swal from 'sweetalert2';
 
 const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Check if in selection mode
+  const isSelectionMode = searchParams.get('select') === 'true';
+  const serviceId = searchParams.get('service_id');
+  const serviceType = searchParams.get('type'); // 'cleaning' or 'maintenance'
+  
   const { token: accessToken } = useSelector((state) => state.auth);
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +29,9 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   // Fetch team data and pending requests count and pending requests count
   useEffect(() => {
@@ -139,28 +151,134 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
 
   const weekDays = getWeekDays(currentWeekStart);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
+  // Filter team data based on search query
+  const filteredTeamData = teamData.filter((item) => {
+    if (!searchQuery.trim()) return true;
+    const term = searchQuery.toLowerCase();
+    const fullName = `${item.first_name || ''} ${item.last_name || ''}`.toLowerCase();
+    const email = (item.email || '').toLowerCase();
+    const phone = (item.phone || '').toLowerCase();
+    const company = (item.company || '').toLowerCase();
+    return fullName.includes(term) || email.includes(term) || phone.includes(term) || company.includes(term);
+  });
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
   };
 
-  const handleDropdownItemClick = (item) => {
-    console.log(`Clicked on ${item}`);
-    setIsDropdownOpen(false);
-    // Add your navigation logic here
+  // Handle team member selection for reselect (assigning service to provider)
+  const handleSelectMember = async (member) => {
+    if (!isSelectionMode || !serviceId) return;
+
+    const providerId = member.user?.id || member.id;
+    const memberName = `${member.first_name || ''} ${member.last_name || ''}`.trim();
+
+    const result = await Swal.fire({
+      title: 'Assign Service',
+      text: `Are you sure you want to assign this service to ${memberName}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#f7941d',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, assign',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setIsAssigning(true);
+      let response;
+
+      if (serviceType === 'cleaning') {
+        response = await reselectCleanService(accessToken, providerId, serviceId);
+      } else if (serviceType === 'maintenance') {
+        response = await reselectMaintenanceService(accessToken, providerId, serviceId);
+      }
+
+      if (response?.status === 1) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response?.message || 'Service assigned successfully!',
+        });
+        // Navigate back to the appropriate page
+        if (serviceType === 'cleaning') {
+          navigate('/provider/cleaning-request');
+        } else {
+          navigate('/provider/maintenance-request');
+        }
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response?.message || 'Failed to assign service',
+        });
+      }
+    } catch (error) {
+      console.error('Error assigning service:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error?.message || 'Failed to assign service',
+      });
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  // Upgrade user function
+  const handleUpgradeUser = async (userId) => {
+    if (!accessToken) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Required',
+        text: 'Please login to continue',
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: 'Upgrade User',
+      text: 'Are you sure you want to upgrade this user?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#f7941d',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, upgrade',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setIsUpgrading(true);
+      const response = await upgradeUser(accessToken, userId);
+
+      if (response?.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response?.message || 'User upgraded successfully!',
+        });
+        setShowModal(false);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response?.message || 'Failed to upgrade user',
+        });
+      }
+    } catch (error) {
+      console.error('Error upgrading user:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'Failed to upgrade user',
+      });
+    } finally {
+      setIsUpgrading(false);
+    }
   };
 
 
@@ -168,8 +286,23 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
 
   return (
     <section>
-      <ProviderHeader title="Work team" onMobileMenuClick={onMobileMenuClick} />
+      <ProviderHeader title={isSelectionMode ? "Select Team Member" : "Work team"} onMobileMenuClick={onMobileMenuClick} />
       <div className="dashboard-home-content px-3 mt-2">
+        {/* Selection Mode Header */}
+        {isSelectionMode && (
+          <div className="alert alert-info d-flex align-items-center justify-content-between mb-3 rounded-3">
+            <div>
+              <strong>Selection Mode:</strong> Choose a team member to assign the {serviceType} service
+            </div>
+            <button 
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+        
         <div className="d-flex justify-content-between align-items-center">
         <div className="search-input-wrapper mb-3 mt-2">
           <SearchOutlinedIcon className="search-icon" />
@@ -177,15 +310,37 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
             type="text"
             className="search-gray-input form-control"
             placeholder="Search for a worker"
+            value={searchQuery}
+            onChange={handleSearchChange}
           />
         </div>
+          {!isSelectionMode && (
           <div className="d-flex gap-2 align-items-center flex-wrap">
             <Link to='/provider/team-work-requests' className='text-decoration-none'>
                       <button
   className="main-btn rounded-2 px-4 d-flex gap-1 align-items-center py-2 w-50-100"
 >
  Team  requests
- {pendingRequestsCount > 0 && <span className='requests-badge'>{pendingRequestsCount}</span>}
+ {pendingRequestsCount > 0 && (
+   <span 
+     style={{
+       backgroundColor: '#ff4d4d',
+       color: '#fff',
+       borderRadius: '50px',
+       padding: '2px 8px',
+       fontSize: '12px',
+       fontWeight: 'bold',
+       minWidth: '20px',
+       textAlign: 'center',
+       display: 'inline-flex',
+       alignItems: 'center',
+       justifyContent: 'center',
+       marginLeft: '4px'
+     }}
+   >
+     {pendingRequestsCount}
+   </span>
+ )}
                         </button>
             </Link>
             <Link to='/provider/team-work-add-employee' className='text-decoration-none'>
@@ -197,6 +352,7 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
                         </button>
             </Link>
           </div>
+          )}
 
 
         </div>
@@ -207,10 +363,14 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
                 <span className="visually-hidden">Loading...</span>
               </div>
             </div>
-          ) : teamData.length > 0 ? (
-            teamData.map((item) => (
+          ) : filteredTeamData.length > 0 ? (
+            filteredTeamData.map((item) => (
               <div className="col-lg-3 col-md-6 mb-3" key={item.id}>
-                <div className="bg-light-gray p-3 rounded-3 h-100" style={{cursor: 'pointer'}}>
+                <div 
+                  className={`bg-light-gray p-3 rounded-3 h-100 ${isSelectionMode ? 'selection-card' : ''}`} 
+                  style={{cursor: 'pointer'}}
+                  onClick={() => isSelectionMode && handleSelectMember(item)}
+                >
                   <div className="text-center mb-2">
                     <img 
                       src={item.user?.avatar || "/assets/team-img.png"} 
@@ -224,6 +384,25 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
                     <img src="/assets/flag-2.svg" className='flag-icon' alt="flag" />
                     <h3 className='training-details-card-desc m-0'>{item.company || 'Team Member'}</h3>
                   </div>
+                  {isSelectionMode ? (
+                    <button
+                      className="sec-btn rounded-2 px-4 py-2 w-100 mt-3 d-flex align-items-center justify-content-center gap-2"
+                      onClick={(e) => { e.stopPropagation(); handleSelectMember(item); }}
+                      disabled={isAssigning}
+                    >
+                      {isAssigning ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm" role="status"></span>
+                          <span>Assigning...</span>
+                        </>
+                      ) : (
+                        <>
+                          <img src="/assets/people.svg" alt="select" className="flag-icon" />
+                          <span>Select</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
                   <div className="d-flex align-items-center gap-2 flex-wrap mt-3">
                     <button
                       className="main-btn rounded-2 px-2 d-flex gap-1 align-items-center justify-content-center py-2 flex-grow-1"
@@ -240,6 +419,7 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
                       Availability
                     </button>
                   </div>
+                  )}
                 </div>
               </div>
             ))
@@ -251,26 +431,79 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
         {/* Profile Modal */}
         {showModal && selectedMember && (
           <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowModal(false)}>
-            <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Team Member Profile</h5>
+            <div className="modal-dialog modal-dialog-centered" style={{maxWidth: '500px'}} onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content rounded-4 border-0 shadow">
+                <div className="modal-header border-0 pb-0 pt-6 px-3">
+                  <h6 className="modal-title fw-bold m-0">Profile</h6>
                   <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
                 </div>
-                <div className="modal-body">
-                  <div className="text-center mb-3">
-                    <img src={selectedMember.user?.avatar || "/assets/user.png"} alt="Avatar" className="rounded-circle" style={{width: '100px', height: '100px', objectFit: 'cover'}} />
-                    <h4 className="mt-2">{selectedMember.first_name} {selectedMember.last_name}</h4>
+                <div className="modal-body p-3">
+                  {/* Profile Header */}
+                  <div className="text-center mb-3 p-3 bg-light-gray rounded-3">
+                    <img 
+                      src={selectedMember.user?.avatar || "/assets/user.png"} 
+                      alt="Avatar" 
+                      className="rounded-circle border border-2 border-white shadow-sm" 
+                      style={{width: '80px', height: '80px', objectFit: 'cover'}} 
+                    />
+                    <h6 className="mt-2 mb-1 fw-bold">{selectedMember.first_name} {selectedMember.last_name}</h6>
+                    <span className="badge bg-warning text-dark rounded-pill px-3 py-1">
+                      {selectedMember.company || 'Team Member'}
+                    </span>
                   </div>
-                  <div className="row g-3">
-                    <div className="col-md-6"><p><strong>Email:</strong> {selectedMember.email || 'N/A'}</p></div>
-                    <div className="col-md-6"><p><strong>Phone:</strong> {selectedMember.phone || 'N/A'}</p></div>
-                    {selectedMember.address && <div className="col-12"><p><strong>Address:</strong> {selectedMember.address}</p></div>}
-                    {selectedMember.company && <div className="col-md-6"><p><strong>Company:</strong> {selectedMember.company}</p></div>}
-                    {selectedMember.experience && <div className="col-md-6"><p><strong>Experience:</strong> {selectedMember.experience} Years</p></div>}
-                    {selectedMember.start_date && <div className="col-md-6"><p><strong>Start Date:</strong> {selectedMember.start_date}</p></div>}
-                    {selectedMember.created_at && <div className="col-md-6"><p><strong>Joined:</strong> {selectedMember.created_at}</p></div>}
+
+                  {/* Profile Details */}
+                  <div className="row g-2">
+                    <div className="col-6">
+                      <div className="p-2 bg-light-gray rounded-3">
+                        <small className="text-muted d-block" style={{fontSize: '11px'}}>Email</small>
+                        <p className="mb-0 small text-truncate">{selectedMember.email || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div className="col-6">
+                      <div className="p-2 bg-light-gray rounded-3">
+                        <small className="text-muted d-block" style={{fontSize: '11px'}}>Phone</small>
+                        <p className="mb-0 small">{selectedMember.phone || 'N/A'}</p>
+                      </div>
+                    </div>
+                    {selectedMember.experience && (
+                      <div className="col-6">
+                        <div className="p-2 bg-light-gray rounded-3">
+                          <small className="text-muted d-block" style={{fontSize: '11px'}}>Experience</small>
+                          <p className="mb-0 small">{selectedMember.experience} Years</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedMember.start_date && (
+                      <div className="col-6">
+                        <div className="p-2 bg-light-gray rounded-3">
+                          <small className="text-muted d-block" style={{fontSize: '11px'}}>Start Date</small>
+                          <p className="mb-0 small">{selectedMember.start_date}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Upgrade Button */}
+                  <button
+                    className="sec-btn rounded-3 py-2 px-3 w-100 d-flex align-items-center justify-content-center gap-2 mt-3"
+                    onClick={() => handleUpgradeUser(selectedMember.user?.id || selectedMember.id)}
+                    disabled={isUpgrading}
+                  >
+                    {isUpgrading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" role="status"></span>
+                        <span>Upgrading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 19V5M5 12l7-7 7 7"/>
+                        </svg>
+                        <span>Upgrade User</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
@@ -363,6 +596,19 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
           </div>
         )}
       </div>
+      
+      {/* Selection Mode Styles */}
+      <style>{`
+        .selection-card {
+          transition: all 0.3s ease;
+          border: 2px solid transparent;
+        }
+        .selection-card:hover {
+          border-color: #f7941d;
+          transform: translateY(-5px);
+          box-shadow: 0 4px 15px rgba(247, 148, 29, 0.2);
+        }
+      `}</style>
     </section>
   );
 };

@@ -93,3 +93,17 @@ export const getUserCalendar = async (accessToken) => {
     throw error;
   }
 };
+
+// Upgrade user
+export const upgradeUser = async (accessToken, userId) => {
+  try {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/upgrade-user', 
+      { user_id: userId },
+      { params: { 'access-token': accessToken } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error upgrading user:', error);
+    throw error;
+  }
+};

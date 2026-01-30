@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
-import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import CleanerHeader from './CleanerHeader';
 import {
@@ -15,12 +13,15 @@ import { selectAccessToken } from '../../store/authSlice';
 const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
   const [beforeImages, setBeforeImages] = useState([]);
   const [afterImages, setAfterImages] = useState([]);
+  const [newBeforeFiles, setNewBeforeFiles] = useState([]);
+  const [newAfterFiles, setNewAfterFiles] = useState([]);
   const beforeInputRef = useRef(null);
   const afterInputRef = useRef(null);
   const [serviceDetails, setServiceDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingBefore, setIsUploadingBefore] = useState(false);
   const [isUploadingAfter, setIsUploadingAfter] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   
   const [searchParams] = useSearchParams();
   const serviceId = searchParams.get('id');
@@ -38,6 +39,13 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
         if (response.status === 1 && response.data && response.data.length > 0) {
           const details = response.data[0];
           setServiceDetails(details);
+          // Set existing images from API
+          if (details.service_images_befor && details.service_images_befor.length > 0) {
+            setBeforeImages(details.service_images_befor);
+          }
+          if (details.service_images_after && details.service_images_after.length > 0) {
+            setAfterImages(details.service_images_after);
+          }
         } else {
           Swal.fire({
             icon: 'error',
@@ -59,13 +67,31 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
 
     fetchDetails();
   }, [serviceId, accessToken]);
-  
 
-
-
-  const handleBeforeUpload = async (e) => {
+  // Handle selecting before images
+  const handleBeforeSelect = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
+    setNewBeforeFiles(prev => [...prev, ...files]);
+  };
+
+  // Handle selecting after images
+  const handleAfterSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    setNewAfterFiles(prev => [...prev, ...files]);
+  };
+
+  // Upload before images
+  const handleBeforeUpload = async () => {
+    if (newBeforeFiles.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Images',
+        text: 'Please select images first',
+      });
+      return;
+    }
 
     if (!serviceId || !accessToken) {
       Swal.fire({
@@ -78,15 +104,20 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
 
     try {
       setIsUploadingBefore(true);
-      const response = await addMaintenanceServiceBeforeImages(accessToken, serviceId, files);
+      const response = await addMaintenanceServiceBeforeImages(accessToken, serviceId, newBeforeFiles);
 
       if (response.status === 1) {
-        setBeforeImages(prev => [...prev, ...files]);
         Swal.fire({
           icon: 'success',
           title: 'Success',
           text: response.message || 'Before images uploaded successfully',
         });
+        setNewBeforeFiles([]);
+        // Refresh data
+        const refreshResponse = await getMaintenanceServiceDetails(accessToken, serviceId);
+        if (refreshResponse.status === 1 && refreshResponse.data?.[0]) {
+          setBeforeImages(refreshResponse.data[0].service_images_befor || []);
+        }
       } else {
         Swal.fire({
           icon: 'error',
@@ -106,9 +137,16 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
     }
   };
 
-  const handleAfterUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+  // Upload after images
+  const handleAfterUpload = async () => {
+    if (newAfterFiles.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Images',
+        text: 'Please select images first',
+      });
+      return;
+    }
 
     if (!serviceId || !accessToken) {
       Swal.fire({
@@ -121,15 +159,20 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
 
     try {
       setIsUploadingAfter(true);
-      const response = await addMaintenanceServiceAfterImages(accessToken, serviceId, files);
+      const response = await addMaintenanceServiceAfterImages(accessToken, serviceId, newAfterFiles);
 
       if (response.status === 1) {
-        setAfterImages(prev => [...prev, ...files]);
         Swal.fire({
           icon: 'success',
           title: 'Success',
           text: response.message || 'After images uploaded successfully',
         });
+        setNewAfterFiles([]);
+        // Refresh data
+        const refreshResponse = await getMaintenanceServiceDetails(accessToken, serviceId);
+        if (refreshResponse.status === 1 && refreshResponse.data?.[0]) {
+          setAfterImages(refreshResponse.data[0].service_images_after || []);
+        }
       } else {
         Swal.fire({
           icon: 'error',
@@ -149,7 +192,36 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
     }
   };
 
+  // Remove selected before file
+  const removeBeforeFile = (index) => {
+    setNewBeforeFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
+  // Remove selected after file
+  const removeAfterFile = (index) => {
+    setNewAfterFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Get status badge class
+  const getStatusBadgeClass = (status) => {
+    switch (status?.id) {
+      case 0: return 'new-badge';
+      case 1: return 'progress-badge';
+      case 2: return 'complete-badge';
+      case 3: return 'reject-badge';
+      default: return 'new-badge';
+    }
+  };
+
+  // Open image in lightbox
+  const openImageModal = (imageSrc) => {
+    setSelectedImage(imageSrc);
+  };
+
+  // Close image modal
+  const closeImageModal = () => {
+    setSelectedImage(null);
+  };
 
   return (
     <section>
@@ -173,35 +245,53 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
                 <div className="d-flex flex-column align-items-start gap-2 w-100">
                 <div className="property-management-card mt-3 w-100">
                   <div className="d-flex align-items-start flex-column flex-md-row gap-3 w-100">
-                    <img src='/assets/property-management-card-img.png' className='property-management-card-img-3' alt="Property" />
+                    <img 
+                      src={serviceDetails.property_id?.image || '/assets/property-management-card-img.png'} 
+                      className='property-management-card-img-3' 
+                      alt="Property" 
+                    />
                     <div className="d-flex flex-column align-items-start gap-2 w-100">
                       <div className="d-flex justify-content-between w-100 align-items-center">
-                        <h6 className="property-management-card-title m-0">Guest House Riyadh</h6>
-                        <div className={`villa-badge py-1 px-3 rounded-pill`}>Villa</div>
+                        <h6 className="property-management-card-title m-0">
+                          {serviceDetails.property_id?.name || 'Property Name'}
+                        </h6>
+                        <div className={`villa-badge py-1 px-3 rounded-pill`}>
+                          {serviceDetails.property_id?.property_type_id?.name || 'Property'}
+                        </div>
                       </div>
                       <div className="d-flex align-items-center">
                         <img src="/assets/location.svg" className='img-fluid' alt="location" />
-                        <p className="property-management-card-address m-0">Riyadh, Saudi Arabia, Al Nakheel Street</p>
+                        <p className="property-management-card-address m-0">
+                          {serviceDetails.property_id?.address || 'Address not available'}
+                        </p>
                       </div>
                       <div className="d-flex gap-3 align-items-center flex-wrap">
                         <div className="d-flex align-items-center gap-1">
                           <img src="/assets/property-card-icon-1.svg" className='img-fluid' alt="location" />
-                          <h6 className="property-management-card-icon-label m-0">4 floors</h6>
+                          <h6 className="property-management-card-icon-label m-0">
+                            {serviceDetails.property_id?.floor || 0} floors
+                          </h6>
                         </div>
                         <div className='card-border-right'>|</div>
                         <div className="d-flex align-items-center gap-1">
                           <img src="/assets/property-card-icon-2.svg" className='img-fluid' alt="location" />
-                          <h6 className="property-management-card-icon-label m-0">3 rooms</h6>
+                          <h6 className="property-management-card-icon-label m-0">
+                            {serviceDetails.property_id?.number_room || 0} rooms
+                          </h6>
                         </div>
                         <div className='card-border-right'>|</div>
                         <div className="d-flex align-items-center gap-1">
                           <img src="/assets/property-card-icon-3.svg" className='img-fluid' alt="location" />
-                          <h6 className="property-management-card-icon-label m-0">20 m</h6>
+                          <h6 className="property-management-card-icon-label m-0">
+                            {serviceDetails.property_id?.area || 0} m
+                          </h6>
                         </div>
                         <div className='card-border-right'>|</div>
                         <div className="d-flex align-items-center gap-1">
                           <img src="/assets/property-card-icon-4.svg" className='img-fluid' alt="location" />
-                          <h6 className="property-management-card-icon-label m-0">2 bathrooms</h6>
+                          <h6 className="property-management-card-icon-label m-0">
+                            {serviceDetails.property_id?.number_bathroom || 0} bathrooms
+                          </h6>
                         </div>
                       </div>
                     </div>
@@ -215,96 +305,215 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
           <div className="col-12">
                 <div className="d-flex align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3">
       <div className="d-flex w-100 align-items-start flex-column flex-md-row gap-2">
-        <img src="/assets/problem-img-2.png" className='img-fluid materials-img' alt="location" />   
+        <img 
+          src={serviceDetails.property_id?.image || "/assets/problem-img-2.png"} 
+          className='img-fluid materials-img' 
+          alt="location" 
+        />   
         <div className='d-flex flex-column gap-2 align-items-start w-100'>
           <div className="d-flex justify-content-between align-items-center w-100">
-            <h6 className="property-problem-title mb-0">Nakheel Neighborhood Hotel</h6>
-            <div className='new-badge px-2 p-1 rounded-2'>New</div>
+            <h6 className="property-problem-title mb-0">
+              {serviceDetails.maintenance_service_type_id?.name || 'Maintenance Service'}
+            </h6>
+            <div className={`${getStatusBadgeClass(serviceDetails.status)} px-2 p-1 rounded-2`}>
+              {serviceDetails.status?.name || 'New'}
+            </div>
           </div>
             <div className="d-flex align-items-center gap-1">
             <img src="/assets/location-2.svg" alt="location" />
-            <p className="dashboard-home-card-2-desc-3 m-0">Riyadh, Al Narjis Neighborhood</p>
+            <p className="dashboard-home-card-2-desc-3 m-0">
+              {serviceDetails.property_id?.address || 'Address not available'}
+            </p>
           </div>
             <div className="bnb-badge d-flex align-items-center gap-2 p-2 rounded-2">
-              <img src="/assets/bnb.svg" alt="airbnb" />
-              <span>airbnb</span>
+              <img src="/assets/warning.svg" alt="importance" />
+              <span>{serviceDetails.maintenance_importance_type_id?.name || 'Normal'}</span>
             </div>
-           <h6 className="property-problem-title mb-0 mt-2">Upholstery and carpet cleaning</h6>
+           <h6 className="property-problem-title mb-0 mt-2">
+             {serviceDetails.maintenance_service_type_id?.name || 'Service Type'}
+           </h6>
+          {serviceDetails.date && (
+            <div className="d-flex align-items-center gap-1">
+              <img src="/assets/calendar-3.svg" alt="calendar" />
+              <p className="dashboard-home-card-2-desc-3 m-0">{serviceDetails.date}</p>
+            </div>
+          )}
+          {(serviceDetails.time_from || serviceDetails.time_to) && (
+            <div className="d-flex align-items-center gap-1">
+              <img src="/assets/clock.svg" alt="clock" />
+              <p className="dashboard-home-card-2-desc-3 mb-0">
+                {serviceDetails.time_from || '--:--'} - {serviceDetails.time_to || '--:--'}
+              </p>
+            </div>
+          )}
           <div className="d-flex align-items-center gap-1">
             <img src="/assets/calendar-3.svg" alt="calendar" />
-            <p className="dashboard-home-card-2-desc-3 m-0">June 12, 2026</p>
-          </div>
-          <div className="d-flex align-items-center gap-1">
-            <img src="/assets/clock.svg" alt="clock" />
-            <p className="dashboard-home-card-2-desc-3 mb-0">8:00 pm - 10:00 pm</p>
+            <p className="dashboard-home-card-2-desc-3 m-0">
+              Created: {serviceDetails.created_at || 'N/A'}
+            </p>
           </div>
         </div>
       </div>
     </div>
           </div>
             <h6 className="property-problem-title mb-2 ">Room pictures before and after</h6>
-            <div className="d-flex gap-2 align-items-center flex-wrap">
+            <div className="d-flex gap-2 align-items-start flex-wrap">
                 <div className='rating-stars-bg p-2 rounded-2'>
                     <h3 className='form-label mb-2'>Before cleaning</h3>
                     <div className="d-flex gap-2 align-items-center flex-wrap">
                         <div 
                           className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" 
-                          onClick={() => !isUploadingBefore && beforeInputRef.current.click()}
-                          style={{ cursor: isUploadingBefore ? 'not-allowed' : 'pointer', opacity: isUploadingBefore ? 0.6 : 1 }}
+                          onClick={() => beforeInputRef.current.click()}
+                          style={{ cursor: 'pointer' }}
                         >
-                            {isUploadingBefore ? (
-                              <div className="spinner-border spinner-border-sm" role="status">
-                                <span className="visually-hidden">Uploading...</span>
-                              </div>
-                            ) : (
-                              <>
-                                <img src="/assets/gallery-add.svg" alt="gallery" />
-                                <h6 className='table-time m-0'>Add room photos</h6>
-                              </>
-                            )}
+                          <img src="/assets/gallery-add.svg" alt="gallery" />
+                          <h6 className='table-time m-0'>Add photos</h6>
                         </div>
-                        {beforeImages.map((img, idx) => <img key={idx} src={URL.createObjectURL(img)} className='added-img' alt="uploaded" />)}
+                        {/* Existing images from API */}
+                        {beforeImages.map((img, idx) => (
+                          <img 
+                            key={`existing-${idx}`} 
+                            src={typeof img === 'string' ? img : img.image} 
+                            className='added-img' 
+                            alt="before"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => openImageModal(typeof img === 'string' ? img : img.image)}
+                          />
+                        ))}
+                        {/* New selected files */}
+                        {newBeforeFiles.map((file, idx) => (
+                          <div key={`new-${idx}`} className="position-relative">
+                            <img 
+                              src={URL.createObjectURL(file)} 
+                              className='added-img' 
+                              alt="new" 
+                            />
+                            <button 
+                              className="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle p-0"
+                              style={{ width: '20px', height: '20px', fontSize: '10px' }}
+                              onClick={() => removeBeforeFile(idx)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
                     </div>
-                    <input type="file" multiple accept="image/*" ref={beforeInputRef} onChange={handleBeforeUpload} style={{display: 'none'}} disabled={isUploadingBefore} />
+                    <input 
+                      type="file" 
+                      multiple 
+                      accept="image/*" 
+                      ref={beforeInputRef} 
+                      onChange={handleBeforeSelect} 
+                      style={{display: 'none'}} 
+                    />
+                    {newBeforeFiles.length > 0 && (
+                      <button 
+                        className="main-btn rounded-2 px-3 py-2 mt-2 d-flex align-items-center gap-2"
+                        onClick={handleBeforeUpload}
+                        disabled={isUploadingBefore}
+                      >
+                        {isUploadingBefore ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm" role="status"></span>
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <img src="/assets/upload.svg" alt="upload" style={{ filter: 'brightness(0) invert(1)' }} />
+                            Upload {newBeforeFiles.length} image(s)
+                          </>
+                        )}
+                      </button>
+                    )}
                 </div>
                 <div className='rating-stars-bg p-2 rounded-2'>
                     <h3 className='form-label mb-2'>After cleaning</h3>
                     <div className="d-flex gap-2 align-items-center flex-wrap">
                         <div 
                           className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" 
-                          onClick={() => !isUploadingAfter && afterInputRef.current.click()}
-                          style={{ cursor: isUploadingAfter ? 'not-allowed' : 'pointer', opacity: isUploadingAfter ? 0.6 : 1 }}
+                          onClick={() => afterInputRef.current.click()}
+                          style={{ cursor: 'pointer' }}
                         >
-                            {isUploadingAfter ? (
-                              <div className="spinner-border spinner-border-sm" role="status">
-                                <span className="visually-hidden">Uploading...</span>
-                              </div>
-                            ) : (
-                              <>
-                                <img src="/assets/gallery-add.svg" alt="gallery" />
-                                <h6 className='table-time m-0'>Add room photos</h6>
-                              </>
-                            )}
+                          <img src="/assets/gallery-add.svg" alt="gallery" />
+                          <h6 className='table-time m-0'>Add photos</h6>
                         </div>
-                        {afterImages.map((img, idx) => <img key={idx} src={URL.createObjectURL(img)} className='added-img' alt="uploaded" />)}
-
+                        {/* Existing images from API */}
+                        {afterImages.map((img, idx) => (
+                          <img 
+                            key={`existing-${idx}`} 
+                            src={typeof img === 'string' ? img : img.image} 
+                            className='added-img' 
+                            alt="after"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => openImageModal(typeof img === 'string' ? img : img.image)}
+                          />
+                        ))}
+                        {/* New selected files */}
+                        {newAfterFiles.map((file, idx) => (
+                          <div key={`new-${idx}`} className="position-relative">
+                            <img 
+                              src={URL.createObjectURL(file)} 
+                              className='added-img' 
+                              alt="new" 
+                            />
+                            <button 
+                              className="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle p-0"
+                              style={{ width: '20px', height: '20px', fontSize: '10px' }}
+                              onClick={() => removeAfterFile(idx)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
                     </div>
-                    <input type="file" multiple accept="image/*" ref={afterInputRef} onChange={handleAfterUpload} style={{display: 'none'}} disabled={isUploadingAfter} />
+                    <input 
+                      type="file" 
+                      multiple 
+                      accept="image/*" 
+                      ref={afterInputRef} 
+                      onChange={handleAfterSelect} 
+                      style={{display: 'none'}} 
+                    />
+                    {newAfterFiles.length > 0 && (
+                      <button 
+                        className="main-btn rounded-2 px-3 py-2 mt-2 d-flex align-items-center gap-2"
+                        onClick={handleAfterUpload}
+                        disabled={isUploadingAfter}
+                      >
+                        {isUploadingAfter ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm" role="status"></span>
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <img src="/assets/upload.svg" alt="upload" style={{ filter: 'brightness(0) invert(1)' }} />
+                            Upload {newAfterFiles.length} image(s)
+                          </>
+                        )}
+                      </button>
+                    )}
                 </div>
 
             </div>
-            <h6 className="property-problem-title my-2">employee</h6>
-                                <div className="d-flex align-items-center gap-2 w-100">
-                      <img src='/assets/user.png' className='provider-rate' alt="user" />
-                      <div>
-                        <h6 className='login-title m-0'>Leslie Alexander</h6>
-                        <h6 className="training-details-card-desc m-0 mt-1">Operations Manager</h6>
-                      </div>
-                    </div>
+            <h6 className="property-problem-title my-2">Employee</h6>
+            <div className="d-flex align-items-center gap-2 w-100">
+              <img 
+                src={serviceDetails.provider?.avatar || '/assets/user.png'} 
+                className='provider-rate' 
+                alt="user" 
+              />
+              <div>
+                <h6 className='login-title m-0'>{serviceDetails.provider?.name || 'Not Assigned'}</h6>
+                <h6 className="training-details-card-desc m-0 mt-1">Provider</h6>
+              </div>
+            </div>
             <h6 className="property-problem-title my-2">Problem description</h6>
               <div className="d-flex gap-3 align-items-center flex-wrap flex-sm-nowrap">
                 <div className='training-card p-2 rounded-2'>
-                    <p className='m-0 problem-desc'>Poor cooling has been reported in the air conditioner located in Office 204 on the second floor. The user noted that the air conditioner was not cooling sufficiently and that water was leaking from the indoor unit. Please check the filters and gas, and ensure that the pipes and connections are in good condition. A full test is recommended after maintenance to ensure efficient operation.</p>
+                    <p className='m-0 problem-desc'>
+                      {serviceDetails.description || 'No description provided'}
+                    </p>
                 </div>
               </div>
         <div className="d-flex gap-2 align-items-center justify-content-between flex-wrap my-3">
@@ -319,12 +528,70 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
             className="sec-btn rounded-2 py-2 px-3 d-flex align-items-center justify-content-center gap-2 w-50-100"
           >
             <img src="/assets/key.svg" alt="key" />
-            <span>smart key</span>
+            <span>smart key ({serviceDetails.login_code || 'N/A'})</span>
                         </button>
           </div>
         </div>
         )}
       </div>
+
+      {/* Image Lightbox Modal */}
+      {selectedImage && (
+        <div 
+          className="image-lightbox-overlay"
+          onClick={closeImageModal}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            cursor: 'pointer'
+          }}
+        >
+          <button
+            onClick={closeImageModal}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: 'none',
+              color: 'white',
+              fontSize: '30px',
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 0.3s'
+            }}
+            onMouseEnter={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.4)'}
+            onMouseLeave={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
+          >
+            ×
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Full size"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '90%',
+              maxHeight: '90%',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              cursor: 'default'
+            }}
+          />
+        </div>
+      )}
     </section>
   );
 };
