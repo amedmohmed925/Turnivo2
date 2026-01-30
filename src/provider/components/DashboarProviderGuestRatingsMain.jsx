@@ -1,119 +1,67 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faStar, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { Person, Settings, Logout } from '@mui/icons-material';
+import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
+  const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 4; // Number of items to show per page
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Sample data for ratings
-  const ratingsData = [
-    {
-      id: 1,
-      userName: "Omar Alrajihi",
-      userImage: "/assets/user.png",
-      date: "2024/09/28",
-      rating: 5.0,
-      service: "Deep cleaning",
-      comment: "Great and fast service! Booking was easy and the team is very professional. I will definitely order the service again!",
-      qouteImage: "/assets/qoute.png"
-    },
-    {
-      id: 2,
-      userName: "Sarah Johnson",
-      userImage: "/assets/user.png",
-      date: "2024/09/27",
-      rating: 4.5,
-      service: "Window cleaning",
-      comment: "The team did an excellent job with my windows. They were very thorough and professional.",
-      qouteImage: "/assets/qoute.png"
-    },
-    {
-      id: 3,
-      userName: "Ahmed Hassan",
-      userImage: "/assets/user.png",
-      date: "2024/09/26",
-      rating: 4.0,
-      service: "Kitchen cleaning",
-      comment: "Very satisfied with the service. The kitchen looks brand new now!",
-      qouteImage: "/assets/qoute.png"
-    },
-    {
-      id: 4,
-      userName: "Fatima Al-Mansour",
-      userImage: "/assets/user.png",
-      date: "2024/09/25",
-      rating: 5.0,
-      service: "Complete house cleaning",
-      comment: "Outstanding service! The team was professional and the house is sparkling clean.",
-      qouteImage: "/assets/qoute.png"
-    },
-    {
-      id: 5,
-      userName: "Mohammed Al-Fahad",
-      userImage: "/assets/user.png",
-      date: "2024/09/24",
-      rating: 3.5,
-      service: "Carpet cleaning",
-      comment: "Good service overall, but they were a bit late. The carpet looks great though.",
-      qouteImage: "/assets/qoute.png"
-    },
-    {
-      id: 6,
-      userName: "Layla Al-Rashid",
-      userImage: "/assets/user.png",
-      date: "2024/09/23",
-      rating: 4.5,
-      service: "Bathroom cleaning",
-      comment: "Excellent attention to detail. The bathroom looks better than ever!",
-      qouteImage: "/assets/qoute.png"
-    },
-    {
-      id: 7,
-      userName: "Khalid Al-Saud",
-      userImage: "/assets/user.png",
-      date: "2024/09/22",
-      rating: 5.0,
-      service: "Deep cleaning",
-      comment: "I'm very impressed with the quality of service. Highly recommended!",
-      qouteImage: "/assets/qoute.png"
-    },
-    {
-      id: 8,
-      userName: "Nora Al-Harbi",
-      userImage: "/assets/user.png",
-      date: "2024/09/21",
-      rating: 4.0,
-      service: "Garden cleaning",
-      comment: "The team did a fantastic job with my garden. It looks beautiful now!",
-      qouteImage: "/assets/qoute.png"
-    }
-  ];
-  
-  // Calculate total pages based on data
+  // Ratings data from API
+  const [ratingsData, setRatingsData] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+
+  // Fetch ratings data from API
   useEffect(() => {
-    const calculatedPages = Math.ceil(ratingsData.length / itemsPerPage);
-    setTotalPages(calculatedPages);
-    
-    // Reset to first page if current page is beyond the new total pages
-    if (currentPage > calculatedPages && calculatedPages > 0) {
-      setCurrentPage(1);
-    }
-  }, [ratingsData.length, currentPage, itemsPerPage]);
-  
-  // Get current items for the current page
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = ratingsData.slice(indexOfFirstItem, indexOfLastItem);
+    const fetchRatings = async () => {
+      try {
+        setIsLoading(true);
+        const accessToken = localStorage.getItem('access_token');
+        
+        if (!accessToken) {
+          console.error('No access token found');
+          return;
+        }
+
+        const response = await axios.get(
+          `https://alrajihy.com/demo/turnivo/api/web/v1/site/supervisor-rate?access-token=${accessToken}&page=${currentPage}`
+        );
+
+        if (response.data.status === 1 && response.data.data && response.data.data.length > 0) {
+          const items = response.data.data[0].items || [];
+          const meta = response.data.data[0]._meta || {};
+          
+          setRatingsData(items);
+          setTotalPages(meta.NumberOfPage || 1);
+          
+          // Calculate average rating
+          if (items.length > 0) {
+            const totalRate = items.reduce((sum, item) => sum + (item.rate || 0), 0);
+            setAverageRating((totalRate / items.length).toFixed(1));
+          }
+        } else {
+          setRatingsData([]);
+          setTotalPages(1);
+        }
+      } catch (error) {
+        console.error('Error fetching ratings:', error);
+        setRatingsData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRatings();
+  }, [currentPage]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -133,10 +81,16 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const handleDropdownItemClick = (item) => {
-    console.log(`Clicked on ${item}`);
+  const handleDropdownItemClick = (action) => {
     setIsDropdownOpen(false);
-    // Add your navigation logic here
+    if (action === 'profile') {
+      navigate('/provider/profile');
+    } else if (action === 'settings') {
+      navigate('/provider/settings');
+    } else if (action === 'logout') {
+      localStorage.removeItem('access_token');
+      navigate('/login');
+    }
   };
   
   // Function to handle page change
@@ -168,15 +122,17 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
   // Function to render star rating
   const renderStars = (rating) => {
     const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
+    const emptyStars = 5 - fullStars;
     
     return (
       <>
         {[...Array(fullStars)].map((_, index) => (
-          <FontAwesomeIcon key={index} icon={faStar} className='text-warning' />
+          <FontAwesomeIcon key={`full-${index}`} icon={faStar} className='text-warning' />
         ))}
-        {hasHalfStar && <FontAwesomeIcon icon={faStar} className='text-warning half-star' />}
-        <p className='m-0 date-label'>({rating.toFixed(1)})</p>
+        {[...Array(emptyStars)].map((_, index) => (
+          <FontAwesomeIcon key={`empty-${index}`} icon={faStarRegular} className='text-warning' />
+        ))}
+        <p className='m-0 date-label'>({rating})</p>
       </>
     );
   };
@@ -193,7 +149,7 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
             >
               <FontAwesomeIcon icon={faBars} />
             </button>
-            <h2 className="mb-0 dashboard-title">Rating of guests</h2>
+            <h2 className="mb-0 dashboard-title">Ratings & Ratings</h2>
           </div>
           <div className="d-flex justify-content-end gap-2 align-items-center">
             <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
@@ -254,72 +210,83 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
       <div className="dashboard-home-content px-3 mt-2">
           <div className="d-flex gap-2 align-items-center">
               <div className="rating-stars-bg p-3 rounded-3 d-flex gap-2 align-items-center mb-3">
-            <img src="/assets/problem-img-2.png"  className='review-img' alt="review-img" />
+            <img src="/assets/problem-img-2.png" className='review-img' alt="review-img" />
             <div>
               <p className='general-assess m-0'>General assessment</p>
-            <div className="d-flex align-items-center gap-2">
-                <FontAwesomeIcon icon={faStar} className='fs-4 text-warning' />
-                <FontAwesomeIcon icon={faStar} className='fs-4 text-warning' />
-                <FontAwesomeIcon icon={faStar} className='fs-4 text-warning' />
-                <FontAwesomeIcon icon={faStar} className='fs-4 text-warning' />
-                <FontAwesomeIcon icon={faStar} className='fs-4 text-warning' />
-                <p className='m-0 date-label'>(5.0)</p>
-            </div>
+              <div className="d-flex align-items-center gap-2">
+                {renderStars(parseFloat(averageRating) || 0)}
+              </div>
             </div>
               </div>
-              </div>
-        <h6 className="dashboard-routes-sub m-0">Rating of gests</h6>
+          </div>
+        <h6 className="dashboard-routes-sub m-0">Rating of guests</h6>
         
-        {/* Render current page items */}
-        {currentItems.map((item) => (
-          <div className="col-12 mt-3" key={item.id}>
-            <div className="card p-2">
-              <div className="d-flex justify-content-between align-items-start">
-                <div className="d-flex flex-column gap-2 align-items-start w-100">
-                  <div className="d-flex justify-content-between align-items-start w-100">
-                    <div className="d-flex align-items-center gap-2 w-100">
-                      <img src={item.userImage} className='provider-rate' alt="user" />
-                      <div>
-                        <h6 className='popup-title m-0'>{item.userName}</h6>
-                        <h6 className="dashboard-routes-sub m-0 mt-1">{item.date}</h6>
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        ) : ratingsData.length === 0 ? (
+          <div className="text-center mt-4 mb-4">
+            <p className="text-muted">No ratings found.</p>
+          </div>
+        ) : (
+          <>
+            {/* Render ratings items */}
+            {ratingsData.map((item) => (
+              <div className="col-12 mt-3" key={item.id}>
+                <div className="card p-2">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div className="d-flex flex-column gap-2 align-items-start w-100">
+                      <div className="d-flex justify-content-between align-items-start w-100">
+                        <div className="d-flex align-items-center gap-2 w-100">
+                          <img src={item.user?.avatar || '/assets/user.png'} className='provider-rate' alt="user" />
+                          <div>
+                            <h6 className='popup-title m-0'>{item.user?.name || 'Unknown User'}</h6>
+                            <h6 className="dashboard-routes-sub m-0 mt-1">{item.created_at || 'N/A'}</h6>
+                          </div>
+                        </div>
+                        <img src="/assets/qoute.png" alt="qoute" />
                       </div>
+                      <div className="d-flex gap-1 align-items-center">
+                        {renderStars(item.rate || 0)}
+                      </div>
+                      <h6 className='sub-service-price m-0'>{item.type_name || 'Service'}</h6>
+                      <p className='m-0 deep-desc text-muted'><strong>Property:</strong> {item.service_id?.property || 'N/A'}</p>
+                      {item.comment && <p className='m-0 deep-desc'>"{item.comment}"</p>}
                     </div>
-                    <img src={item.qouteImage} alt="qoute" />
                   </div>
-                  <div className="d-flex gap-1 align-items-center">
-                    {renderStars(item.rating)}
-                  </div>
-                  <h6 className='sub-service-price m-0'>{item.service}</h6>
-                  <p className='m-0 deep-desc'>"{item.comment}"</p>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
-        
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="d-flex justify-content-center mt-4 mb-3">
-            <div className="pagination-container d-flex align-items-center">
-              <button
-                className="pagination-arrow"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                <FontAwesomeIcon icon={faChevronLeft} />
-              </button>
-              
-              {renderPaginationNumbers()}
-              
-              <button
-                className="pagination-arrow"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <FontAwesomeIcon icon={faChevronRight} />
-              </button>
-            </div>
-          </div>
+            ))}
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="d-flex justify-content-center mt-4 mb-3">
+                <div className="pagination-container d-flex align-items-center">
+                  <button
+                    className="pagination-arrow"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <FontAwesomeIcon icon={faChevronLeft} />
+                  </button>
+                  
+                  {renderPaginationNumbers()}
+                  
+                  <button
+                    className="pagination-arrow"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <FontAwesomeIcon icon={faChevronRight} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>    
     </section>

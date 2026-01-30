@@ -66,3 +66,30 @@ export const getTeamMemberDetails = async (accessToken, id) => {
     throw error;
   }
 };
+
+// Get supervisor provider calendar (team member availability)
+export const getSupervisorProviderCalendar = async (accessToken, userId) => {
+  try {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/supervisor-provider-calender', 
+      { user_id: userId },
+      { params: { 'access-token': accessToken } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching supervisor provider calendar:', error);
+    throw error;
+  }
+};
+
+// Get user calendar (supervisor's own calendar)
+export const getUserCalendar = async (accessToken) => {
+  try {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/user-calender', {
+      params: { 'access-token': accessToken }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user calendar:', error);
+    throw error;
+  }
+};

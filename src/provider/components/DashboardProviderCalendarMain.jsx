@@ -1,20 +1,112 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import {faCalendar} from '@fortawesome/free-regular-svg-icons'
 import {faUser} from '@fortawesome/free-regular-svg-icons'
 import { Link } from 'react-router-dom';
+import { getUserCalendar } from '../../api/superviserTeamApi';
+import { useSelector } from 'react-redux';
 
 
 const DashboardProviderCalendarMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { token: accessToken } = useSelector((state) => state.auth);
+  
+  // Calendar state
+  const [calendarData, setCalendarData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
+  const [viewMode, setViewMode] = useState('week'); // 'month', 'week', 'day'
 
+  // Fetch calendar data
+  useEffect(() => {
+    const fetchCalendar = async () => {
+      if (!accessToken) return;
+      try {
+        setLoading(true);
+        const response = await getUserCalendar(accessToken);
+        if (response.status === 1 && response.data?.[0]) {
+          setCalendarData(response.data[0]);
+        } else {
+          setCalendarData([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch calendar:', error);
+        setCalendarData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCalendar();
+  }, [accessToken]);
 
+  // Calendar helper functions
+  const getWeekDays = (startDate) => {
+    const days = [];
+    const start = new Date(startDate);
+    start.setDate(start.getDate() - start.getDay()); // Start from Sunday
+    
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(start);
+      day.setDate(start.getDate() + i);
+      days.push(day);
+    }
+    return days;
+  };
 
+  const formatDate = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const getDayName = (date) => {
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
+  const formatDisplayDate = (date) => {
+    return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
+  };
+
+  const timeSlots = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
+
+  const getAvailabilityForSlot = (date, timeSlot) => {
+    const dateStr = formatDate(date);
+    const slotHour = parseInt(timeSlot.split(':')[0]);
+    
+    return calendarData.find(item => {
+      if (item.date !== dateStr) return false;
+      const fromHour = parseInt(item.time_from.split(':')[0]);
+      const toHour = parseInt(item.time_to.split(':')[0]);
+      return slotHour >= fromHour && slotHour < toHour;
+    });
+  };
+
+  const getReservationsCount = (date) => {
+    const dateStr = formatDate(date);
+    return calendarData.filter(item => item.date === dateStr).length;
+  };
+
+  const navigateWeek = (direction) => {
+    const newStart = new Date(currentWeekStart);
+    newStart.setDate(newStart.getDate() + (direction * 7));
+    setCurrentWeekStart(newStart);
+  };
+
+  const goToToday = () => {
+    setCurrentWeekStart(new Date());
+  };
+
+  const weekDays = getWeekDays(currentWeekStart);
+
+  const formatTimeDisplay = (time) => {
+    const hour = parseInt(time.split(':')[0]);
+    if (hour === 12) return '12:00 PM';
+    if (hour > 12) return `${hour - 12}:00 PM`;
+    return `${hour}:00 AM`;
+  };
   
   // Add state to track selected order type
 
@@ -135,84 +227,95 @@ const DashboardProviderCalendarMain = ({ onMobileMenuClick }) => {
                         {/* Top Controls */}
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 mt-2">
               <div className="d-flex gap-2 p-2 rounded-2 days-filter">
-                <button className="main-btn rounded-2 px-3 py-1">Today</button>
-                <div className="days-filter-item px-3 py-1">Back</div>
-                <div className="days-filter-item px-3 py-1">Next</div>
+                <button className="main-btn rounded-2 px-3 py-1" onClick={goToToday}>Today</button>
+                <button className="days-filter-item px-3 py-1" onClick={() => navigateWeek(-1)}>
+                  <FontAwesomeIcon icon={faChevronLeft} /> Back
+                </button>
+                <button className="days-filter-item px-3 py-1" onClick={() => navigateWeek(1)}>
+                  Next <FontAwesomeIcon icon={faChevronRight} />
+                </button>
               </div>
 
-              <h6 className="m-0 date-label">10 Mar 2025 - 16 Apr 2025</h6>
+              <h6 className="m-0 date-label">
+                {formatDisplayDate(weekDays[0])} - {formatDisplayDate(weekDays[6])} {weekDays[0].getFullYear()}
+              </h6>
 
               <div className="d-flex gap-2 p-2 rounded-2 times-filter">
-                <button className="main-btn rounded-2 px-3 py-1">Month</button>
-                <div className="times-filter-item px-3 py-1">Week</div>
-                <div className="times-filter-item px-3 py-1">Day</div>
+                <button 
+                  className={viewMode === 'month' ? "main-btn rounded-2 px-3 py-1" : "times-filter-item px-3 py-1"}
+                  onClick={() => setViewMode('month')}
+                >
+                  Month
+                </button>
+                <button 
+                  className={viewMode === 'week' ? "main-btn rounded-2 px-3 py-1" : "times-filter-item px-3 py-1"}
+                  onClick={() => setViewMode('week')}
+                >
+                  Week
+                </button>
+                <button 
+                  className={viewMode === 'day' ? "main-btn rounded-2 px-3 py-1" : "times-filter-item px-3 py-1"}
+                  onClick={() => setViewMode('day')}
+                >
+                  Day
+                </button>
               </div>
             </div>
 
-            {/* Calendar Table */}
-            <div className="calendar-wrapper">
-              <table className="table calendar-table text-center">
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Sunday 07/10<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Monday 07/11<br /><small className='fw-bold'>03 Reservation</small></th>
-                    <th>Tuesday 07/12<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Wednesday 07/13<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Thursday 07/14<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Friday 07/15<br /><small className='fw-bold'>0 Reservation</small></th>
-                    <th>Saturday 07/16<br /><small className='fw-bold'>0 Reservation</small></th>
-                  </tr>
-                </thead>
+            {/* Loading State */}
+            {loading ? (
+              <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Calendar Table */}
+                <div className="calendar-wrapper">
+                  <table className="table calendar-table text-center">
+                    <thead>
+                      <tr>
+                        <th>Time</th>
+                        {weekDays.map((day, index) => (
+                          <th key={index}>
+                            {getDayName(day)} {formatDisplayDate(day)}
+                            <br />
+                            <small className='fw-bold'>{getReservationsCount(day)} Reservation</small>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
 
-                <tbody>
-                  <tr>
-                    <td className='table-time'>8:00 AM</td>
-                    <td></td>
+                    <tbody>
+                      {timeSlots.map((time, timeIndex) => (
+                        <tr key={timeIndex}>
+                          <td className='table-time'>{formatTimeDisplay(time)}</td>
+                          {weekDays.map((day, dayIndex) => {
+                            const availability = getAvailabilityForSlot(day, time);
+                            return (
+                              <td key={dayIndex}>
+                                {availability && (
+                                  <div className={availability.status === 1 ? "third-btn-sm" : "sec-btn-sm h-100"}>
+                                    {availability.status === 1 ? 'At work' : 'Available for work'}
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-                    <td></td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">At work</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-
-                  <tr>
-                    <td className='table-time'>10:00 AM</td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">At work</div>
-                    </td>
-                    <td>
-                      <div className="sec-btn-sm h-100">Available for work</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-
-                    <td>
-                      <div className="sec-btn-sm h-100">Available for work</div>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td className='table-time'>12:00 PM</td>
-                    <td>
-                      <div className="sec-btn-sm h-100">Available for work</div>
-                    </td>
-                    <td></td>
-                    <td>
-                      <div className="third-btn-sm">At work</div>
-                    </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                {calendarData.length === 0 && (
+                  <div className="text-center py-3">
+                    <p className="text-muted">No calendar data available.</p>
+                  </div>
+                )}
+              </>
+            )}
 
       </div>
     </section>

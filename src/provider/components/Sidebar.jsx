@@ -164,14 +164,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       id: 'ratings',
       label: 'Ratings & Ratings',
       iconPath: "/assets/medal-icon.svg",
-      hasDropdown: true,
-      dropdownOpen: ratingDropdownOpen,
-      onToggle: toggleRatingDropdown,
-      route: '/provider/guests-ratings',
-      subItems: [
-        { id: 'guest-reviews', label: 'Guest Reviews', route: '/provider/guests-ratings' },
-        { id: 'my-ratings', label: 'My Ratings', route: '/provider/my-ratings' },
-      ]
+      route: '/provider/guests-ratings'
     },
     {
       id: 'training',

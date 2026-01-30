@@ -449,9 +449,37 @@ const DashboardPropertyDetailsMain = ({ onMobileMenuClick }) => {
                             </div>
                         </div>
                     </div>
-                    <div className="d-flex align-items-start gap-1">
-                        <h6 className='qr-title'>QR code</h6>
-                        <img src="/assets/qr-code.png" className='qr-img' alt="QR Code" />
+                    <div className="d-flex flex-column align-items-center gap-1">
+                        <h6 className='qr-title m-0'>QR code</h6>
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&format=png&ecc=L&data=${encodeURIComponent(
+`🏠 ${property.name}
+━━━━━━━━━━━━━━━━
+🔗 Link: ${window.location.origin}/client/property-details/${property.id}
+
+📋 Property Details:
+• Type: ${property.property_type_id?.name || 'N/A'}
+• Address: ${property.address || 'N/A'}
+• City: ${property.city_id?.name || 'N/A'}
+• Postal Code: ${property.postal_code || 'N/A'}
+
+📐 Specifications:
+• Area: ${property.area || 'N/A'} m²
+• Floors: ${property.floor || 'N/A'}
+• Rooms: ${property.number_room || 'N/A'}
+• Bathrooms: ${property.number_bathroom || 'N/A'}
+
+📍 Location:
+• Lat: ${property.lat || 'N/A'}
+• Lng: ${property.lang || 'N/A'}
+
+👤 Co-Host: ${property.co_host_name || 'N/A'}
+📞 Phone: ${property.co_host_mobile || 'N/A'}`
+                          )}`} 
+                          style={{ width: '120px', height: '120px' }}
+                          alt="QR Code" 
+                        />
+                        <small className="text-muted" style={{ fontSize: '10px' }}>Scan to view property</small>
                     </div>
                 </div>
                   <div className="d-flex gap-3 align-items-center flex-wrap bg-white w-100 py-1 px-2 rounded-1">

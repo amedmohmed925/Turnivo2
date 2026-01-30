@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faBars, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -21,7 +21,36 @@ const DashboardMaterialRequestMain = ({ onMobileMenuClick }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const itemsPerPage = 6;
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleDropdownItemClick = (action) => {
+    setIsDropdownOpen(false);
+    if (action === 'profile') {
+      navigate('/provider/profile');
+    } else if (action === 'settings') {
+      navigate('/provider/settings');
+    } else if (action === 'logout') {
+      localStorage.removeItem('access_token');
+      navigate('/login');
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Fetch materials data based on selected tab
   useEffect(() => {
