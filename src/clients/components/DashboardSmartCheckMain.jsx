@@ -4,7 +4,7 @@ import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortaweso
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getPropertyById, getPropertyCalendar, getProperties, createSmartLockRequest, getContactInfo, addPropertyRule } from '../../api/propertyApi';
-import { getSmartLockHistoryCheckin, getSmartLockHistoryCheckout } from '../../api/smartLockApi';
+import { getSmartLockHistoryCheckin, getSmartLockHistoryCheckout, sendEmailToGuest } from '../../api/smartLockApi';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -39,6 +39,14 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
   const [welcomingMessage, setWelcomingMessage] = useState('');
   const [checkoutMessage, setCheckoutMessage] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+  
+  // State for temp access code
+  const [tempAccessData, setTempAccessData] = useState({
+    service_id: '',
+    guest_email: '',
+    type: ''
+  });
+  const [tempAccessLoading, setTempAccessLoading] = useState(false);
   
   // State for smart lock request
   const [lockRequestData, setLockRequestData] = useState({
@@ -95,12 +103,7 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
 
         setProperties(allProperties);
         
-        // Auto-select first property if available
-        if (allProperties.length > 0) {
-          setSelectedProperty(allProperties[0]);
-          setLockRequestData(prev => ({ ...prev, property_id: allProperties[0].id }));
-        }
-        
+        // Don't auto-select - let user choose first
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching properties:', err);
@@ -309,6 +312,75 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
     });
   };
 
+  // Handle temp access input changes
+  const handleTempAccessInputChange = (e) => {
+    const { name, value } = e.target;
+    setTempAccessData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle temp access code submission
+  const handleTempAccessSubmit = async () => {
+    const { service_id, guest_email, type } = tempAccessData;
+    
+    if (!service_id) {
+      toast.error('Please select a property', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      return;
+    }
+    
+    if (!guest_email.trim()) {
+      toast.error('Please enter guest email', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      return;
+    }
+    
+    if (!type) {
+      toast.error('Please select a service type', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      return;
+    }
+    
+    try {
+      setTempAccessLoading(true);
+      const accessToken = localStorage.getItem('access_token');
+      
+      await sendEmailToGuest(accessToken, service_id, guest_email, type);
+      
+      toast.success('Email sent to guest successfully!', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+      
+      // Reset form and close modal
+      setTempAccessData({
+        service_id: '',
+        guest_email: '',
+        type: ''
+      });
+      
+      // Close modal
+      const modal = document.getElementById('tempAccessModal');
+      const bootstrapModal = window.bootstrap?.Modal?.getInstance(modal);
+      if (bootstrapModal) {
+        bootstrapModal.hide();
+      }
+    } catch (error) {
+      console.error('Error sending email to guest:', error);
+      toast.error(error.response?.data?.message || 'Failed to send email. Please try again.', {
+        position: "top-center",
+        autoClose: 2000,
+      });
+    } finally {
+      setTempAccessLoading(false);
+    }
+  };
+
   // Handle payment method selection
   const handlePaymentMethodClick = (method) => {
     setSelectedPaymentMethod(method);
@@ -495,6 +567,12 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
     }
   };
 
+  // Handle initial property selection
+  const handleInitialPropertySelect = (property) => {
+    setSelectedProperty(property);
+    setLockRequestData(prev => ({ ...prev, property_id: property.id }));
+  };
+
   return (
     <section>
       <ToastContainer />
@@ -566,6 +644,7 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
           </div>
         </div>
       </div>
+
       <div className="dashboard-home-content px-3 mt-2">
         <div className="d-flex justify-content-between align-items-center flex-wrap mt-3">
           <h2 className="mb-0 dashboard-title">Address</h2>
@@ -579,38 +658,72 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
             <span>Request a smart lock</span>
           </button>
         </div>
-        <div className="row mt-3 w-100 g-0">
-          <div className="col-md-2 mb-3 col-20-per h-100 px-2 d-flex flex-column justify-content-center align-items-center">
-            <div className="bg-light-gray smart-gray p-3 rounded-3 mb-3 active">
-              <img src="/assets/smart-door.png" className='img-fluid w-100' alt="service" />
+        
+        {/* Properties Slider */}
+        {isLoading ? (
+          <div className="text-center py-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
             </div>
-            <h6 className='m-0'>Nakheel Neighborhood Hotel</h6>
           </div>
-          <div className="col-md-2 mb-3 col-20-per h-100 px-2 d-flex flex-column justify-content-center align-items-center">
-            <div className="bg-light-gray smart-gray p-3 rounded-3 mb-3">
-              <img src="/assets/smart-door.png" className='img-fluid w-100' alt="service" />
+        ) : properties.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-muted">No properties found.</p>
+          </div>
+        ) : (
+          <div className="position-relative mt-3">
+            {properties.length > 5 && (
+              <button 
+                className="property-nav-btn property-nav-left"
+                onClick={() => {
+                  const container = document.getElementById('propertiesSlider');
+                  if (container) container.scrollBy({ left: -200, behavior: 'smooth' });
+                }}
+              >
+                <FontAwesomeIcon icon={faChevronLeft} />
+              </button>
+            )}
+            
+            <div 
+              id="propertiesSlider"
+              className="d-flex gap-3 overflow-auto pb-2"
+              style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {properties.map((prop) => (
+                <div 
+                  key={prop.id} 
+                  className="text-center flex-shrink-0"
+                  style={{ width: '120px', cursor: 'pointer' }}
+                  onClick={() => handleInitialPropertySelect(prop)}
+                >
+                  <div className={`bg-light-gray smart-gray p-3 rounded-3 mb-2 ${selectedProperty?.id === prop.id ? 'active' : ''}`}>
+                    <img 
+                      src={prop.image || '/assets/smart-door.png'} 
+                      className='img-fluid w-100' 
+                      alt={prop.name}
+                      style={{ height: '70px', objectFit: 'contain' }}
+                      onError={(e) => { e.target.src = '/assets/smart-door.png'; }}
+                    />
+                  </div>
+                  <h6 className='m-0 small text-truncate'>{prop.name || prop.address || 'Property'}</h6>
+                </div>
+              ))}
             </div>
-            <h6 className='m-0'>Nakheel Neighborhood Hotel</h6>
+            
+            {properties.length > 5 && (
+              <button 
+                className="property-nav-btn property-nav-right"
+                onClick={() => {
+                  const container = document.getElementById('propertiesSlider');
+                  if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
+                }}
+              >
+                <FontAwesomeIcon icon={faChevronRight} />
+              </button>
+            )}
           </div>
-          <div className="col-md-2 mb-3 col-20-per h-100 px-2 d-flex flex-column justify-content-center align-items-center">
-            <div className="bg-light-gray smart-gray p-3 rounded-3 mb-3">
-              <img src="/assets/smart-door.png" className='img-fluid w-100' alt="service" />
-            </div>
-            <h6 className='m-0'>Nakheel Neighborhood Hotel</h6>
-          </div>
-          <div className="col-md-2 mb-3 col-20-per h-100 px-2 d-flex flex-column justify-content-center align-items-center">
-            <div className="bg-light-gray smart-gray p-3 rounded-3 mb-3">
-              <img src="/assets/smart-door.png" className='img-fluid w-100' alt="service" />
-            </div>
-            <h6 className='m-0'>Nakheel Neighborhood Hotel</h6>
-          </div>
-          <div className="col-md-2 mb-3 col-20-per h-100 px-2 d-flex flex-column justify-content-center align-items-center">
-            <div className="bg-light-gray smart-gray p-3 rounded-3 mb-3">
-              <img src="/assets/smart-door.png" className='img-fluid w-100' alt="service" />
-            </div>
-            <h6 className='m-0'>Nakheel Neighborhood Hotel</h6>
-          </div>
-        </div>
+        )}
+
         <div className="row mt-3 w-100 g-0">
           <div className='col-md-2 mb-3 col-20-per'>
             <div className="d-flex align-items-start flex-column p-2 rounded-3 bg-light-gray-2">
@@ -824,15 +937,56 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
             </div>
 
             <div className="modal-body">
-              <div className="">
-                <label className="property-management-card-address fw-bold">
-                  Please enter Guest E-mail address
+              {/* Property Selection */}
+              <div className="mb-3">
+                <label className="property-management-card-address fw-bold mb-2">
+                  Select Property
+                </label>
+                <select
+                  name="service_id"
+                  className="form-select rounded-2 py-2"
+                  value={tempAccessData.service_id}
+                  onChange={handleTempAccessInputChange}
+                >
+                  <option value="">Select a property</option>
+                  {properties.map((prop) => (
+                    <option key={prop.id} value={prop.id}>
+                      {prop.name || prop.address || `Property ${prop.id}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Guest Email */}
+              <div className="mb-3">
+                <label className="property-management-card-address fw-bold mb-2">
+                  Guest E-mail Address
                 </label>
                 <input
                   type="email"
+                  name="guest_email"
                   className="form-control rounded-2 py-2"
-                  placeholder="Enter email"
+                  placeholder="Enter guest email"
+                  value={tempAccessData.guest_email}
+                  onChange={handleTempAccessInputChange}
                 />
+              </div>
+
+              {/* Service Type */}
+              <div className="mb-3">
+                <label className="property-management-card-address fw-bold mb-2">
+                  Service Type
+                </label>
+                <select
+                  name="type"
+                  className="form-select rounded-2 py-2"
+                  value={tempAccessData.type}
+                  onChange={handleTempAccessInputChange}
+                >
+                  <option value="">Select service type</option>
+                  <option value="1">Clean</option>
+                  <option value="2">Maintenance</option>
+                </select>
               </div>
             </div>
 
@@ -840,8 +994,10 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
               <button
                 type="button"
                 className="sec-btn rounded-2 px-4 py-2"
+                onClick={handleTempAccessSubmit}
+                disabled={tempAccessLoading}
               >
-                Submit
+                {tempAccessLoading ? 'Sending...' : 'Submit'}
               </button>
             </div>
           </div>
@@ -876,16 +1032,44 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
               </p>
               <div className="d-flex justify-content-center">
                 <div className="modal-badge d-flex gap-2 align-items-center justify-content-center p-2 rounded-2">
-                  <span>AOSDI12LSD</span>
+                  <span>{selectedProperty?.name || selectedProperty?.address || 'Select Property'}</span>
                   <img src="/assets/scan-barcode-2.svg" alt="" />
                 </div>
               </div>
-              <img
-                src="/assets/qr-code-2.png"
-                alt="QR Code"
-                className="img-fluid"
-                style={{ width: '250px' }}
-              />
+              {selectedProperty ? (
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+                    `🏠 PROPERTY INFORMATION\n` +
+                    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                    `📌 Name: ${selectedProperty.name || 'N/A'}\n` +
+                    `🏷️ Type: ${selectedProperty.property_type_id?.name || 'N/A'}\n\n` +
+                    `📍 LOCATION\n` +
+                    `──────────────────────\n` +
+                    `🏘️ Address: ${selectedProperty.address || 'N/A'}\n` +
+                    `🌆 City: ${selectedProperty.city || 'N/A'}\n` +
+                    `📮 Postal: ${selectedProperty.postal_code || 'N/A'}\n` +
+                    `🗺️ Coordinates: ${selectedProperty.lat || 'N/A'}, ${selectedProperty.lng || 'N/A'}\n\n` +
+                    `📐 SPECIFICATIONS\n` +
+                    `──────────────────────\n` +
+                    `📏 Area: ${selectedProperty.area || 0} m²\n` +
+                    `🏢 Floors: ${selectedProperty.floor || 0}\n` +
+                    `🚪 Rooms: ${selectedProperty.number_room || 0}\n` +
+                    `🚿 Bathrooms: ${selectedProperty.number_bathroom || 0}\n\n` +
+                    `👤 Co-Host: ${selectedProperty.co_host_id?.name || 'N/A'}\n` +
+                    `━━━━━━━━━━━━━━━━━━━━━━`
+                  )}`}
+                  alt="QR Code"
+                  className="img-fluid"
+                  style={{ width: '250px' }}
+                />
+              ) : (
+                <img
+                  src="/assets/qr-code-2.png"
+                  alt="QR Code"
+                  className="img-fluid"
+                  style={{ width: '250px' }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -1249,6 +1433,40 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
           .property-scroll-right {
             right: -10px;
           }
+        }
+        
+        /* Properties Slider Styles */
+        .property-nav-btn {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 10;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 1px solid #ddd;
+          background: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .property-nav-left {
+          left: -16px;
+        }
+        
+        .property-nav-right {
+          right: -16px;
+        }
+        
+        .smart-gray.active {
+          border: 2px solid #f7941d;
+        }
+        
+        #propertiesSlider::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </section>
