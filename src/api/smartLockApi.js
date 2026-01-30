@@ -60,3 +60,60 @@ export const sendEmailToGuest = async (accessToken, service_id, guest_email, typ
   );
   return response.data;
 };
+
+/**
+ * Get provider smart lock requests (for cleaner/provider)
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with smart lock requests
+ */
+export const getProviderSmartLockRequest = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/provider-smart-lock-request`,
+    {
+      params: {
+        'access-token': accessToken,
+        page
+      }
+    }
+  );
+  return response.data;
+};
+
+/**
+ * Get provider smart lock checkin history (for cleaner/provider)
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with smart lock checkin history
+ */
+export const getProviderSmartLockHistoryCheckin = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/provider-smart-lock-history-checkin`,
+    {
+      params: {
+        'access-token': accessToken,
+        page
+      }
+    }
+  );
+  return response.data;
+};
+
+/**
+ * Get provider smart lock checkout history (for cleaner/provider)
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with smart lock checkout history
+ */
+export const getProviderSmartLockHistoryCheckout = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/provider-smart-lock-history-checkout`,
+    {
+      params: {
+        'access-token': accessToken,
+        page
+      }
+    }
+  );
+  return response.data;
+};

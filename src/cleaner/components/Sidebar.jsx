@@ -15,6 +15,8 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   const [ratingDropdownOpen, setRatingDropdownOpen] = useState(false);
   const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
   const [legalDropdownOpen, setLegalDropdownOpen] = useState(false);
+  const [reportDropdownOpen, setReportDropdownOpen] = useState(false);
+  const [smartAccessDropdownOpen, setSmartAccessDropdownOpen] = useState(false);
   
   // Navigation hooks
   const navigate = useNavigate();
@@ -40,7 +42,11 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       case '/cleaner/training-details': return 'training';
       case '/cleaner/company-policies':
       case '/cleaner/work-agreement': return 'legal';
-      case '/cleaner/report-problem': return 'report';
+      case '/cleaner/report-problem':
+      case '/cleaner/my-problems':
+      case '/cleaner/problem-details': return 'report';
+      case '/cleaner/smart-lock-requests':
+      case '/cleaner/smart-lock-checkin-checkout': return 'smart-access';
       case '/cleaner/shopping-cart': return 'cart';
       default: return 'service';
     }
@@ -60,6 +66,10 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       setRatingDropdownOpen(true);
     } else if (location.pathname.includes('company-policies') || location.pathname.includes('work-agreement')) {
       setLegalDropdownOpen(true);
+    } else if (location.pathname.includes('report-problem') || location.pathname.includes('my-problems') || location.pathname.includes('problem-details')) {
+      setReportDropdownOpen(true);
+    } else if (location.pathname.includes('smart-lock')) {
+      setSmartAccessDropdownOpen(true);
     }
   }, [location.pathname]);
 
@@ -105,12 +115,61 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (ratingDropdownOpen) {
       setRatingDropdownOpen(false);
     }
+    if (reportDropdownOpen) {
+      setReportDropdownOpen(false);
+    }
     setLegalDropdownOpen(!legalDropdownOpen);
     // Always make it active when toggling
     if (!legalDropdownOpen) {
       setActiveItem('legal');
       // Navigate to the legal main page when opening the dropdown
       navigate('/cleaner/company-policies');
+    }
+  };
+
+  const toggleReportDropdown = () => {
+    // Close other dropdowns
+    if (serviceDropdownOpen) {
+      setServiceDropdownOpen(false);
+    }
+    if (ratingDropdownOpen) {
+      setRatingDropdownOpen(false);
+    }
+    if (legalDropdownOpen) {
+      setLegalDropdownOpen(false);
+    }
+    if (smartAccessDropdownOpen) {
+      setSmartAccessDropdownOpen(false);
+    }
+    setReportDropdownOpen(!reportDropdownOpen);
+    // Always make it active when toggling
+    if (!reportDropdownOpen) {
+      setActiveItem('report');
+      // Navigate to the report main page when opening the dropdown
+      navigate('/cleaner/report-problem');
+    }
+  };
+
+  const toggleSmartAccessDropdown = () => {
+    // Close other dropdowns
+    if (serviceDropdownOpen) {
+      setServiceDropdownOpen(false);
+    }
+    if (ratingDropdownOpen) {
+      setRatingDropdownOpen(false);
+    }
+    if (legalDropdownOpen) {
+      setLegalDropdownOpen(false);
+    }
+    if (reportDropdownOpen) {
+      setReportDropdownOpen(false);
+    }
+    setSmartAccessDropdownOpen(!smartAccessDropdownOpen);
+    // Always make it active when toggling
+    if (!smartAccessDropdownOpen) {
+      setActiveItem('smart-access');
+      // Navigate to the smart access main page when opening the dropdown
+      navigate('/cleaner/smart-lock-requests');
     }
   };
   
@@ -135,6 +194,19 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       label: 'Calendar & Availability',
       iconPath: "/assets/calendar-icon.svg",
       route: '/cleaner/calendar'
+    },
+     {
+      id: 'smart-access',
+      label: 'Smart Access',
+      iconPath: "/assets/key-icon.svg",
+      hasDropdown: true,
+      dropdownOpen: smartAccessDropdownOpen,
+      onToggle: toggleSmartAccessDropdown,
+      route: '/cleaner/smart-lock-requests',
+      subItems: [
+        { id: 'smart-lock-requests', label: 'Smart Lock Requests', route: '/cleaner/smart-lock-requests' },
+        { id: 'smart-lock-checkin-checkout', label: 'Checkin-Checkout', route: '/cleaner/smart-lock-checkin-checkout' }
+      ]
     },
     {
       id: 'ratings',
@@ -171,8 +243,16 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       id: 'report',
       label: 'Report a problem',
       iconPath: "/assets/report-icon.svg",
-      route: '/cleaner/report-problem'
-    }
+      hasDropdown: true,
+      dropdownOpen: reportDropdownOpen,
+      onToggle: toggleReportDropdown,
+      route: '/cleaner/report-problem',
+      subItems: [
+        { id: 'report-problem', label: 'Report a Problem', route: '/cleaner/report-problem' },
+        { id: 'my-problems', label: 'My Problems', route: '/cleaner/my-problems' }
+      ]
+    },
+   
   ];
 
   const bottomItems = [

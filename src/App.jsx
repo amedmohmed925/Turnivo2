@@ -67,6 +67,10 @@ import CleanerTraining from './cleaner/pages/CleanerTraining'
 import CleanerTrainingDetails from './cleaner/pages/CleanerTrainingDetails'
 import CleanerReportProblem from './cleaner/pages/CleanerReportProblem'
 import CleanerShoppingCart from './cleaner/pages/CleanerShoppingCart'
+import CleanerMyProblems from './cleaner/pages/CleanerMyProblems'
+import CleanerProblemDetails from './cleaner/pages/CleanerProblemDetails'
+import CleanerSmartLockRequests from './cleaner/pages/CleanerSmartLockRequests'
+import CleanerSmartLockCheckinCheckout from './cleaner/pages/CleanerSmartLockCheckinCheckout'
 import Home from './shared/pages/Home'
 import DashboardMaintenanceOrders from './clients/pages/DashboardMaintenanceOrders'
 
@@ -143,6 +147,10 @@ function App() {
       <Route path="cleaner/training-details" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerTrainingDetails /></ProtectedRoute>} />
       <Route path="cleaner/shopping-cart" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerShoppingCart /></ProtectedRoute>} />
       <Route path="cleaner/report-problem" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerReportProblem /></ProtectedRoute>} />
+      <Route path="cleaner/my-problems" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerMyProblems /></ProtectedRoute>} />
+      <Route path="cleaner/problem-details" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerProblemDetails /></ProtectedRoute>} />
+      <Route path="cleaner/smart-lock-requests" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerSmartLockRequests /></ProtectedRoute>} />
+      <Route path="cleaner/smart-lock-checkin-checkout" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerSmartLockCheckinCheckout /></ProtectedRoute>} />
       <Route path="cleaner/guest-ratings" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerGuestRatings /></ProtectedRoute>} />
       <Route path="cleaner/availability" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerAvailability /></ProtectedRoute>} />
 

@@ -11,6 +11,7 @@ import {
   getCompleteMaintenanceServices,
   getRejectMaintenanceServices,
   rejectMaintenanceService,
+  acceptMaintenanceService,
 } from '../../api/cleanerMaintenanceApi';
 import { selectAccessToken } from '../../store/authSlice';
 import CleanerHeader from './CleanerHeader';
@@ -26,6 +27,7 @@ const CleanerMaintenanceRequestMain = ({ onMobileMenuClick }) => {
   const [selectedServiceId, setSelectedServiceId] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(null);
   
   const accessToken = useSelector(selectAccessToken);
 
@@ -151,6 +153,51 @@ const CleanerMaintenanceRequestMain = ({ onMobileMenuClick }) => {
     setRejectComment('');
   };
 
+  const handleAcceptOrder = async (e, serviceId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!accessToken) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Required',
+        text: 'Please login to continue',
+      });
+      return;
+    }
+
+    try {
+      setIsAccepting(serviceId);
+      const response = await acceptMaintenanceService(accessToken, {
+        service_id: serviceId,
+      });
+
+      if (response.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Accepted',
+          text: response.message || 'Order accepted successfully.',
+        });
+        // Refresh data - move to in-progress
+        setSelectedOrderFilter('in-progress');
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Unable to accept order.',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to accept order.',
+      });
+    } finally {
+      setIsAccepting(null);
+    }
+  };
+
   const handleRejectSubmit = async () => {
     if (!selectedServiceId) return;
     if (!rejectComment.trim()) {
@@ -240,39 +287,60 @@ const CleanerMaintenanceRequestMain = ({ onMobileMenuClick }) => {
     switch(status) {
       case 'new':
         return (
-            <div className="d-flex justify-content-between align-items-center gap-2 w-100 flex-wrap">
-                <div className="d-flex gap-2">
-                <button className="sec-btn rounded-2 px-md-4 py-2">
-                    Submit the order
-                </button>
-                <button 
-                  className="btn btn-outline-danger py-2"
-                  data-bs-toggle="modal"
-                  data-bs-target="#rejectOrderModal"
-                  onClick={() => handleRejectClick(itemId)}
-                >
-                  Reject order
-                </button>
-                </div>
-                                      <button 
-            type="submit" 
-            className="sec-btn rounded-2 py-2 px-3 d-flex align-items-center justify-content-center gap-2 w-50-100"
-          >
-            <img src="/assets/key.svg" alt="key" />
-            <span>smart key</span>
-                        </button>
+          <div className="d-flex justify-content-between align-items-center gap-2 w-100 flex-wrap">
+            <div className="d-flex gap-2">
+              <button 
+                className="rounded-2 px-3 py-2 border-0 text-white"
+                style={{ backgroundColor: '#F59331' }}
+                onClick={(e) => handleAcceptOrder(e, itemId)}
+                disabled={isAccepting === itemId}
+              >
+                {isAccepting === itemId ? 'Accepting...' : 'Accepte order'}
+              </button>
+              <button 
+                className="btn btn-outline-danger rounded-2 py-2 px-3"
+                data-bs-toggle="modal"
+                data-bs-target="#rejectOrderModal"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRejectClick(itemId);
+                }}
+              >
+                reject ordeer
+              </button>
             </div>
+            <button 
+              type="button" 
+              className="rounded-2 py-2 px-3 d-flex align-items-center justify-content-center gap-2 border-0 text-white"
+              style={{ backgroundColor: '#F59331' }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Smart key functionality
+              }}
+            >
+              <img src="/assets/key-icon.svg" alt="key" style={{ filter: 'brightness(0) invert(1)' }} />
+              <span>smart key</span>
+            </button>
+          </div>
         );
       case 'in-progress':
         return (
-          <button 
-            className="btn btn-outline-danger py-2"
-            data-bs-toggle="modal"
-            data-bs-target="#rejectOrderModal"
-            onClick={() => handleRejectClick(itemId)}
-          >
-            Cancel order
-          </button>
+          <div className="d-flex justify-content-start w-100">
+            <button 
+              className="btn btn-outline-danger rounded-2 py-2 px-3"
+              data-bs-toggle="modal"
+              data-bs-target="#rejectOrderModal"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleRejectClick(itemId);
+              }}
+            >
+              Cancel order
+            </button>
+          </div>
         );
       case 'finished':
         return (
@@ -367,7 +435,7 @@ const CleanerMaintenanceRequestMain = ({ onMobileMenuClick }) => {
                     </div>
                     <div className="d-flex mt-2 gap-2 align-items-center w-100">
                       {/* Replace hardcoded buttons with conditional rendering */}
-                      {renderActionButtons(item.status, item.id)}
+                      {renderActionButtons(selectedOrderFilter, item.id)}
                     </div>
                   </div>
                 </div>

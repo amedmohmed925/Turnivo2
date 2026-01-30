@@ -93,6 +93,21 @@ export const rejectMaintenanceService = async (accessToken, data) => {
   }
 };
 
+export const acceptMaintenanceService = async (accessToken, data) => {
+  try {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/accept-maintenance-service', data, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept-Language': getLanguage(),
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error accepting maintenance service:', error);
+    throw error.response?.data || { message: 'Failed to accept maintenance service' };
+  }
+};
+
 export const addMaintenanceServiceBeforeImages = async (accessToken, service_id, images) => {
   try {
     const formData = new FormData();
