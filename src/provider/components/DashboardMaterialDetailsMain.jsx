@@ -64,10 +64,8 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
 
         const response = await getMaterialRequestDetails(accessToken, id);
 
-        if (response.status === 1) {
-          const detail = Array.isArray(response.data)
-            ? response.data?.[0]?.items?.[0] || response.data?.[0]
-            : response.data?.items?.[0] || response.data?.[0] || response.data;
+        if (response.status === 1 && response.data) {
+          const detail = Array.isArray(response.data) ? response.data[0] : response.data;
           setMaterialDetails(detail || null);
         } else {
           setMaterialDetails(null);
@@ -89,22 +87,27 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
 
   const handleChangeStatus = async () => {
     const { value: comment } = await Swal.fire({
-      title: 'Change Status',
+      title: getStatusButtonText(),
       input: 'textarea',
-      inputLabel: 'Enter comment (optional)',
+      inputLabel: 'Enter comment (required)',
       inputPlaceholder: 'Type your comment here...',
       showCancelButton: true,
-      confirmButtonText: 'Change Status',
-      confirmButtonColor: '#0d6efd',
+      confirmButtonText: 'Confirm',
+      confirmButtonColor: '#f7941d',
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return 'Comment is required!';
+        }
+      }
     });
 
-    if (comment !== undefined) {
+    if (comment && comment.trim()) {
       try {
         setIsChangingStatus(true);
         const accessToken = localStorage.getItem('access_token');
         const id = searchParams.get('id');
         
-        const response = await changeStatusMaterialRequest(accessToken, id, comment || '');
+        const response = await changeStatusMaterialRequest(accessToken, id, comment.trim());
         
         if (response.status === 1) {
           Swal.fire({
@@ -114,24 +117,34 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
           });
           // Refresh the details
           const refreshResponse = await getMaterialRequestDetails(accessToken, id);
-          if (refreshResponse.status === 1) {
-            const detail = Array.isArray(refreshResponse.data)
-              ? refreshResponse.data?.[0]?.items?.[0] || refreshResponse.data?.[0]
-              : refreshResponse.data?.items?.[0] || refreshResponse.data?.[0] || refreshResponse.data;
+          if (refreshResponse.status === 1 && refreshResponse.data) {
+            const detail = Array.isArray(refreshResponse.data) ? refreshResponse.data[0] : refreshResponse.data;
             setMaterialDetails(detail || null);
           }
         } else {
+          // Handle API error response
+          let errorMessage = response.message || 'Failed to change status';
+          if (response.data && Array.isArray(response.data)) {
+            const errors = response.data.map(err => `${err.field}: ${err.message}`).join('\n');
+            errorMessage = errors;
+          }
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: response.message || 'Failed to change status',
+            text: errorMessage,
           });
         }
       } catch (error) {
+        // Handle caught error with detailed message
+        let errorMessage = error.message || 'Failed to change status';
+        if (error.data && Array.isArray(error.data)) {
+          const errors = error.data.map(err => `${err.field}: ${err.message}`).join('\n');
+          errorMessage = errors;
+        }
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: error.message || 'Failed to change status',
+          text: errorMessage,
         });
       } finally {
         setIsChangingStatus(false);
@@ -142,6 +155,52 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
   const calculateTotalPrice = (items) => {
     if (!items || !items.length) return 0;
     return items.reduce((sum, item) => sum + (item.total_price || 0), 0);
+  };
+
+  // Get status badge class based on status
+  const getStatusBadgeClass = (status) => {
+    const statusName = status?.name?.toLowerCase();
+    switch (statusName) {
+      case 'new':
+        return 'new-badge';
+      case 'progress':
+      case 'inprogress':
+      case 'in-progress':
+        return 'in-progress-badge';
+      case 'complete':
+      case 'completed':
+        return 'finished-badge';
+      case 'cancelled':
+      case 'canceled':
+      case 'closed':
+        return 'canceled-badge';
+      default:
+        return 'new-badge';
+    }
+  };
+
+  // Get button text based on current status
+  const getStatusButtonText = () => {
+    const statusName = materialDetails?.status?.name?.toLowerCase();
+    switch (statusName) {
+      case 'new':
+        return 'Mark as In Progress';
+      case 'progress':
+      case 'inprogress':
+      case 'in-progress':
+        return 'Mark as Complete';
+      case 'complete':
+      case 'completed':
+        return 'Close Service';
+      default:
+        return 'Change Status';
+    }
+  };
+
+  // Check if status button should be shown
+  const shouldShowStatusButton = () => {
+    const statusName = materialDetails?.status?.name?.toLowerCase();
+    return ['new', 'progress', 'inprogress', 'in-progress', 'complete', 'completed'].includes(statusName);
   };
 
   if (isLoading) {
@@ -256,9 +315,14 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
                   style={{width: '100px', height: '100px', objectFit: 'cover'}}
                 />   
                 <div className='d-flex flex-column gap-2 align-items-start w-100'>
-                  <div className="d-flex justify-content-between align-items-center w-100">
+                  <div className="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
                     <h6 className="property-problem-title mb-0">{materialDetails.user?.name || 'Unknown User'}</h6>
-                    <div className='new-badge px-2 p-1 rounded-2'>Request #{materialDetails.id}</div>
+                    <div className="d-flex gap-2 align-items-center">
+                      <div className={`${getStatusBadgeClass(materialDetails.status)} px-2 p-1 rounded-2`}>
+                        {materialDetails.status?.name || 'New'}
+                      </div>
+                      <div className='new-badge px-2 p-1 rounded-2'>Request #{materialDetails.id}</div>
+                    </div>
                   </div>
                   <div className="d-flex align-items-center gap-1">
                     <img src="/assets/more-square.svg" alt="id" />
@@ -266,6 +330,10 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
                   </div>
                   <div className="d-flex align-items-center gap-1">
                     <p className="dashboard-home-card-2-desc-3 m-0">Rating: {materialDetails.user?.rate || 0} ⭐</p>
+                  </div>
+                  <div className="d-flex align-items-center gap-1">
+                    <img src="/assets/calendar-3.svg" alt="calendar" />
+                    <p className="dashboard-home-card-2-desc-3 m-0">Created: {materialDetails.created_at || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -314,7 +382,13 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
               </div>
               <div className="d-flex justify-content-between align-items-center mt-2">
                 <p className="dashboard-home-card-2-desc-3 m-0">Total Price:</p>
-                <p className="smart-access-title m-0">${calculateTotalPrice(materialDetails.material_request_items)}</p>
+                <p className="smart-access-title m-0" style={{ color: '#f7941d', fontWeight: 'bold' }}>${materialDetails.total_price || calculateTotalPrice(materialDetails.material_request_items)}</p>
+              </div>
+              <div className="d-flex justify-content-between align-items-center mt-2">
+                <p className="dashboard-home-card-2-desc-3 m-0">Status:</p>
+                <div className={`${getStatusBadgeClass(materialDetails.status)} px-3 py-1 rounded-2`}>
+                  {materialDetails.status?.name || 'New'}
+                </div>
               </div>
             </div>
           </div>
@@ -324,13 +398,15 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
             <Link to="/provider/material-request" className="main-btn rounded-2 px-4 py-2 text-decoration-none">
               Back to Requests
             </Link>
-            <button 
-              className="sec-btn rounded-2 py-2 px-4 d-flex align-items-center justify-content-center gap-2"
-              onClick={handleChangeStatus}
-              disabled={isChangingStatus}
-            >
-              {isChangingStatus ? 'Processing...' : 'Change Status'}
-            </button>
+            {shouldShowStatusButton() && (
+              <button 
+                className="sec-btn rounded-2 py-2 px-4 d-flex align-items-center justify-content-center gap-2"
+                onClick={handleChangeStatus}
+                disabled={isChangingStatus}
+              >
+                {isChangingStatus ? 'Processing...' : getStatusButtonText()}
+              </button>
+            )}
           </div>
         </div>
       </div>

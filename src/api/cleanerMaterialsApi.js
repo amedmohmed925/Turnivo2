@@ -1,16 +1,15 @@
 /* eslint-disable no-useless-catch */
-import axios from 'axios';
+import axiosInstance from './axiosConfig';
 
-const BASE_URL = 'https://alrajihy.com/demo/turnivo/api/web/v1/site';
-// const BASE_URL = import.meta.env.PROD ? 'https://alrajihy.com/demo/turnivo/api/web/v1/site' : '';
+const getLanguage = () => localStorage.getItem('language') || 'en';
 
 // Get all available materials for selection
 export const getMaterials = async (accessToken) => {
   try {
-    const response = await axios.get(`${BASE_URL}/provider-material`, {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-material', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Accept-Language': localStorage.getItem('language') || 'en',
+        'Accept-Language': getLanguage(),
       },
     });
     return response.data;
@@ -22,10 +21,10 @@ export const getMaterials = async (accessToken) => {
 // Create a new material request (order)
 export const createMaterialRequest = async (accessToken, data) => {
   try {
-    const response = await axios.post(`${BASE_URL}/provider-create-material-request`, data, {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/provider-create-material-request', data, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Accept-Language': localStorage.getItem('language') || 'en',
+        'Accept-Language': getLanguage(),
       },
     });
     return response.data;
@@ -37,10 +36,10 @@ export const createMaterialRequest = async (accessToken, data) => {
 // Get new material requests
 export const getNewMaterialRequests = async (accessToken) => {
   try {
-    const response = await axios.get(`${BASE_URL}/provider-material-request-new`, {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-material-request-new', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Accept-Language': localStorage.getItem('language') || 'en',
+        'Accept-Language': getLanguage(),
       },
     });
     return response.data;
@@ -52,10 +51,10 @@ export const getNewMaterialRequests = async (accessToken) => {
 // Get complete material requests
 export const getCompleteMaterialRequests = async (accessToken) => {
   try {
-    const response = await axios.get(`${BASE_URL}/provider-material-request-complete`, {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-material-request-complete', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Accept-Language': localStorage.getItem('language') || 'en',
+        'Accept-Language': getLanguage(),
       },
     });
     return response.data;
@@ -67,10 +66,10 @@ export const getCompleteMaterialRequests = async (accessToken) => {
 // Get cancelled material requests
 export const getCancelledMaterialRequests = async (accessToken) => {
   try {
-    const response = await axios.get(`${BASE_URL}/provider-material-request-cancelled`, {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-material-request-cancelled', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Accept-Language': localStorage.getItem('language') || 'en',
+        'Accept-Language': getLanguage(),
       },
     });
     return response.data;
@@ -82,13 +81,13 @@ export const getCancelledMaterialRequests = async (accessToken) => {
 // Cancel a material request
 export const cancelMaterialRequest = async (accessToken, materialsRequestId) => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/provider-material-cancel-request`,
+    const response = await axiosInstance.post(
+      '/demo/turnivo/api/web/v1/site/provider-material-cancel-request',
       { matrails_request_id: materialsRequestId },
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Accept-Language': localStorage.getItem('language') || 'en',
+          'Accept-Language': getLanguage(),
         },
       }
     );
@@ -101,11 +100,11 @@ export const cancelMaterialRequest = async (accessToken, materialsRequestId) => 
 // Get material request details by ID
 export const getMaterialRequestView = async (accessToken, id) => {
   try {
-    const response = await axios.get(`${BASE_URL}/provider-material-request-view`, {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/provider-material-request-view', {
       params: { id },
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Accept-Language': localStorage.getItem('language') || 'en',
+        'Accept-Language': getLanguage(),
       },
     });
     return response.data;

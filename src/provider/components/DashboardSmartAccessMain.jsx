@@ -5,6 +5,8 @@ import { Person, Settings, Logout } from '@mui/icons-material';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { getSupervisorSmartLockHistoryCheckin, getSupervisorSmartLockHistoryCheckout } from '../../api/smartLockApi';
 
 const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -12,6 +14,8 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
   
   // Add state to track selected filter
   const [selectedFilter, setSelectedFilter] = useState('checkin');
+  const [historyData, setHistoryData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -26,6 +30,55 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Fetch history data
+  useEffect(() => {
+    const fetchHistoryData = async () => {
+      if (selectedFilter !== 'checkin' && selectedFilter !== 'checkout') {
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const accessToken = localStorage.getItem('access_token');
+
+        if (!accessToken) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Authentication Required',
+            text: 'Please login to continue',
+          });
+          return;
+        }
+
+        let response;
+        if (selectedFilter === 'checkin') {
+          response = await getSupervisorSmartLockHistoryCheckin(accessToken);
+        } else {
+          response = await getSupervisorSmartLockHistoryCheckout(accessToken);
+        }
+
+        if (response.status === 1 && response.data) {
+          const items = response.data?.[0]?.items || [];
+          setHistoryData(items);
+        } else {
+          setHistoryData([]);
+        }
+      } catch (error) {
+        console.error('Error fetching history data:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'Failed to load history data',
+        });
+        setHistoryData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHistoryData();
+  }, [selectedFilter]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -187,6 +240,42 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
 
             </div>
             <div className="card p-2 rounded-4">
+              {isLoading ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : (selectedFilter === 'checkin' || selectedFilter === 'checkout') ? (
+                historyData.length > 0 ? (
+                  historyData.map((item) => (
+                    <div key={item.id} className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-start gap-4 flex-wrap'>
+                      <div className="bg-white p-2 rounded-2 m-0">
+                        <h6 className='smart-access-title m-0'>{item.property_id?.name || 'Property'}</h6>
+                      </div>
+                      <div>
+                        <h6 className="dashboard-home-card-2-desc-1 mb-1">
+                          Code: {item.code || 'N/A'} {item.type === 1 ? '(Temp)' : '(Smart Lock)'}
+                        </h6>
+                        <h6 className="dashboard-home-card-2-desc-1 mb-1">
+                          User: {item.user?.name || 'N/A'}
+                        </h6>
+                        <div className="d-flex align-items-center gap-1">
+                          <div className="d-flex align-items-center gap-1">
+                            <img src="/assets/dashboard-card-icon-8.svg" className='smart-icon-2' alt="icon" />
+                            <p className="dashboard-home-card-2-desc-3 m-0">{item.created_at || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-5">
+                    <p className="text-muted">No {selectedFilter} history found</p>
+                  </div>
+                )
+              ) : (
+                <>
               <div className='bg-light-gray p-3 mb-3 rounded-4 d-flex align-items-start gap-4 flex-wrap'>
                 <div className="bg-white p-2 rounded-2 m-0">
                   <h6 className='smart-access-title m-0'>Upholstery and carpet cleaning</h6>
@@ -262,6 +351,8 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
                                 </div>
                             </div>
               </div>
+              </>
+              )}
             </div>
       {/* Temp Access Modal */}
 <div

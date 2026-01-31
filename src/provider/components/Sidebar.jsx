@@ -185,12 +185,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
         { id: 'company-policies', label: 'Company Policies', route: '/provider/company-policies' },
       ]
     },
-    {
-      id: 'report',
-      label: 'Report a problem',
-      iconPath: "/assets/report-icon.svg",
-      route: '/provider/report-problem'
-    }
+   
   ];
 
   const bottomItems = [

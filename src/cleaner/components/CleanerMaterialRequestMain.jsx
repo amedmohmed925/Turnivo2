@@ -55,8 +55,9 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
       setIsLoading(true);
       const response = await getMaterials(accessToken);
       if (response.status === 1 && response.data) {
-        setMaterials(response.data);
-        const total = Math.ceil(response.data.length / itemsPerPage) || 1;
+        const items = response.data?.[0]?.items || response.data || [];
+        setMaterials(items);
+        const total = Math.ceil(items.length / itemsPerPage) || 1;
         setTotalPages(total);
       } else {
         setMaterials([]);
@@ -351,20 +352,36 @@ const CleanerMaterialRequestMain = ({ onMobileMenuClick }) => {
                 </div>
               ) : (
                 currentMaterials.map((material) => (
-                  <div key={material.id} className="col-md-2 mb-3 col-20-per">
+                  <div key={material.id} className="col-6 col-md-3 col-lg-2 mb-3">
                     <div
-                      className={`bg-light-gray p-3 rounded-3 h-100 cursor-pointer ${isItemSelected(material.id) ? 'active' : ''}`}
+                      className={`material-card p-2 rounded-3 h-100 ${isItemSelected(material.id) ? 'material-card-selected' : ''}`}
                       onClick={() => handleMaterialClick(material)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ 
+                        cursor: 'pointer',
+                        border: isItemSelected(material.id) ? '2px solid #f7941d' : '2px solid transparent',
+                        backgroundColor: '#f8f9fa',
+                        transition: 'border-color 0.2s ease'
+                      }}
                     >
                       <img
                         src={material.image || '/assets/service-img.png'}
-                        className="img-fluid w-100"
+                        className="img-fluid w-100 rounded-2"
                         alt={material.name || 'material'}
+                        style={{ height: '100px', objectFit: 'cover' }}
                       />
                       <div className="d-flex justify-content-between align-items-center gap-1 mt-2">
-                        <h3 className="dashboard-routes-sub m-0">{material.name || material.title}</h3>
-                        <div className="third-btn-sm p-1 rounded-2">${material.price || 0}</div>
+                        <h6 className="m-0" style={{ fontSize: '12px', color: '#333' }}>{material.name || material.title}</h6>
+                        <span 
+                          className="px-2 py-1 rounded-2" 
+                          style={{ 
+                            backgroundColor: isItemSelected(material.id) ? '#f7941d' : '#e9ecef',
+                            color: isItemSelected(material.id) ? '#fff' : '#f7941d',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          ${material.price || 0}
+                        </span>
                       </div>
                     </div>
                   </div>

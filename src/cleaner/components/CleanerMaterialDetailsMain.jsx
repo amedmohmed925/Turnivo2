@@ -39,8 +39,8 @@ const CleanerMaterialDetailsMain = ({ onMobileMenuClick }) => {
       try {
         setIsLoading(true);
         const response = await getMaterialRequestView(accessToken, orderId);
-        if (response.status === 1 && response.data) {
-          setOrderDetails(response.data);
+        if (response.status === 1 && response.data && response.data.length > 0) {
+          setOrderDetails(response.data[0]);
         } else {
           Swal.fire({
             icon: 'error',
@@ -142,42 +142,78 @@ const CleanerMaterialDetailsMain = ({ onMobileMenuClick }) => {
                 {renderStatusBadge(orderDetails.status)}
               </div>
 
-              <div className="d-flex justify-content-between w-100 align-items-center pb-1 mb-3 border-bottom">
+              {/* User Info */}
+              {orderDetails.user && (
+                <div className="d-flex align-items-center gap-3 p-3 mb-3 rounded-3" style={{ backgroundColor: '#f8f9fa' }}>
+                  <img 
+                    src={orderDetails.user.avatar || '/assets/user.png'} 
+                    alt="user" 
+                    className="rounded-circle"
+                    style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                  />
+                  <div>
+                    <h6 className="m-0 fw-bold">{orderDetails.user.name || 'User'}</h6>
+                    <div className="d-flex align-items-center gap-1 mt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <svg
+                          key={star}
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill={star <= (orderDetails.user.rate || 0) ? "#f7941d" : "none"}
+                          stroke="#f7941d"
+                          strokeWidth="2"
+                        >
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                      <span className="text-muted ms-1" style={{ fontSize: '12px' }}>({orderDetails.user.rate || 0})</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="d-flex justify-content-between w-100 align-items-center pb-2 mb-3 border-bottom">
                 <div className="card-total-price-label">Order Date</div>
-                <h2 className="mb-0 dashboard-title">{orderDetails.created_at || 'N/A'}</h2>
+                <h6 className="mb-0" style={{ color: '#666' }}>{orderDetails.created_at || 'N/A'}</h6>
               </div>
 
-              {orderDetails.items && orderDetails.items.length > 0 && (
+              {orderDetails.material_request_items && orderDetails.material_request_items.length > 0 && (
                 <>
-                  <h6 className="property-management-card-title mb-2 mt-4">Items</h6>
-                  {orderDetails.items.map((item, index) => (
+                  <h6 className="property-management-card-title mb-3">Order Items</h6>
+                  {orderDetails.material_request_items.map((item) => (
                     <div
-                      key={index}
-                      className="d-flex align-items-center justify-content-between flex-wrap p-3 gap-3 w-100 materials-cards rounded-4 mb-2"
+                      key={item.id}
+                      className="d-flex align-items-center justify-content-between flex-wrap p-3 gap-3 w-100 rounded-3 mb-2"
+                      style={{ backgroundColor: '#f8f9fa' }}
                     >
-                      <div className="d-flex align-items-center gap-2">
+                      <div className="d-flex align-items-center gap-3">
                         <img
-                          src={item.image || '/assets/problem-img-2.png'}
-                          className="img-fluid materials-img"
-                          alt={item.name}
+                          src={item.material_id?.image || '/assets/problem-img-2.png'}
+                          className="rounded-2"
+                          alt={item.material_name}
+                          style={{ width: '60px', height: '60px', objectFit: 'cover' }}
                         />
                         <div className="d-flex flex-column gap-1 align-items-start">
-                          <h6 className="property-problem-title mb-0">{item.name || item.title}</h6>
-                          <p className="text-muted m-0">Qty: {item.quantity || 1}</p>
+                          <h6 className="property-problem-title mb-0">{item.material_name}</h6>
+                          <p className="text-muted m-0" style={{ fontSize: '13px' }}>Unit Price: ${item.material_price || 0}</p>
+                          <p className="m-0" style={{ fontSize: '13px', color: '#666' }}>Quantity: <strong>{item.quantity || 1}</strong></p>
                         </div>
                       </div>
-                      <h6 className="card-item-total-price m-0">${item.price || 0}</h6>
+                      <div className="text-end">
+                        <h5 className="m-0 fw-bold" style={{ color: '#f7941d' }}>${item.total_price || 0}</h5>
+                      </div>
                     </div>
                   ))}
                 </>
               )}
 
-              <div className="d-flex justify-content-between w-100 align-items-center pb-1 mb-3 mt-4 border-bottom">
-                <div className="card-total-price-label">Total Price</div>
-                <h2 className="mb-0 dashboard-title">${orderDetails.total_price || 0}</h2>
+              <div className="d-flex justify-content-between w-100 align-items-center py-3 mt-3" style={{ borderTop: '2px solid #f7941d' }}>
+                <div className="card-total-price-label fw-bold">Total Price</div>
+                <h4 className="mb-0 fw-bold" style={{ color: '#f7941d' }}>${orderDetails.total_price || 0}</h4>
               </div>
 
-              {orderDetails.status === 'new' && (
+              {orderDetails.status?.name === 'new' && (
                 <div className="d-flex justify-content-end align-items-center mt-3">
                   <button
                     className="btn btn-outline-danger py-2 px-4"

@@ -117,3 +117,47 @@ export const getProviderSmartLockHistoryCheckout = async (accessToken, page = 1)
   );
   return response.data;
 };
+
+/**
+ * Get supervisor smart lock checkin history
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with smart lock checkin history
+ */
+export const getSupervisorSmartLockHistoryCheckin = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/supervisor-smart-lock-history-checkin`,
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept-Language': localStorage.getItem('language') || 'en',
+      },
+      params: {
+        page
+      }
+    }
+  );
+  return response.data;
+};
+
+/**
+ * Get supervisor smart lock checkout history
+ * @param {string} accessToken - User's access token
+ * @param {number} page - Page number for pagination (optional)
+ * @returns {Promise} API response with smart lock checkout history
+ */
+export const getSupervisorSmartLockHistoryCheckout = async (accessToken, page = 1) => {
+  const response = await axiosInstance.get(
+    `/demo/turnivo/api/web/v1/site/supervisor-smart-lock-history-checkout`,
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept-Language': localStorage.getItem('language') || 'en',
+      },
+      params: {
+        page
+      }
+    }
+  );
+  return response.data;
+};
