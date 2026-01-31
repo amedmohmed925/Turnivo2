@@ -155,3 +155,18 @@ export const addMaintenanceServiceAfterImages = async (accessToken, service_id, 
     throw error.response?.data || { message: 'Failed to add after images' };
   }
 };
+
+export const changeStatusMaintenanceService = async (accessToken, data) => {
+  try {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/change-status-maintenance-service', data, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept-Language': getLanguage(),
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error changing maintenance service status:', error);
+    throw error.response?.data || { message: 'Failed to change maintenance service status' };
+  }
+};

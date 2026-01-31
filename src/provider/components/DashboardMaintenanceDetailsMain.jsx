@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getMaintenanceServiceDetails } from '../../api/superviserMaintenanceApi';
 import ProviderHeader from './ProviderHeader';
 
 const DashboardMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   
   // API data state
   const [serviceDetails, setServiceDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleReselectClick = () => {
+    const serviceId = searchParams.get('id');
+    if (serviceId) {
+      navigate(`/provider/team-work?select=true&service_id=${serviceId}&type=maintenance`);
+    }
+  };
   
   // Fetch service details
   useEffect(() => {
@@ -212,9 +220,24 @@ const DashboardMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
                       />
                       <div>
                         <h6 className='login-title m-0'>
-                          {serviceDetails.provider?.name || 'N/A'}
+                          {serviceDetails.provider?.name || 'Not Assigned'}
                         </h6>
-                        <h6 className="training-details-card-desc m-0 mt-1">Provider</h6>
+                        <div className="d-flex align-items-center gap-1 mt-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <svg
+                              key={star}
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill={star <= (serviceDetails.provider?.rate || 0) ? "#f7941d" : "none"}
+                              stroke="#f7941d"
+                              strokeWidth="2"
+                            >
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                          ))}
+                          <span className="training-details-card-desc m-0 ms-1">({serviceDetails.provider?.rate || 0})</span>
+                        </div>
                       </div>
                     </div>
             <h6 className="property-problem-title my-2">Problem description</h6>
@@ -240,11 +263,10 @@ const DashboardMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
         <div className="d-flex gap-2 align-items-center justify-content-between flex-wrap my-3">
                       <button
   className="main-btn rounded-2 px-4 py-2 d-flex justify-content-center align-items-center gap-2 w-50-100"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
+  onClick={handleReselectClick}
 >
     <img src="/assets/people.svg" alt="people" />
-  resellect
+  reselect
                         </button>
                       <button 
             type="submit" 

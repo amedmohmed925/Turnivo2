@@ -160,28 +160,42 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
     }
   };
   
-  const renderActionButtons = (status, itemId) => {
+  const renderActionButtons = (status, item) => {
     const key = getStatusKey(status);
     switch (key) {
       case 'new':
         return (
           <div className="d-flex gap-2 justify-content-between align-items-end flex-wrap w-100">
-            <div>
-              <h6 className="property-problem-title my-2">employee</h6>
-              <div className="d-flex align-items-center gap-2 w-100">
-                <img src='/assets/user.png' className='provider-rate' alt="user" />
-                <div>
-                  <h6 className='login-title m-0'>Leslie Alexander</h6>
-                  <h6 className="training-details-card-desc m-0 mt-1">Operations Manager</h6>
+            {item.provider_id && (
+              <div>
+                <h6 className="property-problem-title my-2">employee</h6>
+                <div className="d-flex align-items-center gap-2 w-100">
+                  <img 
+                    src={item.provider_id?.image || '/assets/user.png'} 
+                    className='provider-rate' 
+                    alt="user" 
+                  />
+                  <div>
+                    <h6 className='login-title m-0'>
+                      {`${item.provider_id?.first_name || ''} ${item.provider_id?.last_name || ''}`.trim() || 'Not assigned'}
+                    </h6>
+                    <h6 className="training-details-card-desc m-0 mt-1">
+                      {item.provider_id?.job_title || 'Service Provider'}
+                    </h6>
+                  </div>
                 </div>
               </div>
-            </div>                      
+            )}
             <button
               className="main-btn rounded-2 px-4 py-2 d-flex justify-content-center align-items-center gap-2 w-50-100"
-              onClick={() => handleReselectClick(itemId)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleReselectClick(item.id);
+              }}
             >
               <img src="/assets/people.svg" alt="people" />
-              resellect
+              reselect
             </button>
           </div>
         );
@@ -274,7 +288,7 @@ const DashboardCleaningRequestMain = ({ onMobileMenuClick }) => {
                       <p className="dashboard-home-card-2-desc-3 mb-0">{item.time_from && item.time_to ? `${item.time_from} - ${item.time_to}` : 'N/A'}</p>
                     </div>
                     <div className="d-flex mt-2 gap-2 align-items-center w-100">
-                      {renderActionButtons(item.status, item.id)}
+                      {renderActionButtons(item.status, item)}
                     </div>
                   </div>
                 </div>

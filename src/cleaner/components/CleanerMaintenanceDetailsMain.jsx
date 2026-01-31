@@ -7,6 +7,8 @@ import {
   getMaintenanceServiceDetails,
   addMaintenanceServiceBeforeImages,
   addMaintenanceServiceAfterImages,
+  rejectMaintenanceService,
+  changeStatusMaintenanceService,
 } from '../../api/cleanerMaintenanceApi';
 import { selectAccessToken } from '../../store/authSlice';
 
@@ -22,6 +24,11 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
   const [isUploadingBefore, setIsUploadingBefore] = useState(false);
   const [isUploadingAfter, setIsUploadingAfter] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [rejectComment, setRejectComment] = useState('');
+  const [submitComment, setSubmitComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [searchParams] = useSearchParams();
   const serviceId = searchParams.get('id');
@@ -213,6 +220,30 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
     }
   };
 
+  // Get status button text based on current status
+  const getStatusButtonText = () => {
+    const statusName = serviceDetails?.status?.name?.toLowerCase();
+    switch (statusName) {
+      case 'new':
+        return 'Make it in progress';
+      case 'progress':
+      case 'in-progress':
+      case 'inprogress':
+        return 'Complete order';
+      case 'complete':
+      case 'finished':
+        return 'Close service';
+      default:
+        return 'Submit the order';
+    }
+  };
+
+  // Check if status button should be shown
+  const shouldShowStatusButton = () => {
+    const statusName = serviceDetails?.status?.name?.toLowerCase();
+    return ['new', 'progress', 'in-progress', 'inprogress', 'complete', 'finished'].includes(statusName);
+  };
+
   // Open image in lightbox
   const openImageModal = (imageSrc) => {
     setSelectedImage(imageSrc);
@@ -221,6 +252,106 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
   // Close image modal
   const closeImageModal = () => {
     setSelectedImage(null);
+  };
+
+  // Handle reject order
+  const handleRejectOrder = async () => {
+    if (!rejectComment.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Comment Required',
+        text: 'Please enter a reason for rejection',
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response = await rejectMaintenanceService(accessToken, {
+        service_id: serviceId,
+        comment: rejectComment.trim(),
+      });
+
+      if (response.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.message || 'Order rejected successfully',
+        });
+        setShowRejectModal(false);
+        setRejectComment('');
+        // Refresh data
+        const refreshResponse = await getMaintenanceServiceDetails(accessToken, serviceId);
+        if (refreshResponse.status === 1 && refreshResponse.data?.[0]) {
+          setServiceDetails(refreshResponse.data[0]);
+        }
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Failed to reject order',
+        });
+      }
+    } catch (error) {
+      console.error('Error rejecting order:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to reject order',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle submit order
+  const handleSubmitOrder = async () => {
+    if (!submitComment.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Comment Required',
+        text: 'Please enter a comment',
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response = await changeStatusMaintenanceService(accessToken, {
+        service_id: serviceId,
+        comment: submitComment.trim(),
+      });
+
+      if (response.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.message || 'Order submitted successfully',
+        });
+        setShowSubmitModal(false);
+        setSubmitComment('');
+        // Refresh data
+        const refreshResponse = await getMaintenanceServiceDetails(accessToken, serviceId);
+        if (refreshResponse.status === 1 && refreshResponse.data?.[0]) {
+          setServiceDetails(refreshResponse.data[0]);
+        }
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Failed to submit order',
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to submit order',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -518,10 +649,20 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
               </div>
         <div className="d-flex gap-2 align-items-center justify-content-between flex-wrap my-3">
                                       <div className="d-flex gap-2">
-                <button className="sec-btn rounded-2 px-md-4 py-2">
-                    Submit the order
+                {shouldShowStatusButton() && (
+                <button 
+                  className="sec-btn rounded-2 px-md-4 py-2"
+                  onClick={() => setShowSubmitModal(true)}
+                >
+                    {getStatusButtonText()}
                 </button>
-                <button className="btn btn-outline-danger py-2">Reject order</button>
+                )}
+                <button 
+                  className="btn btn-outline-danger py-2"
+                  onClick={() => setShowRejectModal(true)}
+                >
+                  Reject order
+                </button>
                 </div>
                       <button 
             type="submit" 
@@ -590,6 +731,108 @@ const CleanerMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
               cursor: 'default'
             }}
           />
+        </div>
+      )}
+
+      {/* Submit Order Modal */}
+      {showSubmitModal && (
+        <div 
+          className="modal show d-block" 
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setShowSubmitModal(false)}
+        >
+          <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content rounded-4">
+              <div className="modal-header border-0">
+                <h5 className="m-0 dashboard-home-card-2-title-1">Submit Order</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowSubmitModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div>
+                  <label className="dashboard-home-card-2-title-1 fw-bold">Comment</label>
+                  <textarea
+                    className="form-control rounded-2 py-2"
+                    placeholder="Enter your comment"
+                    rows="4"
+                    value={submitComment}
+                    onChange={(e) => setSubmitComment(e.target.value)}
+                  ></textarea>
+                </div>
+              </div>
+              <div className="modal-footer border-0">
+                <button
+                  type="button"
+                  className="btn btn-secondary rounded-2 px-4 py-2"
+                  onClick={() => setShowSubmitModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="sec-btn rounded-2 px-4 py-2"
+                  disabled={isSubmitting}
+                  onClick={handleSubmitOrder}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Order Modal */}
+      {showRejectModal && (
+        <div 
+          className="modal show d-block" 
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setShowRejectModal(false)}
+        >
+          <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content rounded-4">
+              <div className="modal-header border-0">
+                <h5 className="m-0 dashboard-home-card-2-title-1">What issue are you facing?</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowRejectModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div>
+                  <label className="dashboard-home-card-2-title-1 fw-bold">Cause of the problem</label>
+                  <textarea
+                    className="form-control rounded-2 py-2"
+                    placeholder="Enter cause of the problem"
+                    rows="4"
+                    value={rejectComment}
+                    onChange={(e) => setRejectComment(e.target.value)}
+                  ></textarea>
+                </div>
+              </div>
+              <div className="modal-footer border-0">
+                <button
+                  type="button"
+                  className="btn btn-secondary rounded-2 px-4 py-2"
+                  onClick={() => setShowRejectModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger rounded-2 px-4 py-2"
+                  disabled={isSubmitting}
+                  onClick={handleRejectOrder}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Reject Order'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </section>

@@ -11,6 +11,7 @@ import {
   getCompleteCleanServices,
   getRejectCleanServices,
   rejectCleanService,
+  changeStatusCleanService,
 } from '../../api/cleanerCleaningApi';
 import { selectAccessToken } from '../../store/authSlice';
 import CleanerHeader from './CleanerHeader';
@@ -26,6 +27,10 @@ const CleanerCleaningRequestMain = ({ onMobileMenuClick }) => {
   const [selectedServiceId, setSelectedServiceId] = useState(null);
   const [rejectComment, setRejectComment] = useState('');
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
+  const [isChangingStatus, setIsChangingStatus] = useState(null);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [startTaskServiceId, setStartTaskServiceId] = useState(null);
+  const [startComment, setStartComment] = useState('');
 
   const accessToken = useSelector(selectAccessToken);
 
@@ -193,6 +198,67 @@ const CleanerCleaningRequestMain = ({ onMobileMenuClick }) => {
     }
   };
 
+  const handleStartTask = async (serviceId) => {
+    if (!accessToken) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Required',
+        text: 'Please login to continue',
+      });
+      return;
+    }
+
+    if (!startComment.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Comment Required',
+        text: 'Please enter a comment',
+      });
+      return;
+    }
+
+    try {
+      setIsChangingStatus(serviceId);
+      const response = await changeStatusCleanService(accessToken, {
+        service_id: serviceId,
+        comment: startComment.trim(),
+      });
+
+      if (response.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.message || 'Task started successfully',
+        });
+        setShowStartModal(false);
+        setStartTaskServiceId(null);
+        setStartComment('');
+        // Refresh data
+        const newResponse = await getNewCleanServices(accessToken);
+        if (newResponse.status === 1 && newResponse.data?.length > 0) {
+          const items = newResponse.data[0]?.items || [];
+          setCleaningData(items);
+        } else {
+          setCleaningData([]);
+        }
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Failed to start task',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to start task',
+      });
+    } finally {
+      setIsChangingStatus(null);
+    }
+  };
+
   const getStatusKey = (status) => {
     if (!status) return '';
     if (typeof status === 'string') return status.toLowerCase();
@@ -225,12 +291,28 @@ const CleanerCleaningRequestMain = ({ onMobileMenuClick }) => {
       case 'new':
         return (
           <div className="d-flex gap-2">
-            <button className="sec-btn rounded-2 px-md-4 py-2">Start the task</button>
+            <button 
+              className="sec-btn rounded-2 px-md-4 py-2"
+              disabled={isChangingStatus === itemId}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setStartTaskServiceId(itemId);
+                setStartComment('');
+                setShowStartModal(true);
+              }}
+            >
+              {isChangingStatus === itemId ? 'Starting...' : 'Start the task'}
+            </button>
             <button
               className="btn btn-outline-danger py-2"
               data-bs-toggle="modal"
               data-bs-target="#reportOrderModal"
-              onClick={() => handleRejectClick(itemId)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleRejectClick(itemId);
+              }}
             >
               Report order
             </button>
@@ -242,7 +324,11 @@ const CleanerCleaningRequestMain = ({ onMobileMenuClick }) => {
             className="btn btn-outline-danger py-2"
             data-bs-toggle="modal"
             data-bs-target="#reportOrderModal"
-            onClick={() => handleRejectClick(itemId)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleRejectClick(itemId);
+            }}
           >
             Cancel order
           </button>
@@ -416,6 +502,57 @@ const CleanerCleaningRequestMain = ({ onMobileMenuClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Start Task Modal */}
+      {showStartModal && (
+        <div 
+          className="modal show d-block" 
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setShowStartModal(false)}
+        >
+          <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content rounded-4">
+              <div className="modal-header border-0">
+                <h5 className="m-0 dashboard-home-card-2-title-1">Start Task</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowStartModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div>
+                  <label className="dashboard-home-card-2-title-1 fw-bold">Comment</label>
+                  <textarea
+                    className="form-control rounded-2 py-2"
+                    placeholder="Enter your comment"
+                    rows="4"
+                    value={startComment}
+                    onChange={(e) => setStartComment(e.target.value)}
+                  ></textarea>
+                </div>
+              </div>
+              <div className="modal-footer border-0">
+                <button
+                  type="button"
+                  className="btn btn-secondary rounded-2 px-4 py-2"
+                  onClick={() => setShowStartModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="sec-btn rounded-2 px-4 py-2"
+                  disabled={isChangingStatus === startTaskServiceId}
+                  onClick={() => handleStartTask(startTaskServiceId)}
+                >
+                  {isChangingStatus === startTaskServiceId ? 'Starting...' : 'Start Task'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

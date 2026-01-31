@@ -369,7 +369,7 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
                 <div 
                   className={`bg-light-gray p-3 rounded-3 h-100 ${isSelectionMode ? 'selection-card' : ''}`} 
                   style={{cursor: 'pointer'}}
-                  onClick={() => isSelectionMode && handleSelectMember(item)}
+                  onClick={() => isSelectionMode ? handleViewProfile(item) : null}
                 >
                   <div className="text-center mb-2">
                     <img 
@@ -387,20 +387,10 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
                   {isSelectionMode ? (
                     <button
                       className="sec-btn rounded-2 px-4 py-2 w-100 mt-3 d-flex align-items-center justify-content-center gap-2"
-                      onClick={(e) => { e.stopPropagation(); handleSelectMember(item); }}
-                      disabled={isAssigning}
+                      onClick={(e) => { e.stopPropagation(); handleViewProfile(item); }}
                     >
-                      {isAssigning ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm" role="status"></span>
-                          <span>Assigning...</span>
-                        </>
-                      ) : (
-                        <>
-                          <img src="/assets/people.svg" alt="select" className="flag-icon" />
-                          <span>Select</span>
-                        </>
-                      )}
+                      <img src="/assets/user-icon.svg" alt="profile" className="flag-icon" />
+                      <span>View Profile</span>
                     </button>
                   ) : (
                   <div className="d-flex align-items-center gap-2 flex-wrap mt-3">
@@ -484,26 +474,46 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
                     )}
                   </div>
 
-                  {/* Upgrade Button */}
-                  <button
-                    className="sec-btn rounded-3 py-2 px-3 w-100 d-flex align-items-center justify-content-center gap-2 mt-3"
-                    onClick={() => handleUpgradeUser(selectedMember.user?.id || selectedMember.id)}
-                    disabled={isUpgrading}
-                  >
-                    {isUpgrading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm" role="status"></span>
-                        <span>Upgrading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 19V5M5 12l7-7 7 7"/>
-                        </svg>
-                        <span>Upgrade User</span>
-                      </>
-                    )}
-                  </button>
+                  {/* Action Button - Assign in selection mode, Upgrade otherwise */}
+                  {isSelectionMode ? (
+                    <button
+                      className="sec-btn rounded-3 py-2 px-3 w-100 d-flex align-items-center justify-content-center gap-2 mt-3"
+                      onClick={() => handleSelectMember(selectedMember)}
+                      disabled={isAssigning}
+                    >
+                      {isAssigning ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm" role="status"></span>
+                          <span>Assigning...</span>
+                        </>
+                      ) : (
+                        <>
+                          <img src="/assets/people.svg" alt="assign" style={{width: '16px', height: '16px', filter: 'brightness(0) invert(1)'}} />
+                          <span>Assign to this member</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      className="sec-btn rounded-3 py-2 px-3 w-100 d-flex align-items-center justify-content-center gap-2 mt-3"
+                      onClick={() => handleUpgradeUser(selectedMember.user?.id || selectedMember.id)}
+                      disabled={isUpgrading}
+                    >
+                      {isUpgrading ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm" role="status"></span>
+                          <span>Upgrading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 19V5M5 12l7-7 7 7"/>
+                          </svg>
+                          <span>Upgrade User</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

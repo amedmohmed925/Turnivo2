@@ -12,6 +12,7 @@ import {
   getRejectMaintenanceServices,
   rejectMaintenanceService,
   acceptMaintenanceService,
+  changeStatusMaintenanceService,
 } from '../../api/cleanerMaintenanceApi';
 import { selectAccessToken } from '../../store/authSlice';
 import CleanerHeader from './CleanerHeader';
@@ -28,6 +29,10 @@ const CleanerMaintenanceRequestMain = ({ onMobileMenuClick }) => {
   const [rejectComment, setRejectComment] = useState('');
   const [isSubmittingReject, setIsSubmittingReject] = useState(false);
   const [isAccepting, setIsAccepting] = useState(null);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [startTaskServiceId, setStartTaskServiceId] = useState(null);
+  const [startComment, setStartComment] = useState('');
+  const [isChangingStatus, setIsChangingStatus] = useState(null);
   
   const accessToken = useSelector(selectAccessToken);
 
@@ -254,6 +259,66 @@ const CleanerMaintenanceRequestMain = ({ onMobileMenuClick }) => {
       setIsSubmittingReject(false);
     }
   };
+
+  const handleStartTask = async (serviceId) => {
+    if (!accessToken) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Required',
+        text: 'Please login to continue',
+      });
+      return;
+    }
+
+    if (!startComment.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Comment Required',
+        text: 'Please enter a comment',
+      });
+      return;
+    }
+
+    try {
+      setIsChangingStatus(serviceId);
+      const response = await changeStatusMaintenanceService(accessToken, {
+        service_id: serviceId,
+        comment: startComment.trim(),
+      });
+
+      if (response.status === 1) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.message || 'Status updated successfully',
+        });
+        setShowStartModal(false);
+        setStartTaskServiceId(null);
+        setStartComment('');
+        // Refresh data
+        const newResponse = await getProgressMaintenanceServices(accessToken);
+        if (newResponse.status === 1 && newResponse.data?.length > 0) {
+          const items = newResponse.data[0]?.items || [];
+          setMaintenanceData(items);
+        }
+        setSelectedOrderFilter('in-progress');
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: response.message || 'Failed to update status',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to update status',
+      });
+    } finally {
+      setIsChangingStatus(null);
+    }
+  };
   
   const getStatusKey = (status) => {
     if (!status) return '';
@@ -327,7 +392,20 @@ const CleanerMaintenanceRequestMain = ({ onMobileMenuClick }) => {
         );
       case 'in-progress':
         return (
-          <div className="d-flex justify-content-start w-100">
+          <div className="d-flex justify-content-start w-100 gap-2">
+            <button 
+              className="sec-btn rounded-2 px-md-4 py-2"
+              disabled={isChangingStatus === itemId}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setStartTaskServiceId(itemId);
+                setStartComment('');
+                setShowStartModal(true);
+              }}
+            >
+              {isChangingStatus === itemId ? 'Updating...' : 'Complete order'}
+            </button>
             <button 
               className="btn btn-outline-danger rounded-2 py-2 px-3"
               data-bs-toggle="modal"
@@ -518,6 +596,57 @@ const CleanerMaintenanceRequestMain = ({ onMobileMenuClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Start Task / Change Status Modal */}
+      {showStartModal && (
+        <div 
+          className="modal show d-block" 
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setShowStartModal(false)}
+        >
+          <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content rounded-4">
+              <div className="modal-header border-0">
+                <h5 className="m-0 dashboard-home-card-2-title-1">Update Status</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setShowStartModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div>
+                  <label className="dashboard-home-card-2-title-1 fw-bold">Comment</label>
+                  <textarea
+                    className="form-control rounded-2 py-2"
+                    placeholder="Enter your comment"
+                    rows="4"
+                    value={startComment}
+                    onChange={(e) => setStartComment(e.target.value)}
+                  ></textarea>
+                </div>
+              </div>
+              <div className="modal-footer border-0">
+                <button
+                  type="button"
+                  className="btn btn-secondary rounded-2 px-4 py-2"
+                  onClick={() => setShowStartModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="sec-btn rounded-2 px-4 py-2"
+                  disabled={isChangingStatus === startTaskServiceId}
+                  onClick={() => handleStartTask(startTaskServiceId)}
+                >
+                  {isChangingStatus === startTaskServiceId ? 'Updating...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

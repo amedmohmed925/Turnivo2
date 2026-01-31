@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { getCleanServiceDetails } from '../../api/superviserCleaningApi';
 import ProviderHeader from './ProviderHeader';
@@ -10,8 +10,16 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
   const beforeInputRef = useRef(null);
   const afterInputRef = useRef(null);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [serviceDetails, setServiceDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleReselectClick = () => {
+    const serviceId = searchParams.get('id');
+    if (serviceId) {
+      navigate(`/provider/team-work?select=true&service_id=${serviceId}&type=cleaning`);
+    }
+  };
 
   const handleBeforeUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -166,12 +174,33 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
                 </div>
 
             </div>
-            <h6 className="property-problem-title my-2">employee</h6>
+            <h6 className="property-problem-title my-2">Employee</h6>
                                 <div className="d-flex align-items-center gap-2 w-100">
-                      <img src='/assets/user.png' className='provider-rate' alt="user" />
+                      <img 
+                        src={serviceDetails.provider?.avatar || '/assets/user.png'} 
+                        className='provider-rate' 
+                        alt="provider" 
+                      />
                       <div>
-                        <h6 className='login-title m-0'>Leslie Alexander</h6>
-                        <h6 className="training-details-card-desc m-0 mt-1">Operations Manager</h6>
+                        <h6 className='login-title m-0'>
+                          {serviceDetails.provider?.name || 'Not Assigned'}
+                        </h6>
+                        <div className="d-flex align-items-center gap-1 mt-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <svg
+                              key={star}
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill={star <= (serviceDetails.provider?.rate || 0) ? "#f7941d" : "none"}
+                              stroke="#f7941d"
+                              strokeWidth="2"
+                            >
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                          ))}
+                          <span className="training-details-card-desc m-0 ms-1">({serviceDetails.provider?.rate || 0})</span>
+                        </div>
                       </div>
                     </div>
                                         <h6 className="property-management-card-title mb-0 mt-4">Additional Services</h6>
@@ -205,11 +234,10 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
         <div className="d-flex gap-2 align-items-center justify-content-between flex-wrap my-3">
                       <button
   className="main-btn rounded-2 px-4 py-2 d-flex justify-content-center align-items-center gap-2 w-50-100"
-  data-bs-toggle="modal"
-  data-bs-target="#tempAccessModal"
+  onClick={handleReselectClick}
 >
     <img src="/assets/people.svg" alt="people" />
-  resellect
+  reselect
                         </button>
                       <button 
             type="submit" 

@@ -136,3 +136,18 @@ export const addCleanServiceAfterImages = async (accessToken, service_id, images
     throw error.response?.data || { message: 'Failed to add after images' }
   }
 }
+
+export const changeStatusCleanService = async (accessToken, data) => {
+  try {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/change-status-clean-service', data, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Accept-Language': getLanguage(),
+      },
+    })
+    return response.data
+  } catch (error) {
+    console.error('Error changing clean service status:', error)
+    throw error.response?.data || { message: 'Failed to change clean service status' }
+  }
+}

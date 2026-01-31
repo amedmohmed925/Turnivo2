@@ -360,8 +360,16 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
     }
     
     if (currentStep === 2) {
-      if (!selectedAppointment) {
-        Swal.fire({ icon: 'warning', title: 'Please select an appointment' });
+      if (!formData.date) {
+        Swal.fire({ icon: 'warning', title: 'Please select a date' });
+        return;
+      }
+      if (!formData.time_from) {
+        Swal.fire({ icon: 'warning', title: 'Please select a start time (Time From)' });
+        return;
+      }
+      if (!formData.time_to) {
+        Swal.fire({ icon: 'warning', title: 'Please select an end time (Time To)' });
         return;
       }
     }
@@ -680,7 +688,67 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
 
           {/* STEP 2: Service Date (Calendar) */}
           <div className={`step-2-container ${currentStep === 2 ? '' : 'd-none'}`}>
-            <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 mt-4">
+            <div className="login-title mb-2 mt-2">Select Service Date and Time</div>
+            
+            {/* Manual Date and Time Selection */}
+            <div className="row mt-3 mb-4">
+              <div className="col-md-4 mb-3">
+                <label htmlFor="serviceDate" className="form-label mb-1">Date</label>
+                <input
+                  type="date"
+                  className="form-control rounded-2 py-2 px-3"
+                  id="serviceDate"
+                  value={formData.date}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, date: e.target.value }));
+                    setSelectedAppointment(null);
+                  }}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div className="col-md-4 mb-3">
+                <label htmlFor="timeFrom" className="form-label mb-1">Time From</label>
+                <input
+                  type="time"
+                  className="form-control rounded-2 py-2 px-3"
+                  id="timeFrom"
+                  value={formData.time_from}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, time_from: e.target.value }));
+                    setSelectedAppointment(null);
+                  }}
+                />
+              </div>
+              <div className="col-md-4 mb-3">
+                <label htmlFor="timeTo" className="form-label mb-1">Time To</label>
+                <input
+                  type="time"
+                  className="form-control rounded-2 py-2 px-3"
+                  id="timeTo"
+                  value={formData.time_to}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, time_to: e.target.value }));
+                    setSelectedAppointment(null);
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Selected Date/Time Summary */}
+            {(formData.date || formData.time_from || formData.time_to) && (
+              <div className="selected-datetime-summary p-3 rounded-3 mb-4 bg-light-gray">
+                <h6 className="mb-2">Selected Schedule:</h6>
+                <div className="d-flex gap-4 flex-wrap">
+                  {formData.date && <span><strong>Date:</strong> {formData.date}</span>}
+                  {formData.time_from && <span><strong>From:</strong> {formData.time_from}</span>}
+                  {formData.time_to && <span><strong>To:</strong> {formData.time_to}</span>}
+                </div>
+              </div>
+            )}
+
+            <div className="service-desc mb-3">Or select from available slots</div>
+
+            <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
               <div className="d-flex gap-2 p-2 rounded-2 days-filter">
                 <button className="main-btn rounded-2 px-3 py-1" onClick={handleToday}>Today</button>
                 <div className="days-filter-item px-3 py-1" onClick={handlePrevWeek} style={{cursor: 'pointer'}}>Back</div>
