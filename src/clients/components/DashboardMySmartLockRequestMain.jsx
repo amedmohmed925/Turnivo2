@@ -1,30 +1,142 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { getMySmartLockRequest } from '../../api/smartLockApi';
 import Swal from 'sweetalert2';
+import ClientHeader from './ClientHeader';
 
 const DashboardMySmartLockRequestMain = ({ onMobileMenuClick }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const navigate = useNavigate();
-
   // API state
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  
+  // Payment modal state
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    card_number: '',
+    expiry_date: '',
+    cvv: ''
+  });
+  
+  // Payment handlers
+  const handlePaymentMethodClick = (method) => {
+    setSelectedPaymentMethod(method);
+  };
+
+  const handlePaymentInputChange = (e) => {
+    const { name, value } = e.target;
+    setPaymentData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCompletePayment = (request) => {
+    setSelectedRequest(request);
+    setSelectedPaymentMethod(null);
+    setPaymentData({
+      card_number: '',
+      expiry_date: '',
+      cvv: ''
+    });
+    setShowPaymentModal(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const handleCloseModal = () => {
+    setShowPaymentModal(false);
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (!selectedRequest) return;
+
+    if (!selectedPaymentMethod) {
+      Swal.fire({ icon: 'warning', title: 'Please select a payment method' });
+      return;
+    }
+
+    if (!paymentData.card_number || !paymentData.expiry_date || !paymentData.cvv) {
+      Swal.fire({ icon: 'warning', title: 'Please fill in all payment details' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        Swal.fire({ icon: 'error', title: 'Authentication Required', text: 'Please log in again.' });
+        return;
+      }
+      
+      const requestData = {
+        request_id: selectedRequest.id,
+        property_id: selectedRequest.property_id?.id || selectedRequest.property_id,
+        date: selectedRequest.date,
+        time_from: selectedRequest.time_from,
+        time_to: selectedRequest.time_to,
+        price: parseFloat(selectedRequest.originalPrice) || parseFloat(selectedRequest.price) || 0,
+        payment_method: selectedPaymentMethod,
+        card_number: paymentData.card_number,
+        expiry_date: paymentData.expiry_date,
+        cvv: paymentData.cvv
+      };
+
+      console.log('Payment request data:', requestData);
+
+      // Use the same createSmartLockRequest API to complete payment
+      const { createSmartLockRequest } = await import('../../api/propertyApi');
+      const response = await createSmartLockRequest(accessToken, requestData);
+      
+      console.log('Payment response:', response);
+      
+      if (response && response.status === 1) {
+        // Close modal using state
+        handleCloseModal();
+        
+        // Show success message
+        await Swal.fire({
+          icon: 'success',
+          title: 'Payment Completed',
+          text: response.data?.[0]?.message || 'Your payment has been completed successfully.',
+        });
+        
+        // Refresh requests list
+        fetchRequests();
+      } else {
+        console.log('Payment failed - response status:', response?.status);
+        Swal.fire({ 
+          icon: 'error', 
+          title: 'Payment Failed', 
+          text: response?.data?.[0]?.message || 'Payment failed. Please try again.' 
+        });
+      }
+    } catch (err) {
+      console.error('Payment error:', err);
+      console.error('Error response:', err.response);
+      Swal.fire({ 
+        icon: 'error', 
+        title: 'Error', 
+        text: err.response?.data?.message || err.message || 'An error occurred during payment' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Fetch requests from API
   const fetchRequests = async () => {
     setLoading(true);
-    setError(null);
     
     try {
       const accessToken = localStorage.getItem('access_token');
@@ -38,14 +150,12 @@ const DashboardMySmartLockRequestMain = ({ onMobileMenuClick }) => {
         const { items, _meta } = response.data[0];
         setRequests(items || []);
         setTotalPages(_meta?.NumberOfPage || 1);
-        setTotalCount(_meta?.totalCount || 0);
       } else {
         setRequests([]);
         setTotalPages(1);
       }
     } catch (err) {
       console.error('Error fetching smart lock requests:', err);
-      setError(err.message || 'Failed to fetch smart lock requests');
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -59,7 +169,27 @@ const DashboardMySmartLockRequestMain = ({ onMobileMenuClick }) => {
   // Fetch requests when component mounts or when page changes
   useEffect(() => {
     fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
+  
+  // Cleanup modal-open class on component mount
+  useEffect(() => {
+    // Remove any leftover modal classes from body
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    
+    // Remove any leftover backdrops
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(backdrop => backdrop.remove());
+    
+    return () => {
+      // Cleanup on unmount
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, []);
   
   // Helper function to map API data to component format
   const mapRequestToCard = (request) => {
@@ -92,37 +222,24 @@ const DashboardMySmartLockRequestMain = ({ onMobileMenuClick }) => {
       platformIcon: platformIcon,
       status: status,
       image: request.property_id?.image || '/assets/problem-img-2.png',
-      paymentStatus: request.payment_status
+      paymentStatus: request.payment_status,
+      payment_status: request.payment_status,
+      // Keep original request data for modal
+      property_id: request.property_id,
+      time_from: request.time_from,
+      time_to: request.time_to,
+      originalPrice: request.price
     };
   };
   
   // Map requests to display format
   const currentItems = requests.map(mapRequestToCard);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const handleDropdownItemClick = (item) => {
-    console.log(`Clicked on ${item}`);
-    setIsDropdownOpen(false);
-    // Add your navigation logic here
-  };
   
+  // Debug: log first item to check payment_status
+  if (currentItems.length > 0) {
+    console.log('First request payment_status:', currentItems[0].payment_status, 'paymentStatus:', currentItems[0].paymentStatus);
+  }
+
   // Function to handle page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -165,9 +282,17 @@ const DashboardMySmartLockRequestMain = ({ onMobileMenuClick }) => {
   };
   
   // Function to render action buttons based on status
-  const renderActionButtons = (status, itemId, paymentStatus) => {
-    if (paymentStatus === 0) {
-      return <button className="btn btn-outline-primary">Complete Payment</button>;
+  const renderActionButtons = (status, request) => {
+    // Check if payment is pending (payment_status could be 0, "0", or null)
+    if (request.paymentStatus === 0 || request.paymentStatus === '0' || request.payment_status === 0 || request.payment_status === '0') {
+      return (
+        <button 
+          className="btn btn-outline-primary"
+          onClick={() => handleCompletePayment(request)}
+        >
+          Complete Payment
+        </button>
+      );
     }
     
     switch(status) {
@@ -190,74 +315,7 @@ const DashboardMySmartLockRequestMain = ({ onMobileMenuClick }) => {
 
   return (
     <section>
-      <div className="dashboard-main-nav px-md-3 px-1 py-1">
-        <div className="d-flex justify-content-between align-items-center">
-          <div className="d-flex align-items-center gap-0">
-            <button 
-              className="mobile-menu-btn"
-              onClick={onMobileMenuClick}
-              aria-label="Toggle menu"
-            >
-              <FontAwesomeIcon icon={faBars} />
-            </button>
-            <h2 className="mb-0 dashboard-title">My Smart Lock Request</h2>
-          </div>
-          <div className="d-flex justify-content-end gap-2 align-items-center">
-            <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="/assets/global.svg" alt="notification" />
-              <span>English</span>
-            </div>
-            <Link to='/client/notifications' className="notification-icon-container">
-              <img src="/assets/notification.svg" alt="notification" />
-            </Link>
-            
-            {/* User Profile Dropdown */}
-            <div className="user-dropdown-container d-none d-md-block" ref={dropdownRef}>
-              <div 
-                className="user-profile-trigger d-flex gap-2 align-items-center"
-                onClick={toggleDropdown}
-              >
-                <FontAwesomeIcon 
-                  icon={faChevronDown} 
-                  className={`dropdown-chevron ${isDropdownOpen ? 'open' : ''}`}
-                />
-                <span className="user-name">Omar Alrajhi</span>
-                <img 
-                  src="/assets/user.png" 
-                  alt="User Profile" 
-                  className="user-avatar-small"
-                />
-              </div>
-              
-              {isDropdownOpen && (
-                <div className="user-dropdown-menu">
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('profile')}
-                  >
-                    <img src="/assets/user-square.svg" alt="settings" />
-                    <span>Profile</span>
-                  </div>
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('settings')}
-                  >
-                    <img src="/assets/setting-icon.svg" alt="settings" />
-                    <span>Settings</span>
-                  </div>
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('logout')}
-                  >
-                    <img src="/assets/logout-icon.svg" alt="settings" />
-                    <span>Logout</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <ClientHeader title="My Smart Lock Request" onMobileMenuClick={onMobileMenuClick} />
       <div className="dashboard-home-content px-3 mt-2">
 
         <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
@@ -330,7 +388,7 @@ const DashboardMySmartLockRequestMain = ({ onMobileMenuClick }) => {
                         <span>{item.platform}</span>
                       </div>
                       <div className="d-flex gap-2 align-items-center">
-                        {renderActionButtons(item.status, item.id, item.paymentStatus)}
+                        {renderActionButtons(item.status, item)}
                       </div>
                     </div>
                   </div>
@@ -365,6 +423,342 @@ const DashboardMySmartLockRequestMain = ({ onMobileMenuClick }) => {
           </>
         )}
       </div>
+
+      {/* Payment Modal */}
+      {selectedRequest && showPaymentModal && (
+        <div 
+          className="modal fade show" 
+          id="paymentModal" 
+          tabIndex="-1" 
+          aria-labelledby="paymentModalLabel" 
+          aria-modal="true"
+          role="dialog"
+          style={{ display: 'block' }}
+          onClick={(e) => {
+            if (e.target.classList.contains('modal')) {
+              handleCloseModal();
+            }
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content" style={{ borderRadius: '16px' }}>
+              <div className="modal-header border-0 pb-0">
+                <h5 className="modal-title fw-bold" id="paymentModalLabel">Complete Payment</h5>
+                <button type="button" className="btn-close" onClick={handleCloseModal} aria-label="Close"></button>
+              </div>
+              <div className="modal-body px-4">
+                {/* Property Info (Read-only) */}
+                <div className="mb-4">
+                  <label className="form-label fw-semibold mb-3" style={{ fontSize: '15px' }}>Determine the property</label>
+                  <div className="property-card-wrapper p-3 rounded-3" style={{ backgroundColor: '#f5f5f5' }}>
+                    <div className="d-flex align-items-start gap-3">
+                      <img 
+                        src={selectedRequest.property_id?.image || selectedRequest.property_id?.data?.images?.[0] || selectedRequest.image || '/assets/home-1.avif'} 
+                        alt={selectedRequest.property_id?.name || selectedRequest.property_id?.data?.title || 'Property'} 
+                        style={{ 
+                          width: '80px', 
+                          height: '80px', 
+                          objectFit: 'cover', 
+                          borderRadius: '8px',
+                          flexShrink: 0
+                        }}
+                      />
+                      <div className="flex-grow-1">
+                        <div className="d-flex align-items-center gap-2 mb-2">
+                          <span className="badge" style={{ 
+                            backgroundColor: '#FFE5D9', 
+                            color: '#333',
+                            fontWeight: '500',
+                            fontSize: '11px',
+                            padding: '4px 10px'
+                          }}>
+                            {selectedRequest.property_id?.type || 'department'}
+                          </span>
+                        </div>
+                        <div className="d-flex align-items-center gap-1 mb-2">
+                          <span style={{ fontSize: '14px', fontWeight: '600', color: '#333' }}>★</span>
+                          <span style={{ fontSize: '13px', color: '#666' }}>
+                            {selectedRequest.property_id?.name || selectedRequest.property_id?.data?.title || selectedRequest.subtitle || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="d-flex align-items-center gap-2 flex-wrap" style={{ fontSize: '12px', color: '#888' }}>
+                          <span>🏢 {selectedRequest.property_id?.floors || '5'} floors</span>
+                          <span>🚪 {selectedRequest.property_id?.rooms || '9'} rooms</span>
+                          <span>📏 {selectedRequest.property_id?.size || '800'} m</span>
+                          <span>🚿 {selectedRequest.property_id?.bathrooms || '10'} bathrooms</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date (Read-only) */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Date</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={selectedRequest.date || ''} 
+                    readOnly 
+                    placeholder="mm/dd/yyyy"
+                    style={{ 
+                      backgroundColor: '#f9f9f9',
+                      border: '1px solid #e0e0e0',
+                      padding: '12px 16px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+
+                {/* Time (Read-only) */}
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Time From</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={selectedRequest.time_from || ''} 
+                      readOnly 
+                      placeholder="10:00 AM"
+                      style={{ 
+                        backgroundColor: '#f9f9f9',
+                        border: '1px solid #e0e0e0',
+                        padding: '12px 16px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Time To</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={selectedRequest.time_to || ''} 
+                      readOnly 
+                      placeholder="12:00 PM"
+                      style={{ 
+                        backgroundColor: '#f9f9f9',
+                        border: '1px solid #e0e0e0',
+                        padding: '12px 16px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Total Cost (Read-only) */}
+                <div className="mb-4">
+                  <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Total cost</label>
+                  <div className="p-3 rounded-3" style={{ backgroundColor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
+                    <h4 className="m-0 fw-bold" style={{ color: '#333' }}>
+                      {selectedRequest.originalPrice || selectedRequest.price || 0} $
+                    </h4>
+                  </div>
+                </div>
+
+                {/* Payment Method Selection */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Payment method</label>
+                  <div className="d-flex gap-3 mb-3">
+                    <div
+                      className={`payment-card-option flex-fill ${selectedPaymentMethod === 'card1' ? 'selected' : ''}`}
+                      onClick={() => handlePaymentMethodClick('card1')}
+                      style={{
+                        border: selectedPaymentMethod === 'card1' ? '2px solid #FF8A3C' : '1px solid #e0e0e0',
+                        borderRadius: '12px',
+                        padding: '15px 10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        backgroundColor: selectedPaymentMethod === 'card1' ? '#FFF4ED' : 'white',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <img src="/assets/payment-card-img-1.png" className='img-fluid' alt="visa" style={{ maxHeight: '30px' }} />
+                    </div>
+                    <div
+                      className={`payment-card-option flex-fill ${selectedPaymentMethod === 'card2' ? 'selected' : ''}`}
+                      onClick={() => handlePaymentMethodClick('card2')}
+                      style={{
+                        border: selectedPaymentMethod === 'card2' ? '2px solid #FF8A3C' : '1px solid #e0e0e0',
+                        borderRadius: '12px',
+                        padding: '15px 10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        backgroundColor: selectedPaymentMethod === 'card2' ? '#FFF4ED' : 'white',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <img src="/assets/payment-card-img-2.png" className='img-fluid' alt="mastercard" style={{ maxHeight: '30px' }} />
+                    </div>
+                    <div
+                      className={`payment-card-option flex-fill ${selectedPaymentMethod === 'card3' ? 'selected' : ''}`}
+                      onClick={() => handlePaymentMethodClick('card3')}
+                      style={{
+                        border: selectedPaymentMethod === 'card3' ? '2px solid #FF8A3C' : '1px solid #e0e0e0',
+                        borderRadius: '12px',
+                        padding: '15px 10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        backgroundColor: selectedPaymentMethod === 'card3' ? '#FFF4ED' : 'white',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <img src="/assets/payment-card-img-3.svg" className='img-fluid' alt="paypal" style={{ maxHeight: '30px' }} />
+                    </div>
+                    <div
+                      className={`payment-card-option flex-fill ${selectedPaymentMethod === 'card4' ? 'selected' : ''}`}
+                      onClick={() => handlePaymentMethodClick('card4')}
+                      style={{
+                        border: selectedPaymentMethod === 'card4' ? '2px solid #FF8A3C' : '1px solid #e0e0e0',
+                        borderRadius: '12px',
+                        padding: '15px 10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        backgroundColor: selectedPaymentMethod === 'card4' ? '#FFF4ED' : 'white',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <img src="/assets/payment-card-img-4.svg" className='img-fluid' alt="other" style={{ maxHeight: '30px' }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Details */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Card number</label>
+                  <div className="position-relative">
+                    <img 
+                      src="/assets/credit-card-icon.svg" 
+                      alt="card" 
+                      style={{
+                        position: 'absolute',
+                        left: '16px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: '20px',
+                        height: 'auto',
+                        zIndex: 1
+                      }}
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="card_number"
+                      value={paymentData.card_number}
+                      onChange={handlePaymentInputChange}
+                      placeholder="1234 5678 4321 5678"
+                      maxLength="19"
+                      style={{ 
+                        paddingLeft: '45px',
+                        border: '1px solid #e0e0e0',
+                        padding: '12px 16px 12px 45px',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Completion date</label>
+                    <div className="position-relative">
+                      <img 
+                        src="/assets/calendar-icon.svg" 
+                        alt="calendar" 
+                        style={{
+                          position: 'absolute',
+                          left: '16px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '18px',
+                          height: 'auto',
+                          zIndex: 1
+                        }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="expiry_date"
+                        value={paymentData.expiry_date}
+                        onChange={handlePaymentInputChange}
+                        placeholder="12/28"
+                        maxLength="5"
+                        style={{ 
+                          paddingLeft: '45px',
+                          border: '1px solid #e0e0e0',
+                          padding: '12px 16px 12px 45px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-semibold" style={{ fontSize: '14px' }}>Code</label>
+                    <div className="position-relative">
+                      <img 
+                        src="/assets/lock-icon.svg" 
+                        alt="cvv" 
+                        style={{
+                          position: 'absolute',
+                          left: '16px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '18px',
+                          height: 'auto',
+                          zIndex: 1
+                        }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="cvv"
+                        value={paymentData.cvv}
+                        onChange={handlePaymentInputChange}
+                        placeholder="CVV"
+                        maxLength="4"
+                        style={{ 
+                          paddingLeft: '45px',
+                          border: '1px solid #e0e0e0',
+                          padding: '12px 16px 12px 45px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer border-0 pt-0 px-4 pb-4">
+                <button 
+                  type="button" 
+                  className="btn w-100 text-white fw-semibold"
+                  onClick={handlePaymentSubmit}
+                  disabled={!selectedPaymentMethod || !paymentData.card_number || !paymentData.expiry_date || !paymentData.cvv || loading}
+                  style={{
+                    backgroundColor: '#FF8A3C',
+                    border: 'none',
+                    padding: '14px',
+                    fontSize: '16px',
+                    borderRadius: '8px'
+                  }}
+                >
+                  {loading ? 'Processing...' : 'Submit'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Backdrop */}
+      {showPaymentModal && (
+        <div 
+          className="modal-backdrop fade show" 
+          onClick={handleCloseModal}
+        ></div>
+      )}
     </section>
   );
 };

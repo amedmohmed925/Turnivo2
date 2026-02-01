@@ -149,7 +149,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       subItems: [
         { id: 'cleaning-requests', label: 'Cleaning Requests', route: '/client/orders' },
         { id: 'maintenance-requests', label: 'Maintenance Requests', route: '/client/maintenance-orders' },
-        { id: 'additional-services', label: 'Additional Services', route: '/client/additional-services' }
+
       ]
     },
     {
