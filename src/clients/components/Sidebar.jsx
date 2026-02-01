@@ -45,7 +45,8 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       case '/client/property-problem':
       case '/client/property-problem-details': return 'reports';
       case '/client/guest-ratings':
-      case '/client/my-ratings': return 'ratings';
+      case '/client/my-ratings':
+      case '/client/service-ratings': return 'ratings';
       default: return 'home';
     }
   };
@@ -56,9 +57,9 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     setActiveItem(active);
 
     // Open dropdown if navigating to a subitem page
-    const subItemPaths = ['/client/cleaning-request', '/client/maintenance', '/client/additional-services', '/client/guest-ratings', '/client/my-ratings', '/client/my-smart-lock-request'];
+    const subItemPaths = ['/client/cleaning-request', '/client/maintenance', '/client/additional-services', '/client/guest-ratings', '/client/my-ratings', '/client/service-ratings', '/client/my-smart-lock-request'];
     if (subItemPaths.includes(location.pathname)) {
-      if (location.pathname.includes('guest') || location.pathname.includes('my-ratings')) {
+      if (location.pathname.includes('guest') || location.pathname.includes('my-ratings') || location.pathname.includes('service-ratings')) {
         setRatingDropdownOpen(true);
       } else if (location.pathname.includes('my-smart-lock-request')) {
         setCheckinDropdownOpen(true);
@@ -194,12 +195,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       iconPath: "/assets/wallet-icon.svg",
       route: '/client/dashboard'
     },
-    {
-      id: 'contact',
-      label: 'Contact us',
-      iconPath: "/assets/message-icon.svg",
-      route: '/client/contact-us'
-    }
+   
   ];
 
   const bottomItems = [

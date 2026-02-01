@@ -168,7 +168,11 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
       platform: order.property_id?.platform_id?.name || 'N/A',
       platformIcon: platformIcon,
       status: status,
-      image: order.property_id?.image || '/assets/problem-img-2.png'
+      image: order.property_id?.image || '/assets/problem-img-2.png',
+      serviceId: order.id,
+      serviceType: 1,
+      providerName: order.provider?.name || order.provider_id?.name || 'Service Provider',
+      providerAvatar: order.provider?.avatar || order.provider_id?.avatar || '/assets/user.png'
     };
   };
   
@@ -234,26 +238,64 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
   };
   
   // Function to render action buttons based on status
-  const renderActionButtons = (status, itemId) => {
+  const renderActionButtons = (status, item) => {
     switch(status) {
       case 'new':
-        return <button className="btn btn-outline-danger" onClick={(e) => handleCancelOrder(e, itemId)}>Cancel order</button>;
+        return <button className="btn btn-outline-danger" onClick={(e) => handleCancelOrder(e, item.id)}>Cancel order</button>;
       case 'in-progress':
-        return <button className="btn btn-outline-danger" onClick={(e) => handleCancelOrder(e, itemId)}>Cancel order</button>;
+        return <button className="btn btn-outline-danger" onClick={(e) => handleCancelOrder(e, item.id)}>Cancel order</button>;
       case 'finished':
         return (
           <div className="d-flex gap-2 align-items-center">
             <button className="sec-btn rounded-2 px-4 py-2 w-50-100">
               Re-order
             </button>
-            <Link to='/client/my-ratings' className="edit-btn d-flex align-items-center justify-content-center gap-1 text-decoration-none" onClick={(e) => e.stopPropagation()}> 
+            <Link
+              to='/client/service-ratings'
+              state={{
+                serviceId: item.serviceId,
+                serviceType: item.serviceType,
+                serviceData: {
+                  title: item.title,
+                  date: item.date,
+                  time: item.time,
+                  propertyName: item.subtitle,
+                  location: item.location,
+                  price: item.price,
+                  image: item.image,
+                  providerName: item.providerName,
+                  providerAvatar: item.providerAvatar
+                }
+              }}
+              className="edit-btn d-flex align-items-center justify-content-center gap-1 text-decoration-none"
+              onClick={(e) => e.stopPropagation()}
+            > 
               <span className='fw-normal'>Rating</span>
             </Link>
           </div>
         );
       case 'canceled':
         return (
-          <Link to='/client/my-ratings' className="edit-btn d-flex align-items-center justify-content-center gap-1 text-decoration-none" onClick={(e) => e.stopPropagation()}> 
+          <Link
+            to='/client/service-ratings'
+            state={{
+              serviceId: item.serviceId,
+              serviceType: item.serviceType,
+              serviceData: {
+                title: item.title,
+                date: item.date,
+                time: item.time,
+                propertyName: item.subtitle,
+                location: item.location,
+                price: item.price,
+                image: item.image,
+                providerName: item.providerName,
+                providerAvatar: item.providerAvatar
+              }
+            }}
+            className="edit-btn d-flex align-items-center justify-content-center gap-1 text-decoration-none"
+            onClick={(e) => e.stopPropagation()}
+          > 
             <span className='fw-normal'>Rating</span>
           </Link>
         );
@@ -374,7 +416,7 @@ const DashboardOrdersMain = ({ onMobileMenuClick }) => {
                         <span>{item.platform}</span>
                       </div>
                       <div className="d-flex gap-2 align-items-center">
-                        {renderActionButtons(item.status, item.id)}
+                        {renderActionButtons(item.status, item)}
                       </div>
                     </div>
                   </div>

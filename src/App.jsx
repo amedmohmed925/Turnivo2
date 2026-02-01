@@ -18,6 +18,7 @@
   import DashboardClientProfile from './clients/pages/DashboardClientProfile'
   import DashboardSmartCheck from './clients/pages/DashboardSmartCheck'
   import DashboardMyRatings from './clients/pages/DashboardMyRatings'
+  import DashboardServiceRatings from './clients/pages/DashboardServiceRatings'
   import DashboarGuestRatings from './clients/pages/DashboarGuestRatings'
   import DashboardContact from './clients/pages/DashboardContact'
   import DashboardCalendar from './clients/pages/DashboardCalendar'
@@ -106,6 +107,7 @@
         <Route path="client/smart-checkin-checkout" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardSmartCheck /></ProtectedRoute>} />
         <Route path="client/my-smart-lock-request" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><MySmartLockRequest /></ProtectedRoute>} />
         <Route path="client/my-ratings" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardMyRatings /></ProtectedRoute>} />
+        <Route path="client/service-ratings" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardServiceRatings /></ProtectedRoute>} />
         <Route path="client/guest-ratings" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboarGuestRatings /></ProtectedRoute>} />
         <Route path="client/contact-us" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardContact /></ProtectedRoute>} />
         <Route path="client/calendar" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardCalendar /></ProtectedRoute>} />

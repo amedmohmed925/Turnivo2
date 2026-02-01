@@ -1,11 +1,11 @@
 import DashboardLayout from '../components/DashboardLayout';
-import DashboardMyRatingsMain from '../components/DashboardMyRatingsMain';
+import DashboardMyRatingsListMain from '../components/DashboardMyRatingsListMain';
 
 const DashboardMyRatings = () => {
   return (
     <DashboardLayout>
       {({ onMobileMenuClick }) => (
-        <DashboardMyRatingsMain onMobileMenuClick={onMobileMenuClick} />
+        <DashboardMyRatingsListMain onMobileMenuClick={onMobileMenuClick} />
       )}
     </DashboardLayout>
   );

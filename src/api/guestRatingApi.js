@@ -22,6 +22,27 @@ export const getGuestRatings = async (accessToken, page = 1) => {
 };
 
 /**
+ * Get my ratings
+ * @param {string} accessToken - The access token for authentication
+ * @param {number} page - The page number for pagination (default: 1)
+ * @returns {Promise} - Promise with the ratings data
+ */
+export const getMyRatings = async (accessToken, page = 1) => {
+  try {
+    const response = await axiosInstance.get('/demo/turnivo/api/web/v1/site/my-rate', {
+      params: {
+        'access-token': accessToken,
+        page: page
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching my ratings:', error);
+    throw error;
+  }
+};
+
+/**
  * Rate a service
  * @param {string} accessToken - User's access token
  * @param {number} service_id - Service ID
