@@ -22,7 +22,7 @@ export const getMySmartLockRequest = async (accessToken, page = 1) => {
  */
 export const getSmartLockHistoryCheckin = async (accessToken, propertyId, page = 1) => {
   const response = await axiosInstance.post(
-    `/demo/turnivo/api/web/v1/site/smart-lock-history?access-token=${accessToken}`
+    `/demo/turnivo/api/web/v1/site/smart-lock-history-checkin?access-token=${accessToken}`
   );
   return response.data;
 };
