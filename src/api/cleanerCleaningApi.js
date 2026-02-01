@@ -151,3 +151,19 @@ export const changeStatusCleanService = async (accessToken, data) => {
     throw error.response?.data || { message: 'Failed to change clean service status' }
   }
 }
+export const providerCheckIn = async (accessToken, serviceId) => {
+  try {
+    const response = await axiosInstance.post('/demo/turnivo/api/web/v1/site/provider-check-in', 
+      { service_id: serviceId },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Accept-Language': getLanguage(),
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to check in' }
+  }
+}

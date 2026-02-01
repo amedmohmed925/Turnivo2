@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { QRCodeCanvas } from 'qrcode.react';
 import { getPropertyById, getPropertyCalendar, getProperties, createSmartLockRequest, getContactInfo, addPropertyRule } from '../../api/propertyApi';
 import { getSmartLockHistoryCheckin, getSmartLockHistoryCheckout, sendEmailToGuest } from '../../api/smartLockApi';
 import { toast, ToastContainer } from 'react-toastify';
@@ -13,6 +14,7 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
   const dropdownRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const propertyCardsRef = useRef({});
+  const qrCodeRef = useRef(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -728,7 +730,18 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
           <div className='col-md-2 mb-3 col-20-per'>
             <div className="d-flex align-items-start flex-column p-2 rounded-3 bg-light-gray-2">
               <h5 className='qr-title m-0 mb-1'>QR code</h5>
-              <img src="/assets/qr-code-2.png" className='qr-code-2' alt="QR Code" />
+              {selectedProperty ? (
+                <div ref={qrCodeRef} className="d-flex justify-content-center w-100">
+                  <QRCodeCanvas 
+                    value={`${window.location.origin}/scan-handler/${selectedProperty.id}`}
+                    size={120}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
+              ) : (
+                <p className="text-muted m-0">Select a property to generate QR code</p>
+              )}
             </div>
           </div>
           <div className='col-md-2 mb-3 col-20-per'></div>

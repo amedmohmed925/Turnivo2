@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { guestLogin } from '../../api/guestApi';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const GuestLoginMain = () => {
   const inputRefs = useRef([]);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -22,6 +23,19 @@ const GuestLoginMain = () => {
       inputRefs.current[0].focus();
     }
   }, []);
+
+  useEffect(() => {
+    const propertyIdParam = searchParams.get('propertyId');
+    if (propertyIdParam) {
+      const parsedId = Number(propertyIdParam);
+      if (!Number.isNaN(parsedId)) {
+        setFormData(prev => ({
+          ...prev,
+          property_id: parsedId,
+        }));
+      }
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
