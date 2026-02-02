@@ -109,46 +109,62 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
             setAfterImages(detail.service_images_after);
           }
           
-          // Initialize timer from duration_time
-          if (detail.duration_time) {
-            const [hours, minutes, seconds] = detail.duration_time.split(':').map(Number);
-            const totalSecs = (hours * 3600) + (minutes * 60) + seconds;
-            setTotalSeconds(totalSecs);
-            
-            // Check if timer was already started (saved in localStorage)
-            const timerKey = `timer_${id}`;
-            const savedTimer = localStorage.getItem(timerKey);
-            
-            if (savedTimer) {
-              // Timer was previously started, calculate remaining time
-              const { startTime, totalSeconds } = JSON.parse(savedTimer);
-              const now = Date.now();
-              const elapsedSeconds = Math.floor((now - startTime) / 1000);
-              const remaining = totalSeconds - elapsedSeconds;
+          // Check if service status is complete, stop timer
+          const statusName = detail.status?.name?.toLowerCase();
+          if (statusName === 'complete' || statusName === 'finished') {
+            setIsTimerRunning(false);
+            // Load saved final time if exists
+            const savedFinalTime = localStorage.getItem(`final_time_${id}`);
+            if (savedFinalTime && detail.duration_time) {
+              const [hours, minutes, seconds] = savedFinalTime.split(':').map(Number);
+              const finalSecs = (hours * 3600) + (minutes * 60) + seconds;
+              const [totalHours, totalMinutes, totalSeconds] = detail.duration_time.split(':').map(Number);
+              const totalSecs = (totalHours * 3600) + (totalMinutes * 60) + totalSeconds;
+              setTotalSeconds(totalSecs);
+              setRemainingSeconds(totalSecs - finalSecs);
+            }
+          } else {
+            // Initialize timer from duration_time
+            if (detail.duration_time) {
+              const [hours, minutes, seconds] = detail.duration_time.split(':').map(Number);
+              const totalSecs = (hours * 3600) + (minutes * 60) + seconds;
+              setTotalSeconds(totalSecs);
               
-              if (remaining > 0) {
-                // Timer still running
-                setRemainingSeconds(remaining);
-                setIsTimerRunning(true);
+              // Check if timer was already started (saved in localStorage)
+              const timerKey = `timer_${id}`;
+              const savedTimer = localStorage.getItem(timerKey);
+              
+              if (savedTimer) {
+                // Timer was previously started, calculate remaining time
+                const { startTime, totalSeconds } = JSON.parse(savedTimer);
+                const now = Date.now();
+                const elapsedSeconds = Math.floor((now - startTime) / 1000);
+                const remaining = totalSeconds - elapsedSeconds;
+                
+                if (remaining > 0) {
+                  // Timer still running
+                  setRemainingSeconds(remaining);
+                  setIsTimerRunning(true);
+                } else {
+                  // Timer completed
+                  setRemainingSeconds(0);
+                  setIsTimerRunning(false);
+                }
               } else {
-                // Timer completed
-                setRemainingSeconds(0);
-                setIsTimerRunning(false);
-              }
-            } else {
-              // Timer not started yet
-              setRemainingSeconds(totalSecs);
-              
-              // Only start timer if user came from QR code scan
-              const fromQR = searchParams.get('fromQR') === 'true';
-              if (fromQR) {
-                // Save timer start time to localStorage
-                const timerData = {
-                  startTime: Date.now(),
-                  totalSeconds: totalSecs
-                };
-                localStorage.setItem(timerKey, JSON.stringify(timerData));
-                setIsTimerRunning(true);
+                // Timer not started yet
+                setRemainingSeconds(totalSecs);
+                
+                // Only start timer if user came from QR code scan
+                const fromQR = searchParams.get('fromQR') === 'true';
+                if (fromQR) {
+                  // Save timer start time to localStorage
+                  const timerData = {
+                    startTime: Date.now(),
+                    totalSeconds: totalSecs
+                  };
+                  localStorage.setItem(timerKey, JSON.stringify(timerData));
+                  setIsTimerRunning(true);
+                }
               }
             }
           }
@@ -307,6 +323,47 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
     });
   };
 
+  // Function to handle finish task (stop timer)
+  const handleFinishTask = () => {
+    const serviceId = searchParams.get('id');
+    
+    // Check if all tasks are completed
+    const allTasksCompleted = tasks.length > 0 && tasks.every(task => task.checked);
+    
+    if (!allTasksCompleted) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Tasks',
+        text: 'Please complete all tasks before finishing!',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    
+    // Stop the timer
+    setIsTimerRunning(false);
+    
+    // Calculate elapsed time
+    const elapsedSeconds = totalSeconds - remainingSeconds;
+    const hours = Math.floor(elapsedSeconds / 3600);
+    const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+    const seconds = elapsedSeconds % 60;
+    const timeDuration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Save final time to localStorage
+    if (serviceId) {
+      localStorage.setItem(`final_time_${serviceId}`, timeDuration);
+      localStorage.removeItem(`timer_${serviceId}`); // Remove active timer
+    }
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Task Finished!',
+      text: `Time taken: ${timeDuration}`,
+      confirmButtonText: 'OK'
+    });
+  };
+
   // Function to handle status change
   const handleChangeStatus = async () => {
     const accessToken = localStorage.getItem('access_token');
@@ -332,10 +389,34 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
 
     try {
       setIsChangingStatus(true);
-      const response = await changeStatusCleanService(accessToken, {
+      
+      // Prepare request data
+      const requestData = {
         service_id: serviceId,
         comment: statusComment.trim(),
-      });
+      };
+      
+      // If status is complete/finished (Close service), add additional data
+      const statusName = serviceDetails?.status?.name?.toLowerCase();
+      if (statusName === 'complete' || statusName === 'finished') {
+        // Get completed task IDs
+        const completedTaskIds = tasks.filter(task => task.checked).map(task => task.id);
+        
+        // Get saved time duration or calculate current
+        let timeDuration = localStorage.getItem(`final_time_${serviceId}`);
+        if (!timeDuration && totalSeconds > 0) {
+          const elapsedSeconds = totalSeconds - remainingSeconds;
+          const hours = Math.floor(elapsedSeconds / 3600);
+          const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+          const seconds = elapsedSeconds % 60;
+          timeDuration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        requestData.list_ids = completedTaskIds;
+        requestData.time_duration = timeDuration || '00:00:00';
+      }
+      
+      const response = await changeStatusCleanService(accessToken, requestData);
 
       if (response.status === 1) {
         Swal.fire({
@@ -345,6 +426,14 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
         });
         setShowStatusModal(false);
         setStatusComment('');
+        
+        // Clear saved data if closing service
+        if (statusName === 'complete' || statusName === 'finished') {
+          localStorage.removeItem(`tasks_${serviceId}`);
+          localStorage.removeItem(`final_time_${serviceId}`);
+          localStorage.removeItem(`timer_${serviceId}`);
+        }
+        
         // Refresh data
         const detailsResponse = await getCleanServiceDetails(accessToken, serviceId);
         if (detailsResponse.status === 1 && detailsResponse.data) {
@@ -653,18 +742,22 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
 </div>
 
 
-                        <div className="d-flex flex-column gap-5 align-items-center h-100 w-100">
-                            <div className="d-flex align-items-center gap-2 text-nowrap">
-                                <div className="hours-timer rounded-pill d-flex gap-1 align-items-center">
-                                    <span>01 h</span>
-                                    <FontAwesomeIcon icon={faPlus} />
-                                </div>
-                                <div className="hours-timer rounded-pill d-flex gap-1 align-items-center">
-                                    <span>30 min</span>
-                                    <FontAwesomeIcon icon={faPlus} />
-                                </div>
+                        <div className="d-flex flex-column gap-3 align-items-center h-100 w-100">
+                            {isTimerRunning && (
+                              <button
+                                className="btn btn-danger rounded-pill px-4 py-2 d-flex align-items-center gap-2"
+                                onClick={handleFinishTask}
+                                style={{ fontSize: '0.9rem', fontWeight: '600' }}
+                              >
+                                <StopCircleIcon style={{ fontSize: '20px' }} />
+                                Finish Task
+                              </button>
+                            )}
+                            <div className="text-center">
+                              <small className="text-muted" style={{ fontSize: '0.75rem' }}>
+                                Complete all tasks before finishing
+                              </small>
                             </div>
-                          
                         </div>
                     </div>
 
