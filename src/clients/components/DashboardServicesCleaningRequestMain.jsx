@@ -36,6 +36,7 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
   // Calendar states
   const [currentDate, setCurrentDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState([]);
+  const [viewType, setViewType] = useState('week'); // 'month', 'week', 'day'
   
   // Form data
   const [formData, setFormData] = useState({
@@ -51,21 +52,37 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
     total_price: 0
   });
 
-  // Generate week dates
+  // Generate dates based on view type
   useEffect(() => {
     const dates = [];
-    const startOfWeek = new Date(currentDate);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day;
-    startOfWeek.setDate(diff);
+    const baseDate = new Date(currentDate);
+    
+    if (viewType === 'day') {
+      dates.push(baseDate);
+    } else if (viewType === 'week') {
+      const startOfWeek = new Date(baseDate);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day;
+      startOfWeek.setDate(diff);
 
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      dates.push(date);
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+        dates.push(date);
+      }
+    } else if (viewType === 'month') {
+      const year = baseDate.getFullYear();
+      const month = baseDate.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        dates.push(date);
+      }
     }
+    
     setWeekDates(dates);
-  }, [currentDate]);
+  }, [currentDate, viewType]);
 
   // Fetch initial data
   useEffect(() => {
@@ -282,6 +299,33 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
     }));
   };
 
+  const handleEmptySlotClick = (date, timeSlot) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const dateKey = `${year}-${month}-${day}`;
+    
+    const hour = parseInt(timeSlot);
+    const timeFrom = `${timeSlot}:00:00`;
+    const timeTo = `${(hour + 2).toString().padStart(2, '0')}:00:00`;
+    
+    setSelectedAppointment(null);
+    setFormData(prev => ({
+      ...prev,
+      date: dateKey,
+      time_from: timeFrom,
+      time_to: timeTo
+    }));
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Slot Selected',
+      text: `Date: ${dateKey}, Time: ${timeFrom} - ${timeTo}`,
+      timer: 2000,
+      showConfirmButton: false
+    });
+  };
+
   const handlePaymentMethodClick = (method) => {
     setSelectedPaymentMethod(method);
   };
@@ -296,15 +340,27 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
     return calendarEvents.filter(event => event.date === dateKey);
   };
 
-  const handleNextWeek = () => {
+  const handleNext = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 7);
+    if (viewType === 'day') {
+      newDate.setDate(newDate.getDate() + 1);
+    } else if (viewType === 'week') {
+      newDate.setDate(newDate.getDate() + 7);
+    } else if (viewType === 'month') {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
     setCurrentDate(newDate);
   };
 
-  const handlePrevWeek = () => {
+  const handleBack = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 7);
+    if (viewType === 'day') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else if (viewType === 'week') {
+      newDate.setDate(newDate.getDate() - 7);
+    } else if (viewType === 'month') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    }
     setCurrentDate(newDate);
   };
 
@@ -323,8 +379,13 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
   const formatDateRange = () => {
     if (weekDates.length === 0) return '';
     const start = weekDates[0];
-    const end = weekDates[6];
+    const end = weekDates[weekDates.length - 1];
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    
+    if (viewType === 'day') {
+      return start.toLocaleDateString('en-GB', options);
+    }
+    
     return `${start.toLocaleDateString('en-GB', options)} - ${end.toLocaleDateString('en-GB', options)}`;
   };
 
@@ -688,55 +749,11 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
 
           {/* STEP 2: Service Date (Calendar) */}
           <div className={`step-2-container ${currentStep === 2 ? '' : 'd-none'}`}>
-            <div className="login-title mb-2 mt-2">Select Service Date and Time</div>
+            <div className="login-title mb-2 mt-2">Service Date</div>
             
-            {/* Manual Date and Time Selection */}
-            <div className="row mt-3 mb-4">
-              <div className="col-md-4 mb-3">
-                <label htmlFor="serviceDate" className="form-label mb-1">Date</label>
-                <input
-                  type="date"
-                  className="form-control rounded-2 py-2 px-3"
-                  id="serviceDate"
-                  value={formData.date}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, date: e.target.value }));
-                    setSelectedAppointment(null);
-                  }}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-              <div className="col-md-4 mb-3">
-                <label htmlFor="timeFrom" className="form-label mb-1">Time From</label>
-                <input
-                  type="time"
-                  className="form-control rounded-2 py-2 px-3"
-                  id="timeFrom"
-                  value={formData.time_from}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, time_from: e.target.value }));
-                    setSelectedAppointment(null);
-                  }}
-                />
-              </div>
-              <div className="col-md-4 mb-3">
-                <label htmlFor="timeTo" className="form-label mb-1">Time To</label>
-                <input
-                  type="time"
-                  className="form-control rounded-2 py-2 px-3"
-                  id="timeTo"
-                  value={formData.time_to}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, time_to: e.target.value }));
-                    setSelectedAppointment(null);
-                  }}
-                />
-              </div>
-            </div>
-
             {/* Selected Date/Time Summary */}
             {(formData.date || formData.time_from || formData.time_to) && (
-              <div className="selected-datetime-summary p-3 rounded-3 mb-4 bg-light-gray">
+              <div className="selected-datetime-summary p-3 rounded-3 mb-3 mt-3 bg-light-gray">
                 <h6 className="mb-2">Selected Schedule:</h6>
                 <div className="d-flex gap-4 flex-wrap">
                   {formData.date && <span><strong>Date:</strong> {formData.date}</span>}
@@ -746,21 +763,38 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
               </div>
             )}
 
-            <div className="service-desc mb-3">Or select from available slots</div>
+            <div className="service-desc mb-3 mt-3">Select from available slots</div>
 
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
               <div className="d-flex gap-2 p-2 rounded-2 days-filter">
                 <button className="main-btn rounded-2 px-3 py-1" onClick={handleToday}>Today</button>
-                <div className="days-filter-item px-3 py-1" onClick={handlePrevWeek} style={{cursor: 'pointer'}}>Back</div>
-                <div className="days-filter-item px-3 py-1" onClick={handleNextWeek} style={{cursor: 'pointer'}}>Next</div>
+                <div className="days-filter-item px-3 py-1" onClick={handleBack} style={{cursor: 'pointer'}}>Back</div>
+                <div className="days-filter-item px-3 py-1" onClick={handleNext} style={{cursor: 'pointer'}}>Next</div>
               </div>
 
               <h6 className="m-0 date-label">{formatDateRange()}</h6>
 
               <div className="d-flex gap-2 p-2 rounded-2 times-filter">
-                <button className="main-btn rounded-2 px-3 py-1">Week</button>
-                <div className="times-filter-item px-3 py-1">Month</div>
-                <div className="times-filter-item px-3 py-1">Day</div>
+                <button 
+                  className={`rounded-2 px-3 py-1 ${viewType === 'month' ? 'main-btn' : 'times-filter-item'}`}
+                  onClick={() => setViewType('month')}
+                >
+                  Month
+                </button>
+                <div 
+                  className={`px-3 py-1 ${viewType === 'week' ? 'main-btn' : 'times-filter-item'}`}
+                  style={{cursor: 'pointer'}}
+                  onClick={() => setViewType('week')}
+                >
+                  Week
+                </div>
+                <div 
+                  className={`px-3 py-1 ${viewType === 'day' ? 'main-btn' : 'times-filter-item'}`}
+                  style={{cursor: 'pointer'}}
+                  onClick={() => setViewType('day')}
+                >
+                  Day
+                </div>
               </div>
             </div>
 
@@ -798,6 +832,8 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                         const day = date.getDate().toString().padStart(2, '0');
                         const dateKey = `${year}-${month}-${day}`;
                         
+                        const isSelected = formData.date === dateKey && formData.time_from === `${slot.value}:00:00`;
+                        
                         return (
                           <td key={dateIndex}>
                             {events.length > 0 ? (
@@ -817,7 +853,15 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
                                   </>
                                 )}
                               </div>
-                            ) : null}
+                            ) : (
+                              <div 
+                                className={`slot empty ${isSelected ? 'selected' : ''}`}
+                                style={{ cursor: 'pointer', minHeight: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                onClick={() => handleEmptySlotClick(date, slot.value)}
+                              >
+                                {isSelected && <div className="third-btn-sm">Selected</div>}
+                              </div>
+                            )}
                           </td>
                         );
                       })}
@@ -1086,6 +1130,19 @@ const DashboardServicesCleaningRequestMain = ({ onMobileMenuClick }) => {
         .slot.available.selected {
           background-color: #d4edda;
           border: 2px solid #28a745;
+        }
+        
+        .slot.empty {
+          transition: all 0.3s ease;
+        }
+        
+        .slot.empty:hover {
+          background-color: #f8f9fa;
+        }
+        
+        .slot.empty.selected {
+          background-color: #fff3cd;
+          border: 2px solid #ffc107;
         }
 
         @media (max-width: 768px) {

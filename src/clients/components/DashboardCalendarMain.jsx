@@ -24,26 +24,45 @@ const DashboardCalendarMain = ({ onMobileMenuClick }) => {
   // Calendar state
   const [currentDate, setCurrentDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState([]);
+  const [viewType, setViewType] = useState('week'); // 'month', 'week', 'day'
 
   // Determine if we're in "select property" mode or "direct property" mode
   const isSelectMode = !id;
 
-  // Generate week dates based on currentDate
+  // Generate dates based on view type and current date
   useEffect(() => {
     const dates = [];
-    const startOfWeek = new Date(currentDate);
-    // Adjust to start on Sunday (0)
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day;
-    startOfWeek.setDate(diff);
+    const baseDate = new Date(currentDate);
+    
+    if (viewType === 'day') {
+      // Show only one day
+      dates.push(baseDate);
+    } else if (viewType === 'week') {
+      // Show 7 days starting from Sunday
+      const startOfWeek = new Date(baseDate);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day;
+      startOfWeek.setDate(diff);
 
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      dates.push(date);
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+        dates.push(date);
+      }
+    } else if (viewType === 'month') {
+      // Show entire month
+      const year = baseDate.getFullYear();
+      const month = baseDate.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        dates.push(date);
+      }
     }
+    
     setWeekDates(dates);
-  }, [currentDate]);
+  }, [currentDate, viewType]);
 
   // Fetch data based on mode
   useEffect(() => {
@@ -230,15 +249,27 @@ const DashboardCalendarMain = ({ onMobileMenuClick }) => {
   };
 
   // Navigation Handlers
-  const handleNextWeek = () => {
+  const handleNext = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 7);
+    if (viewType === 'day') {
+      newDate.setDate(newDate.getDate() + 1);
+    } else if (viewType === 'week') {
+      newDate.setDate(newDate.getDate() + 7);
+    } else if (viewType === 'month') {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
     setCurrentDate(newDate);
   };
 
-  const handlePrevWeek = () => {
+  const handleBack = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 7);
+    if (viewType === 'day') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else if (viewType === 'week') {
+      newDate.setDate(newDate.getDate() - 7);
+    } else if (viewType === 'month') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    }
     setCurrentDate(newDate);
   };
 
@@ -258,8 +289,15 @@ const DashboardCalendarMain = ({ onMobileMenuClick }) => {
   const formatDateRange = () => {
     if (weekDates.length === 0) return '';
     const start = weekDates[0];
-    const end = weekDates[6];
+    const end = weekDates[weekDates.length - 1];
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    
+    // For day view, show only one date
+    if (viewType === 'day') {
+      return start.toLocaleDateString('en-GB', options);
+    }
+    
+    // For week and month view, show range
     return `${start.toLocaleDateString('en-GB', options)} - ${end.toLocaleDateString('en-GB', options)}`;
   };
 
@@ -404,16 +442,33 @@ const DashboardCalendarMain = ({ onMobileMenuClick }) => {
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 mt-4">
               <div className="d-flex gap-2 p-2 rounded-2 days-filter">
                 <button className="main-btn rounded-2 px-3 py-1" onClick={handleToday}>Today</button>
-                <div className="days-filter-item px-3 py-1" onClick={handlePrevWeek} style={{cursor: 'pointer'}}>Back</div>
-                <div className="days-filter-item px-3 py-1" onClick={handleNextWeek} style={{cursor: 'pointer'}}>Next</div>
+                <div className="days-filter-item px-3 py-1" onClick={handleBack} style={{cursor: 'pointer'}}>Back</div>
+                <div className="days-filter-item px-3 py-1" onClick={handleNext} style={{cursor: 'pointer'}}>Next</div>
               </div>
 
               <h6 className="m-0 date-label">{formatDateRange()}</h6>
 
               <div className="d-flex gap-2 p-2 rounded-2 times-filter">
-                <button className="main-btn rounded-2 px-3 py-1">Week</button>
-                <div className="times-filter-item px-3 py-1">Month</div>
-                <div className="times-filter-item px-3 py-1">Day</div>
+                <button 
+                  className={`rounded-2 px-3 py-1 ${viewType === 'month' ? 'main-btn' : 'times-filter-item'}`}
+                  onClick={() => setViewType('month')}
+                >
+                  Month
+                </button>
+                <div 
+                  className={`px-3 py-1 ${viewType === 'week' ? 'main-btn' : 'times-filter-item'}`}
+                  style={{cursor: 'pointer'}}
+                  onClick={() => setViewType('week')}
+                >
+                  Week
+                </div>
+                <div 
+                  className={`px-3 py-1 ${viewType === 'day' ? 'main-btn' : 'times-filter-item'}`}
+                  style={{cursor: 'pointer'}}
+                  onClick={() => setViewType('day')}
+                >
+                  Day
+                </div>
               </div>
             </div>
 
@@ -519,16 +574,33 @@ const DashboardCalendarMain = ({ onMobileMenuClick }) => {
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 mt-4">
               <div className="d-flex gap-2 p-2 rounded-2 days-filter">
                 <button className="main-btn rounded-2 px-3 py-1" onClick={handleToday}>Today</button>
-                <div className="days-filter-item px-3 py-1" onClick={handlePrevWeek} style={{cursor: 'pointer'}}>Back</div>
-                <div className="days-filter-item px-3 py-1" onClick={handleNextWeek} style={{cursor: 'pointer'}}>Next</div>
+                <div className="days-filter-item px-3 py-1" onClick={handleBack} style={{cursor: 'pointer'}}>Back</div>
+                <div className="days-filter-item px-3 py-1" onClick={handleNext} style={{cursor: 'pointer'}}>Next</div>
               </div>
 
               <h6 className="m-0 date-label">{formatDateRange()}</h6>
 
               <div className="d-flex gap-2 p-2 rounded-2 times-filter">
-                <button className="main-btn rounded-2 px-3 py-1">Week</button>
-                <div className="times-filter-item px-3 py-1">Month</div>
-                <div className="times-filter-item px-3 py-1">Day</div>
+                <button 
+                  className={`rounded-2 px-3 py-1 ${viewType === 'month' ? 'main-btn' : 'times-filter-item'}`}
+                  onClick={() => setViewType('month')}
+                >
+                  Month
+                </button>
+                <div 
+                  className={`px-3 py-1 ${viewType === 'week' ? 'main-btn' : 'times-filter-item'}`}
+                  style={{cursor: 'pointer'}}
+                  onClick={() => setViewType('week')}
+                >
+                  Week
+                </div>
+                <div 
+                  className={`px-3 py-1 ${viewType === 'day' ? 'main-btn' : 'times-filter-item'}`}
+                  style={{cursor: 'pointer'}}
+                  onClick={() => setViewType('day')}
+                >
+                  Day
+                </div>
               </div>
             </div>
 
