@@ -9,8 +9,8 @@ import { setCredentials } from '../store/authSlice';
 const resolveDashboardPath = (roleId) => {
   const id = Number(roleId);
   if (id === 3) return '/client/dashboard';
-  if (id === 4) return '/provider/dashboard';
-  if (id === 5) return '/provider/dashboard';
+  if (id === 4) return '/cleaner/cleaning-requests';
+  if (id === 5) return '/supervisor/dashboard';
   if (id === 6) return '/guest/list';
   return '/';
 };

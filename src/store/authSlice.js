@@ -4,7 +4,7 @@ import { saveUserData, clearUserData, updateUserData, getUserData, getAccessToke
 const ROLE_LABELS = {
   3: 'client',
   4: 'cleaner_or_provider',
-  5: 'supervicer',
+  5: 'supervisor',
   6: 'guest',
 }
 

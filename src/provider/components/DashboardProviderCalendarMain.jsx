@@ -29,8 +29,25 @@ const DashboardProviderCalendarMain = ({ onMobileMenuClick }) => {
       try {
         setLoading(true);
         const response = await getUserCalendar(accessToken);
-        if (response.status === 1 && response.data?.[0]) {
-          setCalendarData(response.data[0]);
+        console.log('Calendar API Response:', response);
+        
+        if (response.status === 1 && response.data) {
+          // Handle nested array structure: data[0][0] or data[0]
+          let calendarItems = [];
+          if (Array.isArray(response.data[0])) {
+            calendarItems = response.data[0];
+          } else {
+            calendarItems = response.data;
+          }
+          
+          console.log('Calendar Items:', calendarItems);
+          setCalendarData(calendarItems);
+          
+          // Set initial week to first available date if data exists
+          if (calendarItems.length > 0) {
+            const firstDate = new Date(calendarItems[0].date);
+            setCurrentWeekStart(firstDate);
+          }
         } else {
           setCalendarData([]);
         }
@@ -76,17 +93,26 @@ const DashboardProviderCalendarMain = ({ onMobileMenuClick }) => {
     const dateStr = formatDate(date);
     const slotHour = parseInt(timeSlot.split(':')[0]);
     
-    return calendarData.find(item => {
+    // Find all matching items for this date and time
+    const matchingItems = calendarData.filter(item => {
       if (item.date !== dateStr) return false;
       const fromHour = parseInt(item.time_from.split(':')[0]);
       const toHour = parseInt(item.time_to.split(':')[0]);
+      
+      // Check if slot falls within the time range
       return slotHour >= fromHour && slotHour < toHour;
     });
+    
+    // Return the first matching item (could be enhanced to show multiple)
+    return matchingItems.length > 0 ? matchingItems[0] : null;
   };
 
   const getReservationsCount = (date) => {
     const dateStr = formatDate(date);
-    return calendarData.filter(item => item.date === dateStr).length;
+    const dayItems = calendarData.filter(item => item.date === dateStr);
+    // Count unique users for this date
+    const uniqueUsers = new Set(dayItems.map(item => item.user?.id));
+    return uniqueUsers.size;
   };
 
   const navigateWeek = (direction) => {

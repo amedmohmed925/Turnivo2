@@ -27,26 +27,26 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
   // Function to determine active item based on current path
   const getActiveItemFromPath = (path) => {
     switch (path) {
-      case '/provider/dashboard': return 'home';
-      case '/provider/team-work':
-      case '/provider/team-work-requests':
-      case '/provider/team-work-add-employee': return 'team';
-      case '/provider/smart-access':
-      case '/provider/smart-lock-requests': return 'checkin';
-      case '/provider/calendar':
-      case '/provider/availability': return 'calendar';
-      case '/provider/maintenance-request':
-      case '/provider/maintenance-details':
-      case '/provider/material-request':
-      case '/provider/cleaning-request':
-      case '/provider/cleaning-details': return 'service';
-      case '/provider/guests-ratings':
-      case '/provider/my-ratings': return 'ratings';
-      case '/provider/training':
-      case '/provider/training-details': return 'training';
-      case '/provider/company-policies':
-      case '/provider/work-agreement': return 'legal';
-      case '/provider/report-problem': return 'report';
+      case '/supervisor/dashboard': return 'home';
+      case '/supervisor/team-work':
+      case '/supervisor/team-work-requests':
+      case '/supervisor/team-work-add-employee': return 'team';
+      case '/supervisor/smart-access':
+      case '/supervisor/smart-lock-requests': return 'checkin';
+      case '/supervisor/calendar':
+      case '/supervisor/availability': return 'calendar';
+      case '/supervisor/maintenance-request':
+      case '/supervisor/maintenance-details':
+      case '/supervisor/material-request':
+      case '/supervisor/cleaning-request':
+      case '/supervisor/cleaning-details': return 'service';
+      case '/supervisor/guests-ratings':
+      case '/supervisor/my-ratings': return 'ratings';
+      case '/supervisor/training':
+      case '/supervisor/training-details': return 'training';
+      case '/supervisor/company-policies':
+      case '/supervisor/work-agreement': return 'legal';
+      case '/supervisor/report-problem': return 'report';
       default: return 'home';
     }
   };
@@ -98,7 +98,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (!ratingDropdownOpen) {
       setActiveItem('ratings');
       // Navigate to the ratings main page when opening the dropdown
-      navigate('/provider/guests-ratings');
+      navigate('/supervisor/guests-ratings');
     }
   };
   
@@ -115,7 +115,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
     if (!legalDropdownOpen) {
       setActiveItem('legal');
       // Navigate to the legal main page when opening the dropdown
-      navigate('/provider/company-policies');
+      navigate('/supervisor/company-policies');
     }
   };
   
@@ -125,7 +125,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       id: 'home',
       label: 'Home',
       iconPath: "/assets/home-icon.svg",
-      route: '/provider/dashboard'
+      route: '/supervisor/dashboard'
     },
 
     {
@@ -135,42 +135,42 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       hasDropdown: true,
       dropdownOpen: serviceDropdownOpen,
       onToggle: toggleServiceDropdown,
-      route: '/provider/maintenance-request',
+      route: '/supervisor/maintenance-request',
       subItems: [
-        { id: 'maintenance-requests', label: 'Maintenance Requests', route: '/provider/maintenance-request' },
-        { id: 'material-requests', label: 'Materials Requests', route: '/provider/material-request' },
-        { id: 'cleaning-requests', label: 'Cleaning Requests', route: '/provider/cleaning-request' }
+        { id: 'maintenance-requests', label: 'Maintenance Requests', route: '/supervisor/maintenance-request' },
+        { id: 'material-requests', label: 'Materials Requests', route: '/supervisor/material-request' },
+        { id: 'cleaning-requests', label: 'Cleaning Requests', route: '/supervisor/cleaning-request' }
       ]
     },
     {
       id: 'team',
       label: 'Work team',
       iconPath: "/assets/team-icon.svg",
-      route: '/provider/team-work'
+      route: '/supervisor/team-work'
     },
     {
       id: 'checkin',
       label: 'Smart Access',
       iconPath: "/assets/key-icon.svg",
-      route: '/provider/smart-access'
+      route: '/supervisor/smart-access'
     },
     {
       id: 'calendar',
       label: 'Calendar & Availability',
       iconPath: "/assets/calendar-icon.svg",
-      route: '/provider/calendar'
+      route: '/supervisor/calendar'
     },
     {
       id: 'ratings',
       label: 'Ratings & Ratings',
       iconPath: "/assets/medal-icon.svg",
-      route: '/provider/guests-ratings'
+      route: '/supervisor/guests-ratings'
     },
     {
       id: 'training',
       label: 'Training',
       iconPath: "/assets/cup-icon.svg",
-      route: '/provider/training'
+      route: '/supervisor/training'
     },
     {
       id: 'legal',
@@ -179,10 +179,10 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       hasDropdown: true,
       dropdownOpen: legalDropdownOpen,
       onToggle: toggleLegalDropdown,
-      route: '/provider/company-policies',
+      route: '/supervisor/company-policies',
       subItems: [
-        { id: 'work-agreement', label: 'Work Agreement', route: '/provider/work-agreement' },
-        { id: 'company-policies', label: 'Company Policies', route: '/provider/company-policies' },
+        { id: 'work-agreement', label: 'Work Agreement', route: '/supervisor/work-agreement' },
+        { id: 'company-policies', label: 'Company Policies', route: '/supervisor/company-policies' },
       ]
     },
    
@@ -194,13 +194,13 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       label: userFullName,
       iconPath: userAvatar,
       isUserProfile: true,
-      route: '/provider/availability'
+      route: '/supervisor/availability'
     },
     {
       id: 'notifications',
       label: 'Notifications',
       iconPath: "/assets/notification.svg",
-      route: '/provider/notifications',
+      route: '/supervisor/notifications',
       badge: unreadNotificationsCount
     },
     {

@@ -208,12 +208,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
         { id: 'smart-lock-checkin-checkout', label: 'Checkin-Checkout', route: '/cleaner/smart-lock-checkin-checkout' }
       ]
     },
-    {
-      id: 'ratings',
-      label: 'Guest Ratings',
-      iconPath: "/assets/medal-icon.svg",
-      route: '/cleaner/guest-ratings'
-    },
+  
     {
       id: 'training',
       label: 'Training',

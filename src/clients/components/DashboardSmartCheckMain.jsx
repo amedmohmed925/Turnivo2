@@ -956,7 +956,8 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
                     `🏠 PROPERTY INFORMATION\n` +
                     `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
                     `📌 Name: ${selectedProperty.name || 'N/A'}\n` +
-                    `🏷️ Type: ${selectedProperty.property_type_id?.name || 'N/A'}\n\n` +
+                    `🏷️ Type: ${selectedProperty.property_type_id?.name || 'N/A'}\n` +
+                    `🆔 Property ID: ${selectedProperty.id}\n\n` +
                     `📍 LOCATION\n` +
                     `──────────────────────\n` +
                     `🏘️ Address: ${selectedProperty.address || 'N/A'}\n` +
@@ -970,7 +971,13 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
                     `🚪 Rooms: ${selectedProperty.number_room || 0}\n` +
                     `🚿 Bathrooms: ${selectedProperty.number_bathroom || 0}\n\n` +
                     `👤 Co-Host: ${selectedProperty.co_host_id?.name || 'N/A'}\n` +
-                    `━━━━━━━━━━━━━━━━━━━━━━`
+                    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                    `🔐 LOGIN / ACCESS\n` +
+                    `──────────────────────\n` +
+                    `If you don't have an account:\n` +
+                    `👉 ${window.location.origin}/client/login\n\n` +
+                    `📱 Property Link:\n` +
+                    `${window.location.origin}/property/${selectedProperty.id}`
                   )}`}
                   alt="QR Code"
                   className="img-fluid"

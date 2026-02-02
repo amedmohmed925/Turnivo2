@@ -6,7 +6,7 @@ import { selectAuth } from '../store/authSlice';
  * Role IDs:
  * 3 - Client (مالك العقارات)
  * 4 - Cleaner (عامل النظافة)
- * 5 - Supervisor (المشرف) - يستخدم مسارات provider/
+ * 5 - Supervisor (المشرف) - يستخدم مسارات supervisor/
  * 6 - Guest (الضيف)
  */
 
@@ -40,11 +40,11 @@ const getDefaultPath = (roleId) => {
     case 4:
       return '/cleaner/cleaning-requests';
     case 5:
-      return '/provider/dashboard';
+      return '/supervisor/dashboard'; // Supervisor routes
     case 6:
       return '/guest/list';
     default:
-      return '/login';
+      return '/';
   }
 };
 

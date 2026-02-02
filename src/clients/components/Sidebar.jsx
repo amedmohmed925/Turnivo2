@@ -176,6 +176,12 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       iconPath: "/assets/calendar-icon.svg",
       route: '/client/calendar'
     },
+      {
+      id: 'payment',
+      label: 'Payment and smart wallet',
+      iconPath: "/assets/wallet-icon.svg",
+      route: '/client/dashboard'
+    },
     {
       id: 'ratings',
       label: 'Ratings & Feedback',
@@ -189,13 +195,13 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
         { id: 'my-ratings', label: 'My Ratings', route: '/client/my-ratings' },
       ]
     },
-    {
-      id: 'payment',
-      label: 'Payment and smart wallet',
-      iconPath: "/assets/wallet-icon.svg",
-      route: '/client/dashboard'
+   {
+      id: 'contact',
+      label: 'Contact us',
+      iconPath: "/assets/contact-us.svg",
+      route: '/client/contact-us'
     },
-   
+ 
   ];
 
   const bottomItems = [

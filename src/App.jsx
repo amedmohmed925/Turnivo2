@@ -85,7 +85,7 @@
       <Routes>
         {/* shared - Public Routes */}
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/activation-code" element={<ActivationCode />} />
+        <Route path="/activation-code" element={<PublicRoute><ActivationCode /></PublicRoute>} />
         <Route path="/scan-handler/:propertyId" element={<ScanHandler />} />
         <Route path="/join-confirm-page" element={<JoinConfirmPage />} />
         <Route path="/confirm-provider-steps" element={<ConfirmProviderSteps />} />
@@ -116,27 +116,27 @@
         <Route path="client/maintenance-orders" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardMaintenanceOrders /></ProtectedRoute>} />
 
         {/* provider/supervisor - Role ID: 5 */}
-        <Route path="provider/training" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTraining /></ProtectedRoute>} />
-        <Route path="provider/training-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTrainingDetails /></ProtectedRoute>} />
-        <Route path="provider/smart-access" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardSmartAccess /></ProtectedRoute>} />
-        <Route path="provider/smart-lock-requests" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardSmartLockRequests /></ProtectedRoute>} />
-        <Route path="provider/calendar" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardProviderCalendar /></ProtectedRoute>} />
-        <Route path="provider/availability" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardAvailability /></ProtectedRoute>} />
-        <Route path="provider/maintenance-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaintenanceRequest /></ProtectedRoute>} />
-        <Route path="provider/maintenance-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaintenanceDetails /></ProtectedRoute>} />
-        <Route path="provider/material-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaterialRequest /></ProtectedRoute>} />
-        <Route path="provider/material-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaterialDetails /></ProtectedRoute>} />
-        <Route path="provider/cleaning-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardCleaningRequest /></ProtectedRoute>} />
-        <Route path="provider/cleaning-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardCleaningDetails /></ProtectedRoute>} />
-        <Route path="provider/guests-ratings" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboarProviderGuestRatings /></ProtectedRoute>} />
-        <Route path="provider/company-policies" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><CompanyPolicies /></ProtectedRoute>} />
-        <Route path="provider/work-agreement" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><WorkAgreement /></ProtectedRoute>} />
-        <Route path="provider/report-problem" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardReportProblem /></ProtectedRoute>} />
-        <Route path="provider/dashboard" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardProviderHome /></ProtectedRoute>} />
-        <Route path="provider/team-work" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTeamWork /></ProtectedRoute>} />
-        <Route path="provider/team-work-requests" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><TeamWorkRequests /></ProtectedRoute>} />
-        <Route path="provider/team-work-add-employee" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardAddWorkEmp /></ProtectedRoute>} />
-        <Route path="provider/notifications" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><ProviderNotifications /></ProtectedRoute>} />
+        <Route path="supervisor/training" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTraining /></ProtectedRoute>} />
+        <Route path="supervisor/training-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTrainingDetails /></ProtectedRoute>} />
+        <Route path="supervisor/smart-access" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardSmartAccess /></ProtectedRoute>} />
+        <Route path="supervisor/smart-lock-requests" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardSmartLockRequests /></ProtectedRoute>} />
+        <Route path="supervisor/calendar" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardProviderCalendar /></ProtectedRoute>} />
+        <Route path="supervisor/availability" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardAvailability /></ProtectedRoute>} />
+        <Route path="supervisor/maintenance-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaintenanceRequest /></ProtectedRoute>} />
+        <Route path="supervisor/maintenance-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaintenanceDetails /></ProtectedRoute>} />
+        <Route path="supervisor/material-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaterialRequest /></ProtectedRoute>} />
+        <Route path="supervisor/material-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardMaterialDetails /></ProtectedRoute>} />
+        <Route path="supervisor/cleaning-request" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardCleaningRequest /></ProtectedRoute>} />
+        <Route path="supervisor/cleaning-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardCleaningDetails /></ProtectedRoute>} />
+        <Route path="supervisor/guests-ratings" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboarProviderGuestRatings /></ProtectedRoute>} />
+        <Route path="supervisor/company-policies" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><CompanyPolicies /></ProtectedRoute>} />
+        <Route path="supervisorr/work-agreement" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><WorkAgreement /></ProtectedRoute>} />
+        <Route path="supervisor/report-problem" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardReportProblem /></ProtectedRoute>} />
+        <Route path="supervisor/dashboard" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardProviderHome /></ProtectedRoute>} />
+        <Route path="supervisor/team-work" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTeamWork /></ProtectedRoute>} />
+        <Route path="supervisor/team-work-requests" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><TeamWorkRequests /></ProtectedRoute>} />
+        <Route path="supervisor/team-work-add-employee" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardAddWorkEmp /></ProtectedRoute>} />
+        <Route path="supervisor/notifications" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><ProviderNotifications /></ProtectedRoute>} />
 
         {/* cleaner - Role ID: 4 */}
         <Route path="cleaner/notifications" element={<ProtectedRoute allowedRoles={[ROLES.CLEANER]}><CleanerNotifications /></ProtectedRoute>} />
