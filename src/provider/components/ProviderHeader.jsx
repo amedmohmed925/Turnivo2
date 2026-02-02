@@ -43,7 +43,7 @@ const ProviderHeader = ({ title, onMobileMenuClick }) => {
       dispatch(logout());
       navigate('/login');
     } else if (item === 'profile') {
-      navigate('/provider/availability');
+      navigate('/supervisor/availability');
     }
   };
 
@@ -65,7 +65,7 @@ const ProviderHeader = ({ title, onMobileMenuClick }) => {
             <img src="/assets/global.svg" alt="language" />
             <span>English</span>
           </div>
-          <Link to='/provider/notifications' className="notification-icon-container">
+          <Link to='/supervisor/notifications' className="notification-icon-container">
             <img src="/assets/notification.svg" alt="notification" />
             {unreadNotificationsCount > 0 && (
               <span className="notification-badge">{unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}</span>

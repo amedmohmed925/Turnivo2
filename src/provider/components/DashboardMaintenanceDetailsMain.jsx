@@ -190,7 +190,14 @@ const DashboardMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
                     <div className="d-flex gap-2 align-items-center flex-wrap">
                         {serviceDetails.service_images_befor?.length > 0 ? (
                           serviceDetails.service_images_befor.map((img, idx) => (
-                            <img key={idx} src={renderImage(img)} className='added-img' alt="before" />
+                            <img 
+                              key={idx} 
+                              src={renderImage(img)} 
+                              className='added-img' 
+                              alt="before" 
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => window.open(renderImage(img), '_blank')}
+                            />
                           ))
                         ) : (
                           <p className="dashboard-home-card-2-desc-3 m-0">No images available</p>
@@ -202,7 +209,14 @@ const DashboardMaintenanceDetailsMain = ({ onMobileMenuClick }) => {
                     <div className="d-flex gap-2 align-items-center flex-wrap">
                         {serviceDetails.service_images_after?.length > 0 ? (
                           serviceDetails.service_images_after.map((img, idx) => (
-                            <img key={idx} src={renderImage(img)} className='added-img' alt="after" />
+                            <img 
+                              key={idx} 
+                              src={renderImage(img)} 
+                              className='added-img' 
+                              alt="after" 
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => window.open(renderImage(img), '_blank')}
+                            />
                           ))
                         ) : (
                           <p className="dashboard-home-card-2-desc-3 m-0">No images available</p>

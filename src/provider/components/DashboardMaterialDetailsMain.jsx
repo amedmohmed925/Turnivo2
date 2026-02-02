@@ -223,7 +223,7 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
         <div className="dashboard-home-content px-3 mt-5">
           <div className="text-center py-5">
             <p className="m-0">Material request details not found.</p>
-            <Link to="/provider/material-request" className="btn btn-primary mt-3">
+            <Link to="/supervisor/material-request" className="btn btn-primary mt-3">
               Back to Material Requests
             </Link>
           </div>
@@ -251,7 +251,7 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
               <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
-            <Link to='/provider/notifications' className="notification-icon-container">
+            <Link to='/supervisor/notifications' className="notification-icon-container">
               <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
@@ -395,7 +395,7 @@ const DashboardMaterialDetailsMain = ({ onMobileMenuClick }) => {
 
           {/* Action Buttons */}
           <div className="d-flex gap-2 align-items-center justify-content-between flex-wrap my-3">
-            <Link to="/provider/material-request" className="main-btn rounded-2 px-4 py-2 text-decoration-none">
+            <Link to="/supervisor/material-request" className="main-btn rounded-2 px-4 py-2 text-decoration-none">
               Back to Requests
             </Link>
             {shouldShowStatusButton() && (

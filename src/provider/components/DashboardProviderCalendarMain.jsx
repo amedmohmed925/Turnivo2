@@ -180,7 +180,7 @@ const DashboardProviderCalendarMain = ({ onMobileMenuClick }) => {
               <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
-            <Link to='/provider/notifications' className="notification-icon-container">
+            <Link to='/supervisor/notifications' className="notification-icon-container">
               <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
@@ -240,7 +240,7 @@ const DashboardProviderCalendarMain = ({ onMobileMenuClick }) => {
                     <FontAwesomeIcon icon={faCalendar} />
                    Calendar
                   </button>
-                  <Link to='/provider/availability' 
+                  <Link to='/supervisor/availability' 
                     className={`rounded-2 text-decoration-none border-0 px-2 py-2 days-filter-item d-flex align-items-center gap-1`}
                   >
                     <FontAwesomeIcon icon={faUser} />

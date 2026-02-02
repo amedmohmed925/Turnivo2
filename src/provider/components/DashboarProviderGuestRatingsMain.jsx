@@ -84,9 +84,9 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
   const handleDropdownItemClick = (action) => {
     setIsDropdownOpen(false);
     if (action === 'profile') {
-      navigate('/provider/profile');
+      navigate('/supervisor/profile');
     } else if (action === 'settings') {
-      navigate('/provider/settings');
+      navigate('/supervisor/settings');
     } else if (action === 'logout') {
       localStorage.removeItem('access_token');
       navigate('/login');
@@ -156,7 +156,7 @@ const DashboarProviderGuestRatingsMain = ({ onMobileMenuClick }) => {
               <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
-            <Link to='/provider/notifications' className="notification-icon-container">
+            <Link to='/supervisor/notifications' className="notification-icon-container">
               <img src="/assets/notification.svg" alt="notification" />
             </Link>
             

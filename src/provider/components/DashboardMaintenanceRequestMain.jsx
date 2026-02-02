@@ -345,7 +345,7 @@ const DashboardMaintenanceRequestMain = ({ onMobileMenuClick }) => {
             {/* Render current page items */}
             {currentItems.map((item) => (
               <Link 
-                to={`/provider/maintenance-details?id=${item.id}`} 
+                to={`/supervisor/maintenance-details?id=${item.id}`} 
                 key={item.id} 
                 className="d-flex text-decoration-none align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3"
               >

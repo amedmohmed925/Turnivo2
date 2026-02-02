@@ -73,7 +73,7 @@ const TeamWorkRequestsMain = ({ onMobileMenuClick }) => {
           />
         </div>
           <div className="d-flex gap-2 align-items-center flex-wrap">
-                      <Link to='/provider/team-work-add-employee' className='text-decoration-none'>
+                      <Link to='/supervisor/team-work-add-employee' className='text-decoration-none'>
                       <button 
             type="submit" 
             className="sec-btn rounded-2 py-2 px-3 d-flex align-items-center justify-content-center gap-2 w-50-100"

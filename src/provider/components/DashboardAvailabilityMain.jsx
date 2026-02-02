@@ -1,178 +1,264 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faBars, faUser, faLocationDot } from '@fortawesome/free-solid-svg-icons';
-import { Person, Settings, Logout } from '@mui/icons-material';
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import { Link } from 'react-router-dom';
+import ProviderHeader from './ProviderHeader';
+import { getUserProfile, updateUserProfile } from '../../api/authApi';
+import { useSelector } from 'react-redux';
+import Swal from 'sweetalert2';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const DashboardAvailabilityMain = ({ onMobileMenuClick }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const { token: accessToken } = useSelector((state) => state.auth);
   
+  // User profile state
+  const [userProfile, setUserProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Form data
+  const [formData, setFormData] = useState({
+    name: '',
+    last_name: '',
+    mobile: '',
+    city_id: ''
+  });
 
-  // Close dropdown when clicking outside
+  // Fetch user profile
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
+    const fetchProfile = async () => {
+      if (!accessToken) return;
+      try {
+        setIsLoading(true);
+        const response = await getUserProfile(accessToken);
+        console.log('Profile Response:', response);
+        
+        if (response.status === 1 && response.data) {
+          const profile = response.data[0] || response.data;
+          setUserProfile(profile);
+          setFormData({
+            name: profile.name || '',
+            last_name: profile.last_name || '',
+            mobile: profile.mobile || '',
+            city_id: profile.city_id?.id || profile.city_id || ''
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+        toast.error('Failed to load profile data');
+      } finally {
+        setIsLoading(false);
       }
     };
+    fetchProfile();
+  }, [accessToken]);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleDropdownItemClick = (item) => {
-    console.log(`Clicked on ${item}`);
-    setIsDropdownOpen(false);
-    // Add your navigation logic here
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setIsSubmitting(true);
+      const response = await updateUserProfile(formData, accessToken);
+      
+      if (response.status === 1) {
+        toast.success('Profile updated successfully!');
+        setIsEditing(false);
+        
+        // Refresh profile data
+        const updatedProfile = await getUserProfile(accessToken);
+        if (updatedProfile.status === 1 && updatedProfile.data) {
+          const profile = updatedProfile.data[0] || updatedProfile.data;
+          setUserProfile(profile);
+        }
+      } else {
+        toast.error(response.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-
+  // Cancel editing
+  const handleCancel = () => {
+    setIsEditing(false);
+    // Reset form data to original profile data
+    if (userProfile) {
+      setFormData({
+        name: userProfile.name || '',
+        last_name: userProfile.last_name || '',
+        mobile: userProfile.mobile || '',
+        city_id: userProfile.city_id?.id || userProfile.city_id || ''
+      });
+    }
+  };
 
   return (
     <section>
-      <div className="dashboard-main-nav px-md-3 px-1 py-1">
-        <div className="d-flex justify-content-between align-items-center">
-          <div className="d-flex align-items-center gap-0">
-            <button 
-              className="mobile-menu-btn"
-              onClick={onMobileMenuClick}
-              aria-label="Toggle menu"
-            >
-              <FontAwesomeIcon icon={faBars} />
-            </button>
-            <h2 className="mb-0 dashboard-title">Calendar & Availability</h2>
-          </div>
-          <div className="d-flex justify-content-end gap-2 align-items-center">
-            <div className="dashboard-lang-btn d-flex gap-1 align-items-center">
-              <img src="/assets/global.svg" alt="notification" />
-              <span>English</span>
-            </div>
-            <Link to='/provider/notifications' className="notification-icon-container">
-              <img src="/assets/notification.svg" alt="notification" />
-            </Link>
-            
-            {/* User Profile Dropdown */}
-            <div className="user-dropdown-container d-none d-md-block" ref={dropdownRef}>
-              <div 
-                className="user-profile-trigger d-flex gap-2 align-items-center"
-                onClick={toggleDropdown}
+      <ToastContainer />
+      <ProviderHeader title="Calendar & Availability" onMobileMenuClick={onMobileMenuClick} />
+      
+      <div className="dashboard-home-content px-3 mt-2">
+        <div className="d-flex flex-wrap flex-lg-nowrap gap-1 align-items-center my-3">
+          <div className="row package-filter align-items-center py-2 px-0 m-0 w-100">
+            <div className="col-md-6 col-12">
+              <Link 
+                to='/supervisor/calendar' 
+                className="rounded-2 border-0 px-2 py-2 w-100 package-filter-item text-decoration-none d-block text-center"
               >
-                <FontAwesomeIcon 
-                  icon={faChevronDown} 
-                  className={`dropdown-chevron ${isDropdownOpen ? 'open' : ''}`}
-                />
-                <span className="user-name">Omar Alrajhi</span>
-                <img 
-                  src="/assets/user.png" 
-                  alt="User Profile" 
-                  className="user-avatar-small"
-                />
-              </div>
-              
-              {isDropdownOpen && (
-                <div className="user-dropdown-menu">
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('profile')}
+                Calendar
+              </Link>
+            </div>
+            <div className="col-md-6 col-12">
+              <button className="rounded-2 border-0 px-2 py-2 w-100 sec-btn">
+                Profile
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h6 className="dashboard-routes-sub m-0">Profile Information</h6>
+              {!isEditing ? (
+                <button 
+                  className="sec-btn rounded-2 px-4 py-2"
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit
+                </button>
+              ) : (
+                <div className="d-flex gap-2">
+                  <button 
+                    className="edit-btn rounded-2 px-4 py-2"
+                    onClick={handleCancel}
+                    disabled={isSubmitting}
                   >
-                    <img src="/assets/user-square.svg" alt="settings" />
-                    <span>Profile</span>
-                  </div>
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('settings')}
+                    Cancel
+                  </button>
+                  <button 
+                    className="sec-btn rounded-2 px-4 py-2"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
                   >
-                    <img src="/assets/setting-icon.svg" alt="settings" />
-                    <span>Settings</span>
-                  </div>
-                  <div 
-                    className="dropdown-item d-flex gap-2 align-items-center"
-                    onClick={() => handleDropdownItemClick('logout')}
-                  >
-                    <img src="/assets/logout-icon.svg" alt="settings" />
-                    <span>Logout</span>
-                  </div>
+                    {isSubmitting ? 'Saving...' : 'Save'}
+                  </button>
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </div>
-      <div className="dashboard-home-content px-3 mt-2">
-        <img src="/assets/user.png" className='profile-img' alt="user" />
-        <h2 className="mb-0 property-problem-title">Omar Alrajihi</h2>
-        <div className="d-flex justify-content-between align-items-end gap-3 flex-wrap">
-          <div>
-            <div className="d-flex gap-1 align-items-center mt-2">
-              <FontAwesomeIcon icon={faUser} className='gray-icon' />
-              <p className='dashboard-small-title m-0'>New worker</p>
-            </div>
-            <div className="d-flex gap-1 align-items-center mt-2">
-              <FontAwesomeIcon icon={faLocationDot} className='gray-icon' />
-              <p className='dashboard-small-title m-0'>Riyadh, Al Narjis Neighborhood</p>
-            </div>
-          </div>
-            <button className="main-btn rounded-2 px-3 py-2 w-50-100 d-flex gap-2 align-items-center">
-                <img src="/assets/edit-2.svg" alt="edit" />
-                Edit
-            </button>
-        </div>
-        <h6 className='service-desc mt-3'>About</h6>
-        <p className='dashboard-small-title m-0'>I am looking for reliable and professional cleaning services to keep my condominium unit clean. I make sure to choose services that suit my needs whether it's deep cleaning, daily, or after construction. I care about quality, punctuality, and the use of safe materials to ensure a healthy and comfortable environment.</p>
-        <h6 className='service-desc mt-3'>Personal information</h6>
 
-        <div className="row">
-          <div className="col-12">
-                <div className="mb-3 w-100">
-                  <label className="form-label mb-1">Full name</label>
-                  <input
-                    type="text"
-                    className="form-control rounded-2 py-2 px-3 w-100"
-                    placeholder="Omar Alrajihi"
+            <form onSubmit={handleSubmit}>
+              <div className="row g-3">
+                {/* Avatar */}
+                <div className="col-12 text-center mb-3">
+                  <img 
+                    src={userProfile?.avatar || '/assets/user.png'} 
+                    alt="User Avatar" 
+                    className="rounded-circle"
+                    style={{ width: '120px', height: '120px', objectFit: 'cover' }}
                   />
                 </div>
-          </div>
-          <div className="col-md-6">
-                <div className="mb-3 w-100">
-                  <label className="form-label mb-1">Email</label>
+
+                {/* First Name */}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">First Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    className="form-control rounded-2 py-2"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    required
+                  />
+                </div>
+
+                {/* Last Name */}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">Last Name</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    className="form-control rounded-2 py-2"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    required
+                  />
+                </div>
+
+                {/* Email (Read Only) */}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">Email</label>
                   <input
                     type="email"
-                    className="form-control rounded-2 py-2 px-3 w-100"
-                    placeholder="Omaralrajihi@gmail.com"
+                    className="form-control rounded-2 py-2"
+                    value={userProfile?.email || ''}
+                    disabled
                   />
                 </div>
-          </div>
-          <div className="col-md-6">
-                <div className="mb-3 w-100">
-                  <label className="form-label mb-1">Phone number</label>
+
+                {/* Mobile */}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">Mobile</label>
+                  <input
+                    type="tel"
+                    name="mobile"
+                    className="form-control rounded-2 py-2"
+                    value={formData.mobile}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    required
+                  />
+                </div>
+
+                {/* City ID */}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">City</label>
                   <input
                     type="text"
-                    className="form-control rounded-2 py-2 px-3 w-100"
-                    placeholder="+299 876 434 999"
+                    name="city_id"
+                    className="form-control rounded-2 py-2"
+                    value={formData.city_id}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    placeholder="Enter city ID"
                   />
+                  <small className="text-muted">City: {userProfile?.city_id?.name || 'N/A'}</small>
                 </div>
-          </div>
-          <div className="col-12">
-                <div className="mb-3 w-100">
-                  <label className="form-label mb-1">Address</label>
+
+                {/* User Type (Read Only) */}
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">User Type</label>
                   <input
                     type="text"
-                    className="form-control rounded-2 py-2 px-3 w-100"
-                    placeholder="Enter address"
+                    className="form-control rounded-2 py-2"
+                    value={userProfile?.user_type || ''}
+                    disabled
                   />
                 </div>
-          </div>
-        </div>
-        
+              </div>
+            </form>
+          </>
+        )}
       </div>
     </section>
   );

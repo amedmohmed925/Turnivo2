@@ -32,9 +32,9 @@ const DashboardMaterialRequestMain = ({ onMobileMenuClick }) => {
   const handleDropdownItemClick = (action) => {
     setIsDropdownOpen(false);
     if (action === 'profile') {
-      navigate('/provider/profile');
+      navigate('/supervisor/profile');
     } else if (action === 'settings') {
-      navigate('/provider/settings');
+      navigate('/supervisor/settings');
     } else if (action === 'logout') {
       localStorage.removeItem('access_token');
       navigate('/login');
@@ -368,7 +368,7 @@ const DashboardMaterialRequestMain = ({ onMobileMenuClick }) => {
             {/* Render current page items */}
             {currentItems.map((item) => (
               <Link 
-                to={`/provider/material-details?id=${item.id}`} 
+                to={`/supervisor/material-details?id=${item.id}`} 
                 key={item.id} 
                 className="d-flex text-decoration-none align-items-center justify-content-between p-3 gap-2 w-100 materials-cards rounded-4 mb-3"
               >

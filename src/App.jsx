@@ -130,7 +130,7 @@
         <Route path="supervisor/cleaning-details" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardCleaningDetails /></ProtectedRoute>} />
         <Route path="supervisor/guests-ratings" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboarProviderGuestRatings /></ProtectedRoute>} />
         <Route path="supervisor/company-policies" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><CompanyPolicies /></ProtectedRoute>} />
-        <Route path="supervisorr/work-agreement" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><WorkAgreement /></ProtectedRoute>} />
+        <Route path="supervisor/work-agreement" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><WorkAgreement /></ProtectedRoute>} />
         <Route path="supervisor/report-problem" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardReportProblem /></ProtectedRoute>} />
         <Route path="supervisor/dashboard" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardProviderHome /></ProtectedRoute>} />
         <Route path="supervisor/team-work" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTeamWork /></ProtectedRoute>} />

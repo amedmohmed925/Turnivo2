@@ -139,7 +139,7 @@ const ProviderNotificationsMain = ({ onMobileMenuClick }) => {
               <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
-            <Link to='/provider/notifications' className="notification-icon-container sec-btn">
+            <Link to='/supervisor/notifications' className="notification-icon-container sec-btn">
               <img src="/assets/notification-2.svg" alt="notification" />
             </Link>
             

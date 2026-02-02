@@ -132,7 +132,7 @@ const DashboardTrainingMain = ({ onMobileMenuClick }) => {
               <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
-            <Link to='/provider/notifications' className="notification-icon-container">
+            <Link to='/supervisor/notifications' className="notification-icon-container">
               <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
@@ -218,7 +218,7 @@ const DashboardTrainingMain = ({ onMobileMenuClick }) => {
           {!isLoading && filteredTrainings.map((item) => (
             <div className="col-md-6 mb-2" key={item.id || item.title}>
               <Link 
-                to={`/provider/training-details?id=${item.id}`}
+                to={`/supervisor/training-details?id=${item.id}`}
                 className="card text-decoration-none rounded-top-4 h-100 training-card"
               >
                 <img

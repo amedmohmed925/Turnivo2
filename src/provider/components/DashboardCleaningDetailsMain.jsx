@@ -5,10 +5,6 @@ import { getCleanServiceDetails } from '../../api/superviserCleaningApi';
 import ProviderHeader from './ProviderHeader';
 
 const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
-  const [beforeImages, setBeforeImages] = useState([]);
-  const [afterImages, setAfterImages] = useState([]);
-  const beforeInputRef = useRef(null);
-  const afterInputRef = useRef(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [serviceDetails, setServiceDetails] = useState(null);
@@ -21,14 +17,14 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
     }
   };
 
-  const handleBeforeUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setBeforeImages(prev => [...prev, ...files]);
-  };
-
-  const handleAfterUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setAfterImages(prev => [...prev, ...files]);
+  // Helper function to render image
+  const renderImage = (img) => {
+    if (typeof img === 'string') {
+      return img;
+    } else if (img instanceof File) {
+      return URL.createObjectURL(img);
+    }
+    return '/assets/problem-img-2.png';
   };
 
   useEffect(() => {
@@ -152,25 +148,40 @@ const DashboardCleaningDetailsMain = ({ onMobileMenuClick }) => {
                 <div className='rating-stars-bg p-2 rounded-2'>
                     <h3 className='form-label mb-2'>Before cleaning</h3>
                     <div className="d-flex gap-2 align-items-center flex-wrap">
-                        <div className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" onClick={() => beforeInputRef.current.click()}>
-                            <img src="/assets/gallery-add.svg" alt="gallery" />
-                            <h6 className='table-time m-0'>Add room photos</h6>
-                        </div>
-                        {beforeImages.map((img, idx) => <img key={idx} src={URL.createObjectURL(img)} className='added-img' alt="uploaded" />)}
+                        {serviceDetails.service_images_befor?.length > 0 ? (
+                          serviceDetails.service_images_befor.map((img, idx) => (
+                            <img 
+                              key={idx} 
+                              src={renderImage(img)} 
+                              className='added-img' 
+                              alt="before" 
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => window.open(renderImage(img), '_blank')}
+                            />
+                          ))
+                        ) : (
+                          <p className="dashboard-home-card-2-desc-3 m-0">No images available</p>
+                        )}
                     </div>
-                    <input type="file" multiple accept="image/*" ref={beforeInputRef} onChange={handleBeforeUpload} style={{display: 'none'}} />
                 </div>
                 <div className='rating-stars-bg p-2 rounded-2'>
                     <h3 className='form-label mb-2'>After cleaning</h3>
                     <div className="d-flex gap-2 align-items-center flex-wrap">
-                        <div className="add-room-btn d-flex flex-column align-items-center justify-content-center gap-2" onClick={() => afterInputRef.current.click()}>
-                            <img src="/assets/gallery-add.svg" alt="gallery" />
-                            <h6 className='table-time m-0'>Add room photos</h6>
-                        </div>
-                        {afterImages.map((img, idx) => <img key={idx} src={URL.createObjectURL(img)} className='added-img' alt="uploaded" />)}
-
+                        {serviceDetails.service_images_after?.length > 0 ? (
+                          serviceDetails.service_images_after.map((img, idx) => (
+                            <img 
+                              key={idx} 
+                              src={renderImage(img)} 
+                              className='added-img' 
+                              alt="after" 
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => window.open(renderImage(img), '_blank')}
+                            />
+                          ))
+                        ) : (
+                          <p className="dashboard-home-card-2-desc-3 m-0">No images available</p>
+                        )}
                     </div>
-                    <input type="file" multiple accept="image/*" ref={afterInputRef} onChange={handleAfterUpload} style={{display: 'none'}} />
                 </div>
 
             </div>

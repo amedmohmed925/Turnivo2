@@ -204,9 +204,9 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
         });
         // Navigate back to the appropriate page
         if (serviceType === 'cleaning') {
-          navigate('/provider/cleaning-request');
+          navigate('/supervisor/cleaning-request');
         } else {
-          navigate('/provider/maintenance-request');
+          navigate('/supervisor/maintenance-request');
         }
       } else {
         Swal.fire({
@@ -316,7 +316,7 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
         </div>
           {!isSelectionMode && (
           <div className="d-flex gap-2 align-items-center flex-wrap">
-            <Link to='/provider/team-work-requests' className='text-decoration-none'>
+            <Link to='/supervisor/team-work-requests' className='text-decoration-none'>
                       <button
   className="main-btn rounded-2 px-4 d-flex gap-1 align-items-center py-2 w-50-100"
 >
@@ -343,7 +343,7 @@ const DashboardTeamWorkMain = ({ onMobileMenuClick }) => {
  )}
                         </button>
             </Link>
-            <Link to='/provider/team-work-add-employee' className='text-decoration-none'>
+            <Link to='/supervisor/team-work-add-employee' className='text-decoration-none'>
                       <button 
             type="submit" 
             className="sec-btn rounded-2 py-2 px-3 d-flex align-items-center justify-content-center gap-2 w-50-100"

@@ -114,7 +114,7 @@ const DashboardSmartAccessMain = ({ onMobileMenuClick }) => {
               <img src="/assets/global.svg" alt="notification" />
               <span>English</span>
             </div>
-            <Link to='/provider/notifications' className="notification-icon-container">
+            <Link to='/supervisor/notifications' className="notification-icon-container">
               <img src="/assets/notification.svg" alt="notification" />
             </Link>
             
