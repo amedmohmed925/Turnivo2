@@ -8,6 +8,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import CleanerHeader from './CleanerHeader';
 import { getCleanServiceDetails, addCleanServiceBeforeImages, addCleanServiceAfterImages, changeStatusCleanService } from '../../api/cleanerCleaningApi';
+import { getLists } from '../../api/listsApi';
 
 const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
   const [searchParams] = useSearchParams();
@@ -22,13 +23,52 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
   const beforeInputRef = useRef(null);
   const afterInputRef = useRef(null);
   
+  // State for countdown timer
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const [totalSeconds, setTotalSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  
   // State for task checkboxes
-  const [tasks, setTasks] = useState([
-    { id: 1, label: 'Changing bed linens', checked: false },
-    { id: 2, label: 'Clean the bathrooms', checked: false },
-    { id: 3, label: 'Q flooring', checked: false },
-    { id: 4, label: 'Damage inspection', checked: false }
-  ]);
+  const [tasks, setTasks] = useState([]);
+
+  // Fetch ServiceList from API
+  useEffect(() => {
+    const fetchServiceList = async () => {
+      try {
+        const accessToken = localStorage.getItem('access_token');
+        const serviceId = searchParams.get('id');
+        
+        if (!accessToken || !serviceId) return;
+
+        const response = await getLists(accessToken);
+        
+        if (response.status === 1 && response.data?.ServiceList) {
+          // Load saved task states from localStorage
+          const savedTasks = localStorage.getItem(`tasks_${serviceId}`);
+          let tasksWithState = [];
+          
+          if (savedTasks) {
+            // If there are saved tasks, use them
+            tasksWithState = JSON.parse(savedTasks);
+          } else {
+            // Otherwise, create new tasks from API data
+            tasksWithState = response.data.ServiceList.map(task => ({
+              id: task.id,
+              label: task.title,
+              image: task.image,
+              checked: false
+            }));
+          }
+          
+          setTasks(tasksWithState);
+        }
+      } catch (error) {
+        console.error('Error fetching service list:', error);
+      }
+    };
+
+    fetchServiceList();
+  }, [searchParams]);
 
   // Fetch service details
   useEffect(() => {
@@ -68,6 +108,50 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
           if (detail.service_images_after) {
             setAfterImages(detail.service_images_after);
           }
+          
+          // Initialize timer from duration_time
+          if (detail.duration_time) {
+            const [hours, minutes, seconds] = detail.duration_time.split(':').map(Number);
+            const totalSecs = (hours * 3600) + (minutes * 60) + seconds;
+            setTotalSeconds(totalSecs);
+            
+            // Check if timer was already started (saved in localStorage)
+            const timerKey = `timer_${id}`;
+            const savedTimer = localStorage.getItem(timerKey);
+            
+            if (savedTimer) {
+              // Timer was previously started, calculate remaining time
+              const { startTime, totalSeconds } = JSON.parse(savedTimer);
+              const now = Date.now();
+              const elapsedSeconds = Math.floor((now - startTime) / 1000);
+              const remaining = totalSeconds - elapsedSeconds;
+              
+              if (remaining > 0) {
+                // Timer still running
+                setRemainingSeconds(remaining);
+                setIsTimerRunning(true);
+              } else {
+                // Timer completed
+                setRemainingSeconds(0);
+                setIsTimerRunning(false);
+              }
+            } else {
+              // Timer not started yet
+              setRemainingSeconds(totalSecs);
+              
+              // Only start timer if user came from QR code scan
+              const fromQR = searchParams.get('fromQR') === 'true';
+              if (fromQR) {
+                // Save timer start time to localStorage
+                const timerData = {
+                  startTime: Date.now(),
+                  totalSeconds: totalSecs
+                };
+                localStorage.setItem(timerKey, JSON.stringify(timerData));
+                setIsTimerRunning(true);
+              }
+            }
+          }
         } else {
           setServiceDetails(null);
         }
@@ -85,6 +169,57 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
 
     fetchDetails();
   }, [searchParams]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!isTimerRunning || remainingSeconds <= 0) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          setIsTimerRunning(false);
+          
+          // Clear timer from localStorage when completed
+          const serviceId = searchParams.get('id');
+          if (serviceId) {
+            localStorage.removeItem(`timer_${serviceId}`);
+          }
+          
+          // Timer completed
+          Swal.fire({
+            icon: 'success',
+            title: 'Time\'s Up!',
+            text: 'The allocated time for this task has ended.',
+            confirmButtonText: 'OK'
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTimerRunning, remainingSeconds, searchParams]);
+
+  // Format time for display (HH:MM:SS or MM:SS)
+  const formatTimerDisplay = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Calculate progress percentage for circular progress
+  const getProgressPercentage = () => {
+    if (totalSeconds === 0) return 0;
+    return ((totalSeconds - remainingSeconds) / totalSeconds) * 100;
+  };
 
   const handleBeforeUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -156,11 +291,20 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
 
   // Function to handle task checkbox toggle
   const handleTaskToggle = (taskId) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
+    const serviceId = searchParams.get('id');
+    
+    setTasks(prevTasks => {
+      const updatedTasks = prevTasks.map(task => 
         task.id === taskId ? { ...task, checked: !task.checked } : task
-      )
-    );
+      );
+      
+      // Save to localStorage
+      if (serviceId) {
+        localStorage.setItem(`tasks_${serviceId}`, JSON.stringify(updatedTasks));
+      }
+      
+      return updatedTasks;
+    });
   };
 
   // Function to handle status change
@@ -498,10 +642,14 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
       cx="90"
       cy="90"
       r="80"
+      style={{
+        strokeDasharray: `${2 * Math.PI * 80}`,
+        strokeDashoffset: `${2 * Math.PI * 80 * (1 - getProgressPercentage() / 100)}`
+      }}
     />
   </svg>
 
-  <div className="timer-text medium">90</div>
+  <div className="timer-text medium">{formatTimerDisplay(remainingSeconds)}</div>
 </div>
 
 
@@ -516,10 +664,7 @@ const CleanerCleaningDetailsMain = ({ onMobileMenuClick }) => {
                                     <FontAwesomeIcon icon={faPlus} />
                                 </div>
                             </div>
-                            <div className="d-flex align-items-center gap-5">
-                                <StopCircleIcon className='pause' />
-                                <PauseCircleFilledOutlinedIcon className='pause' />
-                            </div>
+                          
                         </div>
                     </div>
 

@@ -115,9 +115,9 @@ const ScanHandler = () => {
                   setStatusSubtitle('Welcome! You are checked in.');
                   setStatusType('success');
                   
-                  // Wait 5 seconds then redirect to service details
+                  // Wait 5 seconds then redirect to service details with fromQR flag
                   await new Promise(resolve => setTimeout(resolve, 5000));
-                  navigate(`/cleaner/cleaning-details?id=${serviceId}`);
+                  navigate(`/cleaner/cleaning-details?id=${serviceId}&fromQR=true`);
                 } catch (error) {
                   setStatusMessage('Check-in Failed');
                   setStatusSubtitle('An error occurred during check-in. Please try again.');
