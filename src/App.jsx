@@ -23,6 +23,7 @@
   import DashboardContact from './clients/pages/DashboardContact'
   import DashboardCalendar from './clients/pages/DashboardCalendar'
   import MySmartLockRequest from './clients/pages/MySmartLockRequest'
+  import DashboardPayment from './clients/pages/DashboardPayment'
   import DashboardTraining from './provider/pages/DashboardTraining'
   import DashboardTrainingDetails from './provider/pages/DashboardTrainingDetails'
   import DashboardSmartAccess from './provider/pages/DashboardSmartAccess'
@@ -114,6 +115,7 @@
         <Route path="client/calendar/:id" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardCalendar /></ProtectedRoute>} />
         <Route path="client/notifications" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><ClientNotifications /></ProtectedRoute>} />
         <Route path="client/maintenance-orders" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardMaintenanceOrders /></ProtectedRoute>} />
+        <Route path="client/payment" element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]}><DashboardPayment /></ProtectedRoute>} />
 
         {/* provider/supervisor - Role ID: 5 */}
         <Route path="supervisor/training" element={<ProtectedRoute allowedRoles={[ROLES.SUPERVISOR]}><DashboardTraining /></ProtectedRoute>} />

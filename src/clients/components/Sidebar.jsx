@@ -36,6 +36,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       case '/client/calendar': return 'calendar';
       case '/client/contact-us': return 'contact';
       case '/client/profile': return 'user-profile';
+      case '/client/payment': return 'payment';
       case '/client/cleaning-request':
       case '/client/maintenance':
       case '/client/maintenance-orders':
@@ -180,7 +181,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose = () => {} }) => {
       id: 'payment',
       label: 'Payment and smart wallet',
       iconPath: "/assets/wallet-icon.svg",
-      route: '/client/dashboard'
+      route: '/client/payment'
     },
     {
       id: 'ratings',
