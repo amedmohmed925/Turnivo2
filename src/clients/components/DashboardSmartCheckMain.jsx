@@ -627,6 +627,8 @@ const DashboardSmartCheckMain = ({ onMobileMenuClick }) => {
           </div>
         )}
 
+
+
         <div className="row mt-3 w-100 g-0">
           <div className='col-md-2 mb-3 col-20-per'>
             <div className="d-flex align-items-start flex-column p-2 rounded-3 bg-light-gray-2">
