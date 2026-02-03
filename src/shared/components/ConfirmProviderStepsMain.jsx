@@ -296,9 +296,9 @@ const handleNextStep = (e) => {
     setHasExperience(hasExp);
     setFormData(prev => ({ ...prev, experience: hasExp ? 1 : 0 }));
     if (!hasExp) {
-      // If user has no experience, clear company and go to next step
+      // If user has no experience, clear company and go directly to next step
       setFormData(prev => ({ ...prev, company: '' }));
-      handleNextStep();
+      setCurrentStep(4); // Go directly to step 4 without validation
     }
   };
 
@@ -621,7 +621,34 @@ const handleNextStep = (e) => {
                     {/* Bootstrap Icon */}
                     <i className="bi bi-chevron-down select-bs-icon"></i>
                   </div>
-                  <div className="d-flex justify-content-end align-items-center mb-3">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <button 
+                      className="main-btn rounded-2 px-3 py-2" 
+                      onClick={() => setHasExperience(null)}
+                    >
+                      Back
+                    </button>
+                    <button className="sec-btn rounded-2 px-3 py-2 w-50-100" onClick={handleNextStep}>
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* No content - show if user selected NO */}
+              {hasExperience === false && (
+                <div className="no-content">
+                  <div className="">
+                    <h2 className="mb-2 login-title">No previous experience</h2>
+                    <p className="login-description">You selected that you have no previous cleaning experience.</p>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <button 
+                      className="main-btn rounded-2 px-3 py-2" 
+                      onClick={() => setHasExperience(null)}
+                    >
+                      Change Selection
+                    </button>
                     <button className="sec-btn rounded-2 px-3 py-2 w-50-100" onClick={handleNextStep}>
                       Next
                     </button>
